@@ -1,0 +1,1234 @@
+{
+  "description": "Exact English printings and Japanese printings with verified Limitless English translations, reviewed 3 November 2026. Empty attack effects were independently verified as damage-only.",
+  "cards": [
+    {
+      "id": "verified:BRS:141",
+      "name": "Gloria",
+      "setCode": "BRS",
+      "cardNumber": "141",
+      "language": "en",
+      "categoryHint": "Trainer",
+      "meta": {
+        "source": "Limitless",
+        "language": "en",
+        "category": "Trainer",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "Supporter",
+        "energyType": "",
+        "hp": "",
+        "types": [],
+        "retreat": 0,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "",
+        "effect": "Search your deck for up to 3 Basic Pokémon that don't have a Rule Box and put them onto your Bench. Then, shuffle your deck. (Pokémon V, Pokémon-GX, etc. have Rule Boxes.)",
+        "rules": [],
+        "attacks": [],
+        "abilities": []
+      },
+      "sourceUrl": "https://limitlesstcg.com/cards/BRS/141"
+    },
+    {
+      "id": "verified:BLK:85",
+      "name": "Professor's Research",
+      "setCode": "BLK",
+      "cardNumber": "85",
+      "language": "en",
+      "categoryHint": "Trainer",
+      "meta": {
+        "source": "Limitless",
+        "language": "en",
+        "category": "Trainer",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "Supporter",
+        "energyType": "",
+        "hp": "",
+        "types": [],
+        "retreat": 0,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "",
+        "effect": "Discard your hand and draw 7 cards.",
+        "rules": [],
+        "attacks": [],
+        "abilities": []
+      },
+      "sourceUrl": "https://limitlesstcg.com/cards/BLK/85"
+    },
+    {
+      "id": "verified:FST:240",
+      "name": "Shauna",
+      "setCode": "FST",
+      "cardNumber": "240",
+      "language": "en",
+      "categoryHint": "Trainer",
+      "meta": {
+        "source": "Limitless",
+        "language": "en",
+        "category": "Trainer",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "Supporter",
+        "energyType": "",
+        "hp": "",
+        "types": [],
+        "retreat": 0,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "",
+        "effect": "Shuffle your hand into your deck. Then, draw 5 cards.",
+        "rules": [],
+        "attacks": [],
+        "abilities": []
+      },
+      "sourceUrl": "https://limitlesstcg.com/cards/FST/240"
+    },
+    {
+      "id": "verified:CPA:65",
+      "name": "Sonia",
+      "setCode": "CPA",
+      "cardNumber": "65",
+      "language": "en",
+      "categoryHint": "Trainer",
+      "meta": {
+        "source": "Limitless",
+        "language": "en",
+        "category": "Trainer",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "Supporter",
+        "energyType": "",
+        "hp": "",
+        "types": [],
+        "retreat": 0,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "",
+        "effect": "Search your deck for up to 2 Basic Pokémon or up to 2 basic Energy cards, reveal them, and put them into your hand. Then, shuffle your deck.",
+        "rules": [],
+        "attacks": [],
+        "abilities": []
+      },
+      "sourceUrl": "https://limitlesstcg.com/cards/CPA/65"
+    },
+    {
+      "id": "verified:MEG:114",
+      "name": "Boss's Orders",
+      "setCode": "MEG",
+      "cardNumber": "114",
+      "language": "en",
+      "categoryHint": "Trainer",
+      "meta": {
+        "source": "Limitless",
+        "language": "en",
+        "category": "Trainer",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "Supporter",
+        "energyType": "",
+        "hp": "",
+        "types": [],
+        "retreat": 0,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "",
+        "effect": "Switch in 1 of your opponent's Benched Pokémon to the Active Spot.",
+        "rules": [],
+        "attacks": [],
+        "abilities": []
+      },
+      "sourceUrl": "https://limitlesstcg.com/cards/MEG/114"
+    },
+    {
+      "id": "verified:CRI:108",
+      "name": "Energy Retrieval",
+      "setCode": "CRI",
+      "cardNumber": "108",
+      "language": "en",
+      "categoryHint": "Trainer",
+      "meta": {
+        "source": "Limitless",
+        "language": "en",
+        "category": "Trainer",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "Item",
+        "energyType": "",
+        "hp": "",
+        "types": [],
+        "retreat": 0,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "",
+        "effect": "Put up to 2 Basic Energy cards from your discard pile into your hand.",
+        "rules": [],
+        "attacks": [],
+        "abilities": []
+      },
+      "sourceUrl": "https://limitlesstcg.com/cards/CRI/108"
+    },
+    {
+      "id": "verified:BLK:86",
+      "name": "Prism Energy",
+      "setCode": "BLK",
+      "cardNumber": "86",
+      "language": "en",
+      "categoryHint": "Energy",
+      "meta": {
+        "source": "Limitless",
+        "language": "en",
+        "category": "Energy",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "",
+        "energyType": "Special",
+        "hp": "",
+        "types": [],
+        "retreat": 0,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "",
+        "effect": "As long as this card is attached to a Pokémon, it provides {C} Energy.\n\nIf this card is attached to a Basic Pokémon, this card provides every type of Energy but provides only 1 Energy at a time.",
+        "rules": [],
+        "attacks": [],
+        "abilities": []
+      },
+      "sourceUrl": "https://limitlesstcg.com/cards/BLK/86"
+    },
+    {
+      "id": "verified:PRE:69",
+      "name": "Duraludon",
+      "setCode": "PRE",
+      "cardNumber": "69",
+      "language": "en",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "language": "en",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "energyType": "",
+        "hp": 130,
+        "types": [
+          "Metal"
+        ],
+        "retreat": 2,
+        "weaknesses": [
+          {
+            "type": "Fire",
+            "value": "×2"
+          }
+        ],
+        "resistances": [
+          {
+            "type": "Grass",
+            "value": "-30"
+          }
+        ],
+        "image": "",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Hammer In",
+            "cost": [
+              "Metal"
+            ],
+            "damage": 30,
+            "effect": "",
+            "effectTextStatus": "explicit-empty"
+          },
+          {
+            "name": "Raging Hammer",
+            "cost": [
+              "Metal",
+              "Metal",
+              "Colorless"
+            ],
+            "damage": "80+",
+            "effect": "This attack does 10 more damage for each damage counter on this Pokémon.",
+            "effectTextStatus": "present"
+          }
+        ],
+        "abilities": [],
+        "attackMetadataStatus": "present"
+      },
+      "sourceUrl": "https://limitlesstcg.com/cards/PRE/69"
+    },
+    {
+      "id": "verified:SSP:129",
+      "name": "Duraludon",
+      "setCode": "SSP",
+      "cardNumber": "129",
+      "language": "en",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "language": "en",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "energyType": "",
+        "hp": 130,
+        "types": [
+          "Metal"
+        ],
+        "retreat": 2,
+        "weaknesses": [
+          {
+            "type": "Fire",
+            "value": "×2"
+          }
+        ],
+        "resistances": [
+          {
+            "type": "Grass",
+            "value": "-30"
+          }
+        ],
+        "image": "",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Confront",
+            "cost": [
+              "Metal",
+              "Metal"
+            ],
+            "damage": 50,
+            "effect": "",
+            "effectTextStatus": "explicit-empty"
+          },
+          {
+            "name": "Duralubeam",
+            "cost": [
+              "Metal",
+              "Metal",
+              "Metal"
+            ],
+            "damage": 130,
+            "effect": "Discard 2 Energy from this Pokémon.",
+            "effectTextStatus": "present"
+          }
+        ],
+        "abilities": [],
+        "attackMetadataStatus": "present"
+      },
+      "sourceUrl": "https://limitlesstcg.com/cards/SSP/129"
+    },
+    {
+      "id": "verified:PRE:70",
+      "name": "Archaludon",
+      "setCode": "PRE",
+      "cardNumber": "70",
+      "language": "en",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "language": "en",
+        "category": "Pokemon",
+        "stage": "Stage1",
+        "evolveFrom": "Duraludon",
+        "trainerType": "",
+        "energyType": "",
+        "hp": 180,
+        "types": [
+          "Metal"
+        ],
+        "retreat": 2,
+        "weaknesses": [
+          {
+            "type": "Fire",
+            "value": "×2"
+          }
+        ],
+        "resistances": [
+          {
+            "type": "Grass",
+            "value": "-30"
+          }
+        ],
+        "image": "",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Iron Blaster",
+            "cost": [
+              "Metal",
+              "Metal",
+              "Colorless"
+            ],
+            "damage": 160,
+            "effect": "During your next turn, this Pokémon can't attack.",
+            "effectTextStatus": "present"
+          }
+        ],
+        "abilities": [
+          {
+            "name": "Metal Bridge",
+            "type": "Ability",
+            "effect": "All of your Pokémon that have {M} Energy attached have no Retreat Cost."
+          }
+        ],
+        "attackMetadataStatus": "present"
+      },
+      "sourceUrl": "https://limitlesstcg.com/cards/PRE/70"
+    },
+    {
+      "id": "verified:SSP:130",
+      "name": "Archaludon ex",
+      "setCode": "SSP",
+      "cardNumber": "130",
+      "language": "en",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "language": "en",
+        "category": "Pokemon",
+        "stage": "Stage1",
+        "evolveFrom": "Duraludon",
+        "trainerType": "",
+        "energyType": "",
+        "hp": 300,
+        "types": [
+          "Metal"
+        ],
+        "retreat": 2,
+        "weaknesses": [
+          {
+            "type": "Fire",
+            "value": "×2"
+          }
+        ],
+        "resistances": [
+          {
+            "type": "Grass",
+            "value": "-30"
+          }
+        ],
+        "image": "",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Metal Defender",
+            "cost": [
+              "Metal",
+              "Metal",
+              "Metal"
+            ],
+            "damage": 220,
+            "effect": "During your opponent's next turn, this Pokémon has no Weakness.",
+            "effectTextStatus": "present"
+          }
+        ],
+        "abilities": [
+          {
+            "name": "Assemble Alloy",
+            "type": "Ability",
+            "effect": "When you play this Pokémon from your hand to evolve 1 of your Pokémon during your turn, you may attach up to 2 Basic {M} Energy cards from your discard pile to your {M} Pokémon in any way you like."
+          }
+        ],
+        "attackMetadataStatus": "present"
+      },
+      "sourceUrl": "https://limitlesstcg.com/cards/SSP/130"
+    },
+    {
+      "id": "verified:PAF:64",
+      "name": "Varoom",
+      "setCode": "PAF",
+      "cardNumber": "64",
+      "language": "en",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "language": "en",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "energyType": "",
+        "hp": 60,
+        "types": [
+          "Metal"
+        ],
+        "retreat": 1,
+        "weaknesses": [
+          {
+            "type": "Fire",
+            "value": "×2"
+          }
+        ],
+        "resistances": [
+          {
+            "type": "Grass",
+            "value": "-30"
+          }
+        ],
+        "image": "",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Rev",
+            "cost": [
+              "Colorless"
+            ],
+            "damage": "",
+            "effect": "Put up to 2 Basic Energy cards from your discard pile into your hand.",
+            "effectTextStatus": "present"
+          },
+          {
+            "name": "Headbutt",
+            "cost": [
+              "Metal",
+              "Colorless"
+            ],
+            "damage": 20,
+            "effect": "",
+            "effectTextStatus": "explicit-empty"
+          }
+        ],
+        "abilities": [],
+        "attackMetadataStatus": "present"
+      },
+      "sourceUrl": "https://limitlesstcg.com/cards/PAF/64"
+    },
+    {
+      "id": "verified:OBF:154",
+      "name": "Varoom",
+      "setCode": "OBF",
+      "cardNumber": "154",
+      "language": "en",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "language": "en",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "energyType": "",
+        "hp": 60,
+        "types": [
+          "Metal"
+        ],
+        "retreat": 1,
+        "weaknesses": [
+          {
+            "type": "Fire",
+            "value": "×2"
+          }
+        ],
+        "resistances": [
+          {
+            "type": "Grass",
+            "value": "-30"
+          }
+        ],
+        "image": "",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Spinning Draw",
+            "cost": [
+              "Metal"
+            ],
+            "damage": 10,
+            "effect": "Draw a card.",
+            "effectTextStatus": "present"
+          }
+        ],
+        "abilities": [],
+        "attackMetadataStatus": "present"
+      },
+      "sourceUrl": "https://limitlesstcg.com/cards/OBF/154"
+    },
+    {
+      "id": "verified:PAF:65",
+      "name": "Revavroom",
+      "setCode": "PAF",
+      "cardNumber": "65",
+      "language": "en",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "language": "en",
+        "category": "Pokemon",
+        "stage": "Stage1",
+        "evolveFrom": "Varoom",
+        "trainerType": "",
+        "energyType": "",
+        "hp": 140,
+        "types": [
+          "Metal"
+        ],
+        "retreat": 2,
+        "weaknesses": [
+          {
+            "type": "Fire",
+            "value": "×2"
+          }
+        ],
+        "resistances": [
+          {
+            "type": "Grass",
+            "value": "-30"
+          }
+        ],
+        "image": "",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Knock Away",
+            "cost": [
+              "Metal",
+              "Colorless",
+              "Colorless",
+              "Colorless"
+            ],
+            "damage": "90+",
+            "effect": "Flip a coin. If heads, this attack does 90 more damage.",
+            "effectTextStatus": "present"
+          }
+        ],
+        "abilities": [
+          {
+            "name": "Rumbling Engine",
+            "type": "Ability",
+            "effect": "You must discard an Energy card from your hand in order to use this Ability. Once during your turn, you may draw cards until you have 6 cards in your hand."
+          }
+        ],
+        "attackMetadataStatus": "present"
+      },
+      "sourceUrl": "https://limitlesstcg.com/cards/PAF/65"
+    },
+    {
+      "id": "verified:DRI:141",
+      "name": "Skarmory",
+      "setCode": "DRI",
+      "cardNumber": "141",
+      "language": "en",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "language": "en",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "energyType": "",
+        "hp": 110,
+        "types": [
+          "Metal"
+        ],
+        "retreat": 1,
+        "weaknesses": [
+          {
+            "type": "Lightning",
+            "value": "×2"
+          }
+        ],
+        "resistances": [
+          {
+            "type": "Fighting",
+            "value": "-30"
+          }
+        ],
+        "image": "",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Roost",
+            "cost": [
+              "Colorless"
+            ],
+            "damage": "",
+            "effect": "Heal 50 damage from this Pokémon. During your next turn, this Pokémon can't retreat.",
+            "effectTextStatus": "present"
+          },
+          {
+            "name": "Metal Claw",
+            "cost": [
+              "Metal",
+              "Colorless"
+            ],
+            "damage": 60,
+            "effect": "",
+            "effectTextStatus": "explicit-empty"
+          }
+        ],
+        "abilities": [],
+        "attackMetadataStatus": "present"
+      },
+      "sourceUrl": "https://limitlesstcg.com/cards/DRI/141"
+    },
+    {
+      "id": "verified:SSP:128",
+      "name": "Klefki",
+      "setCode": "SSP",
+      "cardNumber": "128",
+      "language": "en",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "language": "en",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "energyType": "",
+        "hp": 70,
+        "types": [
+          "Metal"
+        ],
+        "retreat": 1,
+        "weaknesses": [
+          {
+            "type": "Fire",
+            "value": "×2"
+          }
+        ],
+        "resistances": [
+          {
+            "type": "Grass",
+            "value": "-30"
+          }
+        ],
+        "image": "",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Stick 'n' Draw",
+            "cost": [
+              "Colorless"
+            ],
+            "damage": "",
+            "effect": "Discard a card from your hand. If you do, draw 2 cards.",
+            "effectTextStatus": "present"
+          },
+          {
+            "name": "Hook",
+            "cost": [
+              "Colorless"
+            ],
+            "damage": 20,
+            "effect": "",
+            "effectTextStatus": "explicit-empty"
+          }
+        ],
+        "abilities": [],
+        "attackMetadataStatus": "present"
+      },
+      "sourceUrl": "https://limitlesstcg.com/cards/SSP/128"
+    },
+    {
+      "id": "verified:OBF:186",
+      "name": "Arven",
+      "setCode": "OBF",
+      "cardNumber": "186",
+      "language": "en",
+      "categoryHint": "Trainer",
+      "meta": {
+        "source": "Limitless",
+        "language": "en",
+        "category": "Trainer",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "Supporter",
+        "energyType": "",
+        "hp": "",
+        "types": [],
+        "retreat": 0,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "",
+        "effect": "Search your deck for an Item card and a Pokémon Tool card, reveal them, and put them into your hand. Then, shuffle your deck.",
+        "rules": [],
+        "attacks": [],
+        "abilities": []
+      },
+      "sourceUrl": "https://limitlesstcg.com/cards/OBF/186"
+    },
+    {
+      "id": "verified:OBF:195",
+      "name": "Team Star Grunt",
+      "setCode": "OBF",
+      "cardNumber": "195",
+      "language": "en",
+      "categoryHint": "Trainer",
+      "meta": {
+        "source": "Limitless",
+        "language": "en",
+        "category": "Trainer",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "Supporter",
+        "energyType": "",
+        "hp": "",
+        "types": [],
+        "retreat": 0,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "",
+        "effect": "Put an Energy attached to your opponent's Active Pokémon on top of their deck.",
+        "rules": [],
+        "attacks": [],
+        "abilities": []
+      },
+      "sourceUrl": "https://limitlesstcg.com/cards/OBF/195"
+    },
+    {
+      "id": "verified:SSP:170",
+      "name": "Cyrano",
+      "setCode": "SSP",
+      "cardNumber": "170",
+      "language": "en",
+      "categoryHint": "Trainer",
+      "meta": {
+        "source": "Limitless",
+        "language": "en",
+        "category": "Trainer",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "Supporter",
+        "energyType": "",
+        "hp": "",
+        "types": [],
+        "retreat": 0,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "",
+        "effect": "Search your deck for up to 3 Pokémon ex, reveal them, and put them into your hand. Then, shuffle your deck.",
+        "rules": [],
+        "attacks": [],
+        "abilities": []
+      },
+      "sourceUrl": "https://limitlesstcg.com/cards/SSP/170"
+    },
+    {
+      "id": "verified:SSH:170",
+      "name": "Metal Saucer",
+      "setCode": "SSH",
+      "cardNumber": "170",
+      "language": "en",
+      "categoryHint": "Trainer",
+      "meta": {
+        "source": "Limitless",
+        "language": "en",
+        "category": "Trainer",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "Item",
+        "energyType": "",
+        "hp": "",
+        "types": [],
+        "retreat": 0,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "",
+        "effect": "Attach a Metal Energy card from your discard pile to 1 of your Benched Metal Pokémon.",
+        "rules": [],
+        "attacks": [],
+        "abilities": []
+      },
+      "sourceUrl": "https://limitlesstcg.com/cards/SSH/170"
+    },
+    {
+      "id": "verified:MEG:118",
+      "name": "Iron Defender",
+      "setCode": "MEG",
+      "cardNumber": "118",
+      "language": "en",
+      "categoryHint": "Trainer",
+      "meta": {
+        "source": "Limitless",
+        "language": "en",
+        "category": "Trainer",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "Item",
+        "energyType": "",
+        "hp": "",
+        "types": [],
+        "retreat": 0,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "",
+        "effect": "During your opponent's next turn, all of your {M} Pokémon take 30 less damage from attacks from your opponent's Pokémon (after applying Weakness and Resistance). (This includes new Pokémon that come into play.)",
+        "rules": [],
+        "attacks": [],
+        "abilities": []
+      },
+      "sourceUrl": "https://limitlesstcg.com/cards/MEG/118"
+    },
+    {
+      "id": "verified:MEW:163",
+      "name": "Leftovers",
+      "setCode": "MEW",
+      "cardNumber": "163",
+      "language": "en",
+      "categoryHint": "Trainer",
+      "meta": {
+        "source": "Limitless",
+        "language": "en",
+        "category": "Trainer",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "Tool",
+        "energyType": "",
+        "hp": "",
+        "types": [],
+        "retreat": 0,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "",
+        "effect": "At the end of your turn, if the Pokémon this card is attached to is in the Active Spot, heal 20 damage from it.",
+        "rules": [],
+        "attacks": [],
+        "abilities": []
+      },
+      "sourceUrl": "https://limitlesstcg.com/cards/MEW/163"
+    },
+    {
+      "id": "verified:MEW:157",
+      "name": "Cycling Road",
+      "setCode": "MEW",
+      "cardNumber": "157",
+      "language": "en",
+      "categoryHint": "Trainer",
+      "meta": {
+        "source": "Limitless",
+        "language": "en",
+        "category": "Trainer",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "Stadium",
+        "energyType": "",
+        "hp": "",
+        "types": [],
+        "retreat": 0,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "",
+        "effect": "Once during each player's turn, that player may discard a Basic Energy card from their hand in order to draw a card.",
+        "rules": [],
+        "attacks": [],
+        "abilities": []
+      },
+      "sourceUrl": "https://limitlesstcg.com/cards/MEW/157"
+    },
+    {
+      "id": "verified:M6:59",
+      "name": "Tornadus",
+      "setCode": "M6",
+      "cardNumber": "59",
+      "language": "ja",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "language": "ja",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "energyType": "",
+        "hp": 110,
+        "types": [
+          "Colorless"
+        ],
+        "retreat": 1,
+        "weaknesses": [
+          {
+            "type": "Lightning",
+            "value": "×2"
+          }
+        ],
+        "resistances": [
+          {
+            "type": "Fighting",
+            "value": "-30"
+          }
+        ],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/M6/M6_59_R_JP.png",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Corkscrew Dive",
+            "cost": [
+              "Colorless",
+              "Colorless",
+              "Colorless"
+            ],
+            "damage": 70,
+            "effect": "You may draw cards until you have 6 cards in your hand.",
+            "effectTextStatus": "present"
+          }
+        ],
+        "abilities": [
+          {
+            "name": "Incarnate Union",
+            "type": "Ability",
+            "effect": "If you have Tornadus, Thundurus, Landorus, and Enamorus in play, ignore all [C] Energy in the costs of attacks used by this Pokémon."
+          }
+        ],
+        "attackMetadataStatus": "present",
+        "textLanguage": "en",
+        "translationSource": "Limitless",
+        "sourceUrl": "https://limitlesstcg.com/cards/jp/M6/59?translate=en",
+        "translationStatus": "unofficial"
+      },
+      "sourceUrl": "https://limitlesstcg.com/cards/jp/M6/59?translate=en"
+    },
+    {
+      "id": "verified:M6:25",
+      "name": "Thundurus",
+      "setCode": "M6",
+      "cardNumber": "25",
+      "language": "ja",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "language": "ja",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "energyType": "",
+        "hp": 120,
+        "types": [
+          "Lightning"
+        ],
+        "retreat": 1,
+        "weaknesses": [
+          {
+            "type": "Fighting",
+            "value": "×2"
+          }
+        ],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/M6/M6_25_R_JP.png",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Thunderous Edge",
+            "cost": [
+              "Lightning",
+              "Colorless",
+              "Colorless"
+            ],
+            "damage": 90,
+            "effect": "This attack's damage isn't affected by any effects on your opponent's Active Pokémon.",
+            "effectTextStatus": "present"
+          }
+        ],
+        "abilities": [
+          {
+            "name": "Incarnate Union",
+            "type": "Ability",
+            "effect": "If you have Tornadus, Thundurus, Landorus, and Enamorus in play, ignore all [C] Energy in the costs of attacks used by this Pokémon."
+          }
+        ],
+        "attackMetadataStatus": "present",
+        "textLanguage": "en",
+        "translationSource": "Limitless",
+        "sourceUrl": "https://limitlesstcg.com/cards/jp/M6/25?translate=en",
+        "translationStatus": "unofficial"
+      },
+      "sourceUrl": "https://limitlesstcg.com/cards/jp/M6/25?translate=en"
+    },
+    {
+      "id": "verified:M6:40",
+      "name": "Landorus",
+      "setCode": "M6",
+      "cardNumber": "40",
+      "language": "ja",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "language": "ja",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "energyType": "",
+        "hp": 130,
+        "types": [
+          "Fighting"
+        ],
+        "retreat": 2,
+        "weaknesses": [
+          {
+            "type": "Grass",
+            "value": "×2"
+          }
+        ],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/M6/M6_40_R_JP.png",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Gaia Crush",
+            "cost": [
+              "Fighting",
+              "Colorless",
+              "Colorless"
+            ],
+            "damage": 110,
+            "effect": "Discard a Stadium in play.",
+            "effectTextStatus": "present"
+          }
+        ],
+        "abilities": [
+          {
+            "name": "Incarnate Union",
+            "type": "Ability",
+            "effect": "If you have Tornadus, Thundurus, Landorus, and Enamorus in play, ignore all [C] Energy in the costs of attacks used by this Pokémon."
+          }
+        ],
+        "attackMetadataStatus": "present",
+        "textLanguage": "en",
+        "translationSource": "Limitless",
+        "sourceUrl": "https://limitlesstcg.com/cards/jp/M6/40?translate=en",
+        "translationStatus": "unofficial"
+      },
+      "sourceUrl": "https://limitlesstcg.com/cards/jp/M6/40?translate=en"
+    },
+    {
+      "id": "verified:M6:83",
+      "name": "Enamorus",
+      "setCode": "M6",
+      "cardNumber": "83",
+      "language": "ja",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "language": "ja",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "energyType": "",
+        "hp": 120,
+        "types": [
+          "Psychic"
+        ],
+        "retreat": 1,
+        "weaknesses": [
+          {
+            "type": "Metal",
+            "value": "×2"
+          }
+        ],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/M6/M6_83_R_JP.png",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Rising Heart",
+            "cost": [
+              "Psychic",
+              "Psychic",
+              "Colorless",
+              "Colorless"
+            ],
+            "damage": "100+",
+            "effect": "If your opponent's Active Pokémon is a Pokémon ex, this attack does 100 more damage.",
+            "effectTextStatus": "present"
+          }
+        ],
+        "abilities": [
+          {
+            "name": "Incarnate Union",
+            "type": "Ability",
+            "effect": "If you have Tornadus, Thundurus, Landorus, and Enamorus in play, ignore all [C] Energy in the costs of attacks used by this Pokémon."
+          }
+        ],
+        "attackMetadataStatus": "present",
+        "textLanguage": "en",
+        "translationSource": "Limitless",
+        "sourceUrl": "https://limitlesstcg.com/cards/jp/M6/83?translate=en",
+        "translationStatus": "unofficial"
+      },
+      "sourceUrl": "https://limitlesstcg.com/cards/jp/M6/83?translate=en"
+    },
+    {
+      "id": "verified:SV3:135",
+      "name": "Revavroom ex",
+      "setCode": "SV3",
+      "cardNumber": "135",
+      "language": "ja",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "language": "ja",
+        "category": "Pokemon",
+        "stage": "Stage1",
+        "evolveFrom": "Varoom",
+        "trainerType": "",
+        "energyType": "",
+        "hp": 280,
+        "types": [
+          "Metal"
+        ],
+        "retreat": 1,
+        "weaknesses": [
+          {
+            "type": "Fire",
+            "value": "×2"
+          }
+        ],
+        "resistances": [
+          {
+            "type": "Grass",
+            "value": "-30"
+          }
+        ],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/SV3/SV3_135_R_JP.png",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Wild Drift",
+            "cost": [
+              "Metal",
+              "Metal",
+              "Colorless"
+            ],
+            "damage": 170,
+            "effect": "During your opponent's next turn, this Pokémon takes 30 less damage from attacks (after applying Weakness and Resistance).",
+            "effectTextStatus": "present"
+          }
+        ],
+        "abilities": [
+          {
+            "name": "Tune-up",
+            "type": "Ability",
+            "effect": "This Pokémon may have up to 4 Pokémon Tools attached to it. If it loses this Ability, discard Pokémon Tools from it until only 1 remains."
+          }
+        ],
+        "attackMetadataStatus": "present",
+        "textLanguage": "en",
+        "translationSource": "Limitless",
+        "sourceUrl": "https://limitlesstcg.com/cards/jp/SV3/135?translate=en",
+        "translationStatus": "unofficial"
+      },
+      "sourceUrl": "https://limitlesstcg.com/cards/jp/SV3/135?translate=en"
+    }
+  ]
+}
