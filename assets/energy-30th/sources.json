@@ -1,0 +1,46 @@
+{
+  "gallery": "https://www.30th.pokemon-card.com/product/m6a",
+  "illustrator": "YOSHIROTTEN",
+  "cards": [
+    {
+      "type": "grass",
+      "image": "assets/energy-30th/grass.webp",
+      "source": "https://www.30th.pokemon-card.com/images/m6a/cards/m6a_gra_sdh4y5x9.webp"
+    },
+    {
+      "type": "fire",
+      "image": "assets/energy-30th/fire.webp",
+      "source": "https://www.30th.pokemon-card.com/images/m6a/cards/m6a_fir_iwqrmi3p.webp"
+    },
+    {
+      "type": "water",
+      "image": "assets/energy-30th/water.webp",
+      "source": "https://www.30th.pokemon-card.com/images/m6a/cards/m6a_wat_iwxcrcpp.webp"
+    },
+    {
+      "type": "lightning",
+      "image": "assets/energy-30th/lightning.webp",
+      "source": "https://www.30th.pokemon-card.com/images/m6a/cards/m6a_lig_lhcirpr5.webp"
+    },
+    {
+      "type": "psychic",
+      "image": "assets/energy-30th/psychic.webp",
+      "source": "https://www.30th.pokemon-card.com/images/m6a/cards/m6a_psy_5il9ipen.webp"
+    },
+    {
+      "type": "fighting",
+      "image": "assets/energy-30th/fighting.webp",
+      "source": "https://www.30th.pokemon-card.com/images/m6a/cards/m6a_fig_0845m8jp.webp"
+    },
+    {
+      "type": "darkness",
+      "image": "assets/energy-30th/darkness.webp",
+      "source": "https://www.30th.pokemon-card.com/images/m6a/cards/m6a_dar_2jvwz3ej.webp"
+    },
+    {
+      "type": "metal",
+      "image": "assets/energy-30th/metal.webp",
+      "source": "https://www.30th.pokemon-card.com/images/m6a/cards/m6a_met_i6fvaloo.webp"
+    }
+  ]
+}

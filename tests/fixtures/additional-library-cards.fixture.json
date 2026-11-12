@@ -1,0 +1,1198 @@
+{
+  "description": "Additional prints from the user pending-card export, with independently checked Limitless attack/Ability text and basic setup metadata. This is not a replacement for browser storage.",
+  "cards": [
+    {
+      "name": "Riolu",
+      "setCode": "PRE",
+      "cardNumber": "50",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "hp": 70,
+        "types": [
+          "Fighting"
+        ],
+        "retreat": 1,
+        "weaknesses": [],
+        "resistances": [],
+        "effect": "",
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/PRE/PRE_050_R_EN_SM.png",
+        "attacks": [
+          {
+            "name": "Quick Attack",
+            "cost": [
+              "Fighting"
+            ],
+            "damage": "10+",
+            "effect": "Flip a coin. If heads, this attack does 20 more damage."
+          }
+        ],
+        "abilities": [],
+        "rules": []
+      }
+    },
+    {
+      "name": "Lucario ex",
+      "setCode": "PRE",
+      "cardNumber": "51",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Pokemon",
+        "stage": "Stage1",
+        "evolveFrom": "Riolu",
+        "trainerType": "",
+        "hp": 260,
+        "types": [
+          "Fighting"
+        ],
+        "retreat": 2,
+        "weaknesses": [],
+        "resistances": [],
+        "effect": "",
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/PRE/PRE_051_R_EN_SM.png",
+        "attacks": [
+          {
+            "name": "Aura Uppercut",
+            "cost": [
+              "Fighting"
+            ],
+            "damage": 50,
+            "effect": ""
+          },
+          {
+            "name": "Tornado Rush",
+            "cost": [
+              "Fighting",
+              "Colorless"
+            ],
+            "damage": 100,
+            "effect": "During your next turn, this Pokémon's Tornado Rush attack does 100 more damage (before applying Weakness and Resistance)."
+          }
+        ],
+        "abilities": [],
+        "rules": []
+      }
+    },
+    {
+      "name": "Hippopotas",
+      "setCode": "PRE",
+      "cardNumber": "52",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "hp": 90,
+        "types": [
+          "Fighting"
+        ],
+        "retreat": 3,
+        "weaknesses": [],
+        "resistances": [],
+        "effect": "",
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/PRE/PRE_052_R_EN_SM.png",
+        "attacks": [
+          {
+            "name": "Tackle",
+            "cost": [
+              "Colorless",
+              "Colorless",
+              "Colorless"
+            ],
+            "damage": 70,
+            "effect": ""
+          }
+        ],
+        "abilities": [],
+        "rules": []
+      }
+    },
+    {
+      "name": "Hippowdon",
+      "setCode": "PRE",
+      "cardNumber": "53",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Pokemon",
+        "stage": "Stage1",
+        "evolveFrom": "Hippopotas",
+        "trainerType": "",
+        "hp": 150,
+        "types": [
+          "Fighting"
+        ],
+        "retreat": 3,
+        "weaknesses": [],
+        "resistances": [],
+        "effect": "",
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/PRE/PRE_053_R_EN_SM.png",
+        "attacks": [
+          {
+            "name": "Sand Spray",
+            "cost": [
+              "Colorless",
+              "Colorless",
+              "Colorless"
+            ],
+            "damage": 90,
+            "effect": ""
+          },
+          {
+            "name": "Land Crush",
+            "cost": [
+              "Fighting",
+              "Colorless",
+              "Colorless",
+              "Colorless"
+            ],
+            "damage": 140,
+            "effect": ""
+          }
+        ],
+        "abilities": [],
+        "rules": []
+      }
+    },
+    {
+      "name": "Croagunk",
+      "setCode": "PAL",
+      "cardNumber": "114",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "hp": 70,
+        "types": [
+          "Fighting"
+        ],
+        "retreat": 1,
+        "weaknesses": [],
+        "resistances": [],
+        "effect": "",
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/PAL/PAL_114_R_EN_SM.png",
+        "attacks": [
+          {
+            "name": "Poison Sting",
+            "cost": [
+              "Fighting"
+            ],
+            "damage": 10,
+            "effect": "Your opponent's Active Pokémon is now Poisoned."
+          }
+        ],
+        "abilities": [],
+        "rules": []
+      }
+    },
+    {
+      "name": "Toxicroak",
+      "setCode": "PAL",
+      "cardNumber": "115",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Pokemon",
+        "stage": "Stage1",
+        "evolveFrom": "Croagunk",
+        "trainerType": "",
+        "hp": 130,
+        "types": [
+          "Fighting"
+        ],
+        "retreat": 1,
+        "weaknesses": [],
+        "resistances": [],
+        "effect": "",
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/PAL/PAL_115_R_EN_SM.png",
+        "attacks": [
+          {
+            "name": "Pierce",
+            "cost": [
+              "Fighting"
+            ],
+            "damage": 30,
+            "effect": ""
+          },
+          {
+            "name": "Knuckle Claws",
+            "cost": [
+              "Fighting",
+              "Colorless"
+            ],
+            "damage": 60,
+            "effect": "Your opponent's Active Pokémon is now Poisoned."
+          }
+        ],
+        "abilities": [],
+        "rules": []
+      }
+    },
+    {
+      "name": "Bronzor",
+      "setCode": "PRE",
+      "cardNumber": "66",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "hp": 70,
+        "types": [
+          "Metal"
+        ],
+        "retreat": 1,
+        "weaknesses": [],
+        "resistances": [],
+        "effect": "",
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/PRE/PRE_066_R_EN_SM.png",
+        "attacks": [
+          {
+            "name": "Hammer In",
+            "cost": [
+              "Metal",
+              "Colorless"
+            ],
+            "damage": 20,
+            "effect": ""
+          }
+        ],
+        "abilities": [],
+        "rules": []
+      }
+    },
+    {
+      "name": "Bronzong",
+      "setCode": "PRE",
+      "cardNumber": "67",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Pokemon",
+        "stage": "Stage1",
+        "evolveFrom": "Bronzor",
+        "trainerType": "",
+        "hp": 130,
+        "types": [
+          "Metal"
+        ],
+        "retreat": 3,
+        "weaknesses": [],
+        "resistances": [],
+        "effect": "",
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/PRE/PRE_067_R_EN_SM.png",
+        "attacks": [
+          {
+            "name": "Heavy Impact",
+            "cost": [
+              "Metal",
+              "Colorless"
+            ],
+            "damage": 50,
+            "effect": ""
+          }
+        ],
+        "abilities": [
+          {
+            "name": "Protective Bell",
+            "type": "Ability",
+            "effect": "All of your Pokémon take 10 less damage from attacks from your opponent's Pokémon (after applying Weakness and Resistance)."
+          }
+        ],
+        "rules": []
+      }
+    },
+    {
+      "name": "Buneary",
+      "setCode": "PRE",
+      "cardNumber": "83",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "hp": 60,
+        "types": [
+          "Colorless"
+        ],
+        "retreat": 1,
+        "weaknesses": [],
+        "resistances": [],
+        "effect": "",
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/PRE/PRE_083_R_EN_SM.png",
+        "attacks": [
+          {
+            "name": "Smash Kick",
+            "cost": [
+              "Colorless"
+            ],
+            "damage": 20,
+            "effect": ""
+          }
+        ],
+        "abilities": [],
+        "rules": []
+      }
+    },
+    {
+      "name": "Lopunny",
+      "setCode": "PRE",
+      "cardNumber": "84",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Pokemon",
+        "stage": "Stage1",
+        "evolveFrom": "Buneary",
+        "trainerType": "",
+        "hp": 90,
+        "types": [
+          "Colorless"
+        ],
+        "retreat": 1,
+        "weaknesses": [],
+        "resistances": [],
+        "effect": "",
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/PRE/PRE_084_R_EN_SM.png",
+        "attacks": [
+          {
+            "name": "Rear Kick",
+            "cost": [
+              "Colorless",
+              "Colorless"
+            ],
+            "damage": 90,
+            "effect": ""
+          }
+        ],
+        "abilities": [],
+        "rules": []
+      }
+    },
+    {
+      "name": "Heatran",
+      "setCode": "PRE",
+      "cardNumber": "68",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "hp": 130,
+        "types": [
+          "Metal"
+        ],
+        "retreat": 3,
+        "weaknesses": [],
+        "resistances": [],
+        "effect": "",
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/PRE/PRE_068_R_EN_SM.png",
+        "attacks": [
+          {
+            "name": "Wrack Down",
+            "cost": [
+              "Metal",
+              "Colorless"
+            ],
+            "damage": 40,
+            "effect": ""
+          },
+          {
+            "name": "Iron Buster",
+            "cost": [
+              "Metal",
+              "Metal",
+              "Colorless"
+            ],
+            "damage": 130,
+            "effect": "During your next turn, this Pokémon can't attack."
+          }
+        ],
+        "abilities": [],
+        "rules": []
+      }
+    },
+    {
+      "name": "Chatot",
+      "setCode": "TEF",
+      "cardNumber": "132",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "hp": 70,
+        "types": [
+          "Colorless"
+        ],
+        "retreat": 1,
+        "weaknesses": [],
+        "resistances": [],
+        "effect": "",
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/TEF/TEF_132_R_EN_SM.png",
+        "attacks": [
+          {
+            "name": "A Cappella",
+            "cost": [
+              "Colorless"
+            ],
+            "damage": "",
+            "effect": "Search your deck for up to 3 Basic Pokémon and put them onto your Bench. Then, shuffle your deck."
+          },
+          {
+            "name": "Gust",
+            "cost": [
+              "Colorless"
+            ],
+            "damage": 20,
+            "effect": ""
+          }
+        ],
+        "abilities": [],
+        "rules": []
+      }
+    },
+    {
+      "name": "Shaymin",
+      "setCode": "PRE",
+      "cardNumber": "87",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "hp": 70,
+        "types": [
+          "Colorless"
+        ],
+        "retreat": 1,
+        "weaknesses": [],
+        "resistances": [],
+        "effect": "",
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/PRE/PRE_087_R_EN_SM.png",
+        "attacks": [
+          {
+            "name": "Reflect Energy",
+            "cost": [
+              "Colorless",
+              "Colorless"
+            ],
+            "damage": 60,
+            "effect": "Move an Energy from this Pokémon to 1 of your Benched Pokémon."
+          }
+        ],
+        "abilities": [],
+        "rules": []
+      }
+    },
+    {
+      "name": "Professor's Research",
+      "setCode": "PRE",
+      "cardNumber": "124",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Trainer",
+        "trainerType": "Supporter",
+        "effect": "Discard your hand and draw 7 cards.",
+        "attacks": [],
+        "abilities": [],
+        "rules": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/PRE/PRE_124_R_EN_SM.png"
+      }
+    },
+    {
+      "name": "Black Belt's Training",
+      "setCode": "PRE",
+      "cardNumber": "98",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Trainer",
+        "trainerType": "Supporter",
+        "effect": "During this turn, attacks used by your Pokémon do 40 more damage to your opponent's Active Pokémon ex (before applying Weakness and Resistance) .",
+        "attacks": [],
+        "abilities": [],
+        "rules": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/PRE/PRE_098_R_EN_SM.png"
+      }
+    },
+    {
+      "name": "Lucian",
+      "setCode": "TWM",
+      "cardNumber": "157",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Trainer",
+        "trainerType": "Supporter",
+        "effect": "Each player shuffles their hand and puts it on the bottom of their deck. If either player put any cards on the bottom of their deck in this way, each player flips a coin. If heads, that player draws 6 cards. If tails, they draw 3 cards.",
+        "attacks": [],
+        "abilities": [],
+        "rules": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/TWM/TWM_157_R_EN_SM.png"
+      }
+    },
+    {
+      "name": "Roark",
+      "setCode": "PAR",
+      "cardNumber": "173",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Trainer",
+        "trainerType": "Supporter",
+        "effect": "Draw 2 cards. Put a Basic Energy card from your discard pile into your hand.",
+        "attacks": [],
+        "abilities": [],
+        "rules": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/PAR/PAR_173_R_EN_SM.png"
+      }
+    },
+    {
+      "name": "Rigid Band",
+      "setCode": "MEW",
+      "cardNumber": "165",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Trainer",
+        "trainerType": "Tool",
+        "effect": "The Stage 1 Pokémon this card is attached to takes 30 less damage from attacks from your opponent's Pokémon (after applying Weakness and Resistance).",
+        "attacks": [],
+        "abilities": [],
+        "rules": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/MEW/MEW_165_R_EN_SM.png"
+      }
+    },
+    {
+      "name": "Petilil",
+      "setCode": "JTG",
+      "cardNumber": "6",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "hp": 50,
+        "types": [
+          "Grass"
+        ],
+        "retreat": 1,
+        "weaknesses": [],
+        "resistances": [],
+        "effect": "",
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/JTG/JTG_006_R_EN_SM.png",
+        "attacks": [
+          {
+            "name": "Leaf Step",
+            "cost": [
+              "Grass",
+              "Colorless"
+            ],
+            "damage": 30,
+            "effect": ""
+          }
+        ],
+        "abilities": [],
+        "rules": []
+      }
+    },
+    {
+      "name": "Lilligant",
+      "setCode": "JTG",
+      "cardNumber": "7",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Pokemon",
+        "stage": "Stage1",
+        "evolveFrom": "Petilil",
+        "trainerType": "",
+        "hp": 110,
+        "types": [
+          "Grass"
+        ],
+        "retreat": 2,
+        "weaknesses": [],
+        "resistances": [],
+        "effect": "",
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/JTG/JTG_007_R_EN_SM.png",
+        "attacks": [
+          {
+            "name": "Spinning Attack",
+            "cost": [
+              "Grass",
+              "Colorless",
+              "Colorless"
+            ],
+            "damage": 60,
+            "effect": ""
+          }
+        ],
+        "abilities": [
+          {
+            "name": "Sunny Day",
+            "type": "Ability",
+            "effect": "Attacks used by your {G} Pokémon and {R} Pokémon do 20 more damage to your opponent's Active Pokémon (before applying Weakness and Resistance)."
+          }
+        ],
+        "rules": []
+      }
+    },
+    {
+      "name": "Foongus",
+      "setCode": "JTG",
+      "cardNumber": "10",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "hp": 50,
+        "types": [
+          "Grass"
+        ],
+        "retreat": 1,
+        "weaknesses": [],
+        "resistances": [],
+        "effect": "",
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/JTG/JTG_010_R_EN_SM.png",
+        "attacks": [
+          {
+            "name": "Spore Ball",
+            "cost": [
+              "Grass"
+            ],
+            "damage": 10,
+            "effect": "Your opponent's Active Pokémon is now Asleep."
+          }
+        ],
+        "abilities": [],
+        "rules": []
+      }
+    },
+    {
+      "name": "Amoonguss ex",
+      "setCode": "JTG",
+      "cardNumber": "11",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Pokemon",
+        "stage": "Stage1",
+        "evolveFrom": "Foongus",
+        "trainerType": "",
+        "hp": 260,
+        "types": [
+          "Grass"
+        ],
+        "retreat": 2,
+        "weaknesses": [],
+        "resistances": [],
+        "effect": "",
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/JTG/JTG_011_R_EN_SM.png",
+        "attacks": [
+          {
+            "name": "Spore Ball",
+            "cost": [
+              "Grass"
+            ],
+            "damage": 30,
+            "effect": "Your opponent's Active Pokémon is now Asleep."
+          },
+          {
+            "name": "Champignon's Swing",
+            "cost": [
+              "Grass",
+              "Colorless"
+            ],
+            "damage": "100+",
+            "effect": "Flip a coin. If heads, this attack does 80 more damage."
+          }
+        ],
+        "abilities": [],
+        "rules": []
+      }
+    },
+    {
+      "name": "Larvesta",
+      "setCode": "JTG",
+      "cardNumber": "28",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "hp": 80,
+        "types": [
+          "Fire"
+        ],
+        "retreat": 2,
+        "weaknesses": [],
+        "resistances": [],
+        "effect": "",
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/JTG/JTG_028_R_EN_SM.png",
+        "attacks": [
+          {
+            "name": "Will-O-Wisp",
+            "cost": [
+              "Colorless"
+            ],
+            "damage": 10,
+            "effect": ""
+          }
+        ],
+        "abilities": [],
+        "rules": []
+      }
+    },
+    {
+      "name": "Volcarona",
+      "setCode": "JTG",
+      "cardNumber": "29",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Pokemon",
+        "stage": "Stage1",
+        "evolveFrom": "Larvesta",
+        "trainerType": "",
+        "hp": 140,
+        "types": [
+          "Fire"
+        ],
+        "retreat": 2,
+        "weaknesses": [],
+        "resistances": [],
+        "effect": "",
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/JTG/JTG_029_R_EN_SM.png",
+        "attacks": [
+          {
+            "name": "Smoldering Scales",
+            "cost": [
+              "Fire",
+              "Colorless"
+            ],
+            "damage": 80,
+            "effect": ""
+          }
+        ],
+        "abilities": [],
+        "rules": []
+      }
+    },
+    {
+      "name": "Minccino",
+      "setCode": "JTG",
+      "cardNumber": "125",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "hp": 70,
+        "types": [
+          "Colorless"
+        ],
+        "retreat": 1,
+        "weaknesses": [],
+        "resistances": [],
+        "effect": "",
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/JTG/JTG_125_R_EN_SM.png",
+        "attacks": [
+          {
+            "name": "Slap",
+            "cost": [
+              "Colorless"
+            ],
+            "damage": 20,
+            "effect": ""
+          }
+        ],
+        "abilities": [],
+        "rules": []
+      }
+    },
+    {
+      "name": "Cinccino",
+      "setCode": "JTG",
+      "cardNumber": "126",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Pokemon",
+        "stage": "Stage1",
+        "evolveFrom": "Minccino",
+        "trainerType": "",
+        "hp": 100,
+        "types": [
+          "Colorless"
+        ],
+        "retreat": 1,
+        "weaknesses": [],
+        "resistances": [],
+        "effect": "",
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/JTG/JTG_126_R_EN_SM.png",
+        "attacks": [
+          {
+            "name": "Tail Smack",
+            "cost": [
+              "Colorless"
+            ],
+            "damage": 50,
+            "effect": ""
+          }
+        ],
+        "abilities": [],
+        "rules": []
+      }
+    },
+    {
+      "name": "Durant",
+      "setCode": "JTG",
+      "cardNumber": "14",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "hp": 90,
+        "types": [
+          "Grass"
+        ],
+        "retreat": 1,
+        "weaknesses": [],
+        "resistances": [],
+        "effect": "",
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/JTG/JTG_014_R_EN_SM.png",
+        "attacks": [
+          {
+            "name": "Crunch",
+            "cost": [
+              "Grass",
+              "Colorless"
+            ],
+            "damage": 50,
+            "effect": "Flip a coin. If heads, discard an Energy from your opponent's Active Pokémon."
+          }
+        ],
+        "abilities": [],
+        "rules": []
+      }
+    },
+    {
+      "name": "Virizion",
+      "setCode": "JTG",
+      "cardNumber": "15",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "hp": 120,
+        "types": [
+          "Grass"
+        ],
+        "retreat": 1,
+        "weaknesses": [],
+        "resistances": [],
+        "effect": "",
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/JTG/JTG_015_R_EN_SM.png",
+        "attacks": [
+          {
+            "name": "Leaf Drain",
+            "cost": [
+              "Grass",
+              "Colorless"
+            ],
+            "damage": 30,
+            "effect": "Heal 30 damage from this Pokémon."
+          },
+          {
+            "name": "Slicing Blade",
+            "cost": [
+              "Grass",
+              "Colorless",
+              "Colorless"
+            ],
+            "damage": 100,
+            "effect": ""
+          }
+        ],
+        "abilities": [],
+        "rules": []
+      }
+    },
+    {
+      "name": "Victini",
+      "setCode": "TEF",
+      "cardNumber": "30",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "hp": 80,
+        "types": [
+          "Fire"
+        ],
+        "retreat": 1,
+        "weaknesses": [],
+        "resistances": [],
+        "effect": "",
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/TEF/TEF_030_R_EN_SM.png",
+        "attacks": [
+          {
+            "name": "Flippity Flap",
+            "cost": [
+              "Colorless"
+            ],
+            "damage": "",
+            "effect": "Shuffle your hand into your deck. Then, draw 6 cards."
+          },
+          {
+            "name": "Singe Off",
+            "cost": [
+              "Fire"
+            ],
+            "damage": 30,
+            "effect": "Discard a Special Energy from your opponent's Active Pokémon."
+          }
+        ],
+        "abilities": [],
+        "rules": []
+      }
+    },
+    {
+      "name": "Heatmor",
+      "setCode": "TEF",
+      "cardNumber": "31",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "hp": 110,
+        "types": [
+          "Fire"
+        ],
+        "retreat": 1,
+        "weaknesses": [],
+        "resistances": [],
+        "effect": "",
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/TEF/TEF_031_R_EN_SM.png",
+        "attacks": [
+          {
+            "name": "Live Coal",
+            "cost": [
+              "Fire"
+            ],
+            "damage": 20,
+            "effect": ""
+          },
+          {
+            "name": "Licking Flames",
+            "cost": [
+              "Fire",
+              "Fire",
+              "Colorless"
+            ],
+            "damage": 130,
+            "effect": "Flip 3 coins. For each tails, discard an Energy from this Pokémon."
+          }
+        ],
+        "abilities": [],
+        "rules": []
+      }
+    },
+    {
+      "name": "Reshiram ex",
+      "setCode": "JTG",
+      "cardNumber": "30",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "hp": 220,
+        "types": [
+          "Fire"
+        ],
+        "retreat": 2,
+        "weaknesses": [],
+        "resistances": [],
+        "effect": "",
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/JTG/JTG_030_R_EN_SM.png",
+        "attacks": [
+          {
+            "name": "Fire Wing",
+            "cost": [
+              "Fire"
+            ],
+            "damage": 40,
+            "effect": ""
+          },
+          {
+            "name": "Scorching Fire",
+            "cost": [
+              "Fire",
+              "Fire",
+              "Colorless"
+            ],
+            "damage": 200,
+            "effect": "Discard an Energy from this Pokémon."
+          }
+        ],
+        "abilities": [],
+        "rules": []
+      }
+    },
+    {
+      "name": "Audino",
+      "setCode": "JTG",
+      "cardNumber": "124",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "hp": 110,
+        "types": [
+          "Colorless"
+        ],
+        "retreat": 1,
+        "weaknesses": [],
+        "resistances": [],
+        "effect": "",
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/JTG/JTG_124_R_EN_SM.png",
+        "attacks": [
+          {
+            "name": "Beckon",
+            "cost": [
+              "Colorless"
+            ],
+            "damage": "",
+            "effect": "Put a Supporter card from your discard pile into your hand."
+          },
+          {
+            "name": "Zen Headbutt",
+            "cost": [
+              "Colorless",
+              "Colorless",
+              "Colorless"
+            ],
+            "damage": 70,
+            "effect": ""
+          }
+        ],
+        "abilities": [],
+        "rules": []
+      }
+    },
+    {
+      "name": "Professor Juniper",
+      "setCode": "PLB",
+      "cardNumber": "84",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Trainer",
+        "trainerType": "Supporter",
+        "effect": "Discard your hand and draw 7 cards.",
+        "attacks": [],
+        "abilities": [],
+        "rules": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/PLB/PLB_084_R_EN_SM.png"
+      }
+    },
+    {
+      "name": "Ghetsis",
+      "setCode": "PLF",
+      "cardNumber": "101",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Trainer",
+        "trainerType": "Supporter",
+        "effect": "Your opponent reveals his or her hand and shuffles all Item cards found there into his or her deck. Then, draw a number of cards equal to the number of Item cards your opponent shuffled into his or her deck.",
+        "attacks": [],
+        "abilities": [],
+        "rules": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/PLF/PLF_101_R_EN_SM.png"
+      }
+    },
+    {
+      "name": "Poké Ball",
+      "setCode": "POR",
+      "cardNumber": "80",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Trainer",
+        "trainerType": "Item",
+        "effect": "Flip a coin. If heads, search your deck for a Pokémon, reveal it, and put it into your hand. Shuffle your deck afterward.",
+        "attacks": [],
+        "abilities": [],
+        "rules": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/POR/POR_080_R_EN_SM.png"
+      }
+    },
+    {
+      "name": "Vitality Band",
+      "setCode": "SVI",
+      "cardNumber": "197",
+      "language": "en",
+      "meta": {
+        "source": "Limitless",
+        "category": "Trainer",
+        "trainerType": "Tool",
+        "effect": "The attacks of the Pokémon this card is attached to do 10 more damage to your opponent's Active Pokémon (before applying Weakness and Resistance) .",
+        "attacks": [],
+        "abilities": [],
+        "rules": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/SVI/SVI_197_R_EN_SM.png"
+      }
+    }
+  ]
+}
