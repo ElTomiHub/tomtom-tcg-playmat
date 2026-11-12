@@ -122,7 +122,7 @@ test('human evolves into Dragonite SIT, needs three Energy, then deals 80 damage
   const target = runner.api.state().players.codex.active;
   const before = Number(target.damage || 0);
   assert.equal(await runner.api.attack('you', attack.index), true);
-  assert.equal(runner.api.state().players.codex.active.damage, before + 80);
+  assert.equal(target.damage, before + 80, 'the original defender takes the damage even if it is Knocked Out');
   assert.ok(runner.api.state().log.some(entry => /Toma used Dragon Claw with Dragonite for 80 damage/.test(entry.message)));
 });
 

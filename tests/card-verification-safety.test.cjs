@@ -46,7 +46,7 @@ function makeContext() {
     'isDoubleDragonEnergy', 'isDoubleDragonEnergyCard', 'hasCompleteAttackEffectMetadata', 'effectHandlerIsImplemented', 'effectSupportFor', 'effectResolutionFor',
     'verifiedEffectFreeAttack', 'attackEffectRuleFor', 'attackBaseDamage', 'attackDamageValue', 'attackDamageBonusBeforeWeakness',
     'calculateAttackDamageBeforeModifiers', 'resolveAttackDamage', 'canUseAttack', 'resolveBuiltInItem', 'resolveGustOpponent', 'energyUnitsForPokemon',
-    'basicEnergyHasType', 'retreatEnergyUnits', 'retreatPaymentCards', 'canPayAttack', 'removeCardFromHand', 'attachSelected', 'insertEvolution',
+    'basicEnergyHasType', 'retreatEnergyUnits', 'retreatPaymentCards', 'canPayAttack', 'removeCardFromHand', 'attachSelected', 'discardInvalidDragonEnergy', 'insertEvolution',
     'verifiedWaterPrintFor', 'waterPrintMetadataComplete'
   ];
   for (const name of functions) vm.runInContext(engineFunction(name), context);

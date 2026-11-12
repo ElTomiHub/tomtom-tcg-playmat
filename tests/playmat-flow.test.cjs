@@ -7,7 +7,7 @@ function ready(setupOnly=false) {
  const r=createEngineRunner(f,455);r.api.setup(f,r.random,r.choose,()=>true,{setupOnly});r.api.setLocalAi(false);
  if(!setupOnly){r.api.prepareAttack('you','ASC','71',['Lightning']);r.api.prepareAttack('codex','ASC','279',[]);const g=r.api.state();g.turn='you';g.turnNumber=3;g.players.you.turnsTaken=1;g.players.codex.turnsTaken=1;g.players.codex.active.meta.hp=9999;g.players.codex.active.meta.weaknesses=[];g.players.codex.active.meta.resistances=[]}
  r.api.clearVisuals();const timers=new Map();let n=900;r.context.setTimeout=(fn,delay)=>{timers.set(++n,{fn,delay});return n};r.context.clearTimeout=id=>timers.delete(id);
- for(const [id,x,y]of[['handCards',200,600],['youRow',550,400],['codexRow',150,100],['youLastPlayed',600,300],['codexLastPlayed',150,300],['youActiveZone',450,300],['codexActiveZone',300,300],['stadiumSlot',375,300]])r.document.getElementById(id).getBoundingClientRect=()=>({left:x,top:y,width:80,height:100});
+ for(const [id,x,y]of[['handCards',200,600],['battleCenter',100,270],['youRow',550,400],['codexRow',150,100],['youActiveZone',450,300],['codexActiveZone',300,300],['stadiumSlot',375,300]])r.document.getElementById(id).getBoundingClientRect=()=>({left:x,top:y,width:id==='battleCenter'?560:80,height:100,right:x+(id==='battleCenter'?560:80)});
  return {r,f,g:r.api.state(),p:r.api.state().players.you,timers};
 }
 function inject(h,name,set,num,side='you') {const src=h.f.cards.find(c=>c.name===name&&(!set||c.setCode===set)&&(!num||c.cardNumber===String(num)));assert.ok(src,name);const c={...structuredClone(src),id:'flow-'+side+'-'+name,energy:[],tools:[],conditions:[],evolutionStack:[],damage:0,enteredTurn:0,evolvedTurn:-1};h.g.players[side].hand.push(c);return c}
@@ -93,7 +93,8 @@ test('clicking a payable attack warns about other plays and uses the chosen atta
  inject(h,'Nemona','SVI',180);
  r.api.setChoices(r.random,null);
  r.api.selectBoardCard('you','active',p.active.id);
- assert.match(r.document.getElementById('turnActionStatus').textContent,/Play Nemona/);
+ assert.doesNotMatch(r.document.getElementById('playmatTurnStatus').innerHTML,/Available|Nemona/);
+ assert.equal(r.document.getElementById('turnActionStatus').textContent,'Play Trainer');
  const beforeDamage=g.players.codex.active.damage;
  const pending=attackOptionEvent(r,0);
   const dialog=r.document.getElementById('playmatConfirmDialog');
@@ -106,6 +107,26 @@ test('clicking a payable attack warns about other plays and uses the chosen atta
  assert.equal(g.turn,'codex');
 });
 
+test('the footer shows only playable action categories once and clears when they are unavailable',()=>{
+ const h=ready(),{r,p}=h;
+ p.bench=[inject(h,'Dratini','OBF',157)];
+ p.hand=[];
+ inject(h,'Nemona','SVI',180);
+ inject(h,'Judge','SVI',176);
+ inject(h,'Switch','MEG',130);
+ inject(h,'Lightning Energy','SVE',12);
+ p.energyAttachedThisTurn=false;
+ r.api.selectBoardCard('you','active',p.active.id);
+ const footer=r.document.getElementById('turnActionStatus');
+ assert.equal(footer.hidden,false);
+ assert.equal(footer.textContent,'Play Trainer · Play Item · Attach Energy · Retreat Pokémon');
+ p.supporterPlayedThisTurn=true;
+ p.energyAttachedThisTurn=true;
+ p.bench=[];
+ r.api.render();
+ assert.equal(footer.hidden,true);
+ assert.equal(footer.textContent,'');
+});
 test('wheel scrolls an overflowing hand and releases normal scrolling at the edges', async () => {
  const {r}=ready(), hand=r.document.getElementById('handCards');
  Object.assign(hand,{clientWidth:400,scrollWidth:640,scrollLeft:0});
@@ -131,7 +152,7 @@ test('wheel scrolls an overflowing hand and releases normal scrolling at the edg
 
 test('opening opponent Active and Bench show only card backs, with no names, art, IDs or inspection targets',()=>{
  const h=ready(true),op=h.g.players.codex;const c=structuredClone(op.active);c.id='PRIVATE_BENCH_ID';c.name='PRIVATE_BENCH_NAME';c.meta.image='https://assets.tcgdex.net/private-bench/low.webp';op.bench.push(c);op.active.id='PRIVATE_ACTIVE_ID';op.active.name='PRIVATE_ACTIVE_NAME';op.active.meta.image='https://assets.tcgdex.net/private-active/low.webp';h.r.api.render();
- for(const id of ['codexActiveZone','codexRow','codexLastPlayed']){const html=h.r.document.getElementById(id).innerHTML;assert.doesNotMatch(html,/PRIVATE_|private-active|private-bench/)}
+ for(const id of ['codexActiveZone','codexRow']){const html=h.r.document.getElementById(id).innerHTML;assert.doesNotMatch(html,/PRIVATE_|private-active|private-bench/)}
  assert.match(h.r.document.getElementById('codexActiveZone').innerHTML,/face-down-card/);assert.match(h.r.document.getElementById('codexRow').innerHTML,/Face down/);assert.doesNotMatch(h.r.document.getElementById('codexActiveZone').innerHTML,/data-card|<img|title=/);assert.match(h.r.document.getElementById('youActiveZone').innerHTML,/data-card/);
  const snapshot=h.r.api.snapshot();assert.equal(snapshot.players.codex.active.faceDown,true);assert.equal(snapshot.players.codex.bench.at(-1).faceDown,true);assert.equal(snapshot.players.codex.hand,null);assert.equal(snapshot.players.codex.remainingCardCounts,null);assert.equal(snapshot.players.codex.attackOptions.length,0);assert.doesNotMatch(JSON.stringify(snapshot),/PRIVATE_|private-active|private-bench/);
  h.r.api.selectBoardCard('codex','active',op.active.id);assert.doesNotMatch(h.r.document.getElementById('cardInspector').innerHTML,/PRIVATE_|private-active/);
@@ -140,20 +161,22 @@ test('paused AI still cannot reveal opponent setup cards through Control or hand
  const h=ready(true);assert.equal(h.r.document.getElementById('controlCodex').disabled,true);await h.r.document.getElementById('controlCodex').click();assert.match(h.r.document.getElementById('handTitle').innerHTML,/Your hand/);const op=h.g.players.codex;h.r.api.selectHandCard('codex',op.hand[0].id);h.r.api.render();assert.match(h.r.document.getElementById('handCards').innerHTML,/Opponent cards stay hidden/);assert.doesNotMatch(h.r.document.getElementById('cardInspector').innerHTML,new RegExp(op.hand[0].id));
 });
 test('finishing setup reveals actual opening Pokémon and announces the first player once',()=>{
- const h=ready(true),op=h.g.players.codex,name=op.active.name;h.r.api.finishSetup();assert.equal(h.g.phase,'play');assert.ok(h.r.document.getElementById('codexActiveZone').innerHTML.includes(op.active.id.replaceAll("'",'&#39;')));assert.ok(h.r.document.getElementById('codexActiveZone').innerHTML.includes(name.replaceAll("'",'&#39;')));assert.equal(h.r.api.snapshot().players.codex.active.name,name);assert.match(h.r.document.getElementById('turnDoneBanner').innerHTML,/Turn 1|opening Pokémon are revealed/);const timers=h.timers.size;h.r.api.render();h.r.api.render();assert.equal(h.timers.size,timers);assert.match(h.r.document.getElementById('playmatTurnStatus').innerHTML,/Going first: no attacks or Supporters/);
+ const h=ready(true),op=h.g.players.codex,name=op.active.name;h.r.api.finishSetup();assert.equal(h.g.phase,'play');assert.ok(h.r.document.getElementById('codexActiveZone').innerHTML.includes(op.active.id.replaceAll("'",'&#39;')));assert.ok(h.r.document.getElementById('codexActiveZone').innerHTML.includes(name.replaceAll("'",'&#39;')));assert.equal(h.r.api.snapshot().players.codex.active.name,name);assert.match(h.r.document.getElementById('turnDoneBanner').innerHTML,/Turn 1|opening Pokémon are revealed/);const timers=h.timers.size;h.r.api.render();h.r.api.render();assert.equal(h.timers.size,timers);assert.match(h.r.document.getElementById('playmatTurnStatus').innerHTML,/Turn 1/);assert.doesNotMatch(h.r.document.getElementById('turnActionStatus').textContent,/Play Trainer/);
 });
 test('last-played cards persist separately for each player and inspection cannot replay the card',async()=>{
- const h=ready();for(const side of ['you','codex']){h.g.turn=side;const c=inject(h,'Nemona','SVI',180,side);await h.r.api.playCard(side,c.id);assert.equal(h.g.lastPlayedCards[side].card.name,'Nemona');assert.ok(h.g.players[side].discard.includes(c));assert.match(h.r.document.getElementById(side+'LastPlayed').innerHTML,/Nemona|Supporter played/)}
- h.r.api.inspectPlayed('you');assert.match(h.r.document.getElementById('cardInspector').innerHTML,/Last played|Draw 3 cards/);assert.equal(h.r.document.getElementById('playTrainerBtn').hidden,true);assert.equal(h.r.document.getElementById('attackPanel').hidden,true);assert.equal(h.g.lastPlayedCards.codex.card.name,'Nemona');
+ const h=ready();for(const side of ['you','codex']){h.g.turn=side;const c=inject(h,'Nemona','SVI',180,side);await h.r.api.playCard(side,c.id);assert.equal(h.g.lastPlayedCards[side].card.name,'Nemona');assert.ok(h.g.players[side].discard.includes(c));assert.match(h.r.document.getElementById('moveLog').innerHTML,/Inspect Nemona/)}
+ const index=h.g.log.findIndex(event=>event.reference?.side==='you' && event.reference.card.name==='Nemona');
+ await h.r.document.getElementById('moveLog').dispatchEvent({type:'click',target:{closest:selector=>selector==='[data-history-index]'?{dataset:{historyIndex:index}}:null}});
+ assert.match(h.r.document.getElementById('cardInspector').innerHTML,/Match history|Draw 3 cards/);assert.equal(h.r.document.getElementById('cardActionMenu').hidden,true);assert.equal(h.r.document.getElementById('attackPanel').hidden,true);assert.equal(h.g.lastPlayedCards.codex.card.name,'Nemona');
 });
 test('energy and Tool plays show their recipient and queue movement without changing card rules',async()=>{
- for(const tool of [false,true]){const h=ready(),target=h.p.active;h.p.energyAttachedThisTurn=false;const c=inject(h,tool?'Bravery Charm':'Lightning Energy');if(tool)await h.r.api.playCard('you',c.id);else h.r.api.attachFor('you',c.id,target.id);const entry=h.g.lastPlayedCards.you;assert.equal(entry.card.id,c.id);assert.equal(entry.targetName,target.name);assert.ok((tool?target.tools:target.energy).includes(c));const move=visuals(h.r).find(e=>e.kind==='card-move');assert.equal(move.targetId,target.id);assert.equal(move.destination,'pokemon');assert.match(h.r.document.getElementById('playmatEffects').innerHTML,/fx-moving-card/);assert.match(h.r.document.getElementById('youLastPlayed').innerHTML,/attached/)}
+ for(const tool of [false,true]){const h=ready(),target=h.p.active;h.p.energyAttachedThisTurn=false;const c=inject(h,tool?'Bravery Charm':'Lightning Energy');if(tool)await h.r.api.playCard('you',c.id);else h.r.api.attachFor('you',c.id,target.id);const entry=h.g.lastPlayedCards.you;assert.equal(entry.card.id,c.id);assert.equal(entry.targetName,target.name);assert.ok((tool?target.tools:target.energy).includes(c));const move=visuals(h.r).find(e=>e.kind==='card-move');assert.equal(move.targetId,target.id);assert.equal(move.destination,'pokemon');assert.match(h.r.document.getElementById('playmatEffects').innerHTML,/fx-moving-card/);assert.doesNotMatch(h.r.document.getElementById('playmatEffects').innerHTML,/fx-focus/);assert.match(h.r.document.getElementById('moveLog').innerHTML,/attached/)}
 });
 test('Bench, Stadium and normal evolution update the last-played reference with their exact print',async()=>{
  for(const kind of ['bench','stadium','evolution']){const h=ready();let c;if(kind==='bench'){h.p.bench=[];c=inject(h,"Iono's Tadbulb",'ASC',69);await h.r.api.humanAction({type:'play_basic',cardId:c.id})}else if(kind==='stadium'){c=inject(h,'Cycling Road');h.r.api.placeStadium('you',c.id)}else{c=inject(h,"Iono's Kilowattrel",'ASC',72);await h.r.api.evolveFor('you',c.id,h.p.active.id)}assert.equal(h.g.lastPlayedCards.you.card.id,c.id);assert.equal(h.g.lastPlayedCards.you.card.cardNumber,c.cardNumber);assert.ok(visuals(h.r).some(e=>e.kind==='card-move'))}
 });
 test('a cancelled or failed Trainer restores the previous last-played card and discards its movement',async()=>{
- for(const failure of ['cancel','failure']){const h=ready(),first=inject(h,'Nemona');await h.r.api.playCard('you',first.id);h.r.api.clearVisuals();const next=inject(h,'Ultra Ball');const before=publicState(h.r);let restore;if(failure==='cancel')h.r.api.setChoices(h.r.random,()=>null);else{h.r.api.setChoices(h.r.random,h.r.choose);restore=h.r.api.failNextItemAfterResolve()}try{await h.r.api.playCard('you',next.id)}finally{restore?.()}assert.equal(publicState(h.r),before);assert.equal(visuals(h.r).length,0);assert.match(h.r.document.getElementById('youLastPlayed').innerHTML,/Nemona/);assert.doesNotMatch(h.r.document.getElementById('youLastPlayed').innerHTML,/Ultra Ball/)}
+ for(const failure of ['cancel','failure']){const h=ready(),first=inject(h,'Nemona');await h.r.api.playCard('you',first.id);h.r.api.clearVisuals();const next=inject(h,'Ultra Ball');const before=publicState(h.r);let restore;if(failure==='cancel')h.r.api.setChoices(h.r.random,()=>null);else{h.r.api.setChoices(h.r.random,h.r.choose);restore=h.r.api.failNextItemAfterResolve()}try{await h.r.api.playCard('you',next.id)}finally{restore?.()}assert.equal(publicState(h.r),before);assert.equal(visuals(h.r).length,0);assert.equal(h.r.api.state().lastPlayedCards.you.card.name,'Nemona');assert.doesNotMatch(h.r.document.getElementById('moveLog').innerHTML,/Inspect Ultra Ball/)}
 });
 test('a failed evolution retains the old last-played reference and emits no Energy movement',async()=>{
  const h=ready(),first=inject(h,'Nemona');await h.r.api.playCard('you',first.id);h.r.api.clearVisuals();const basic=inject(h,'Duraludon','PRE',69),evo=inject(h,'Archaludon ex');h.p.hand=h.p.hand.filter(c=>c!==basic);h.p.deck.push(h.p.active);h.p.active=basic;h.p.discard.push({id:'m',name:'Metal Energy',meta:{category:'Energy',energyType:'Metal'}});h.r.api.setChoices(h.r.random,()=>null);const before=publicState(h.r);await h.r.api.evolveFor('you',evo.id,basic.id);assert.equal(publicState(h.r),before);assert.equal(visuals(h.r).length,0);
@@ -174,19 +197,19 @@ test('reduced motion gives a static card-play message without a moving card',asy
  const h=ready();h.r.context.window.matchMedia=()=>({matches:true});const c=inject(h,'Nemona');await h.r.api.playCard('you',c.id);assert.match(h.r.document.getElementById('playmatEffects').innerHTML,/Nemona/);assert.doesNotMatch(h.r.document.getElementById('playmatEffects').innerHTML,/fx-moving-card/);assert.match(h.r.document.getElementById('playmatEffectAnnouncement').textContent,/played Nemona/);
 });
 test('undo restores the old played-card reference and prevents old movement and turn timers replaying',async()=>{
- const h=ready(),c=inject(h,'Nemona');h.r.api.captureUndo();const before=publicState(h.r);await h.r.api.playCard('you',c.id);const stale=[...h.timers.values()].map(t=>t.fn);h.r.api.undo();for(const fn of stale)fn();assert.equal(publicState(h.r),before);assert.equal(visuals(h.r).length,0);assert.equal(h.r.document.getElementById('turnDoneBanner').classList.contains('show'),false);assert.match(h.r.document.getElementById('youLastPlayed').innerHTML,/No card played yet/);
+ const h=ready(),c=inject(h,'Nemona');h.r.api.captureUndo();const before=publicState(h.r);await h.r.api.playCard('you',c.id);const stale=[...h.timers.values()].map(t=>t.fn);h.r.api.undo();for(const fn of stale)fn();assert.equal(publicState(h.r),before);assert.equal(visuals(h.r).length,0);assert.equal(h.r.document.getElementById('turnDoneBanner').classList.contains('show'),false);assert.equal(h.r.api.state().lastPlayedCards.you,undefined);
 });
 test('leaving the match clears movement and the turn announcement without losing the reference',async()=>{
  const h=ready(),c=inject(h,'Nemona');await h.r.api.playCard('you',c.id);await h.r.api.endTurnFor('you');h.r.api.leaveMatch();assert.equal(visuals(h.r).length,0);assert.equal(h.r.document.getElementById('turnDoneBanner').classList.contains('show'),false);assert.equal(h.g.lastPlayedCards.you.card.name,'Nemona');
 });
 test('the real AI play pipeline updates Codex’s last-played card',async()=>{
- const h=ready(),op=h.g.players.codex;op.deck.push(...op.hand.splice(0));const c=inject(h,'Nemona',null,null,'codex');h.g.turn='codex';h.r.api.setLocalAi(true);await h.r.api.aiStep();assert.ok(op.discard.includes(c));assert.equal(h.g.lastPlayedCards.codex.card.id,c.id);assert.match(h.r.document.getElementById('codexLastPlayed').innerHTML,/Nemona/);
+ const h=ready(),op=h.g.players.codex;op.deck.push(...op.hand.splice(0));const c=inject(h,'Nemona',null,null,'codex');h.g.turn='codex';h.r.api.setLocalAi(true);await h.r.api.aiStep();assert.ok(op.discard.includes(c));assert.equal(h.g.lastPlayedCards.codex.card.id,c.id);assert.match(h.r.document.getElementById('moveLog').innerHTML,/Inspect Nemona/);
 });
 test('turns with Knockout promotion announce the next turn only after the promotion completes',async()=>{
  const h=ready(),op=h.g.players.codex;h.g.turn='codex';h.g.turnNumber=4;h.p.active.meta.hp=10;const bench=inject(h,"Iono's Tadbulb",'ASC',69);h.p.hand=h.p.hand.filter(c=>c!==bench);h.p.bench=[bench];h.r.api.prepareAttack('codex','ASC','71',['Lightning']);assert.equal(await h.r.api.attack('codex',0),true);assert.equal(h.g.pendingPromotion,'you');assert.equal(h.r.document.getElementById('turnDoneBanner').classList.contains('show'),false);await h.r.api.promote();assert.equal(h.g.turn,'you');assert.match(h.r.document.getElementById('turnDoneBanner').innerHTML,/Your turn/);assert.equal(h.g.pendingPromotion,null);
 });
 test('new matches and restores clear the previous last-played cards and stale timers',async()=>{
- const h=ready(),c=inject(h,'Nemona');await h.r.api.playCard('you',c.id);const stale=[...h.timers.values()].map(t=>t.fn);h.r.api.setup(h.f,h.r.random,h.r.choose,()=>true,{setupOnly:true});for(const fn of stale)fn();assert.equal(Object.keys(h.r.api.state().lastPlayedCards).length,0);assert.match(h.r.document.getElementById('youLastPlayed').innerHTML,/Revealed after setup/);assert.equal(visuals(h.r).length,0);h.r.api.restoreBackup(h.r.api.backup());h.r.api.render();assert.equal(h.r.api.state(),null);assert.match(h.r.document.getElementById('codexLastPlayed').innerHTML,/No card played yet/);
+ const h=ready(),c=inject(h,'Nemona');await h.r.api.playCard('you',c.id);const stale=[...h.timers.values()].map(t=>t.fn);h.r.api.setup(h.f,h.r.random,h.r.choose,()=>true,{setupOnly:true});for(const fn of stale)fn();assert.equal(Object.keys(h.r.api.state().lastPlayedCards).length,0);assert.equal(visuals(h.r).length,0);h.r.api.restoreBackup(h.r.api.backup());h.r.api.render();assert.equal(h.r.api.state(),null);
 });
 test('movement decorations do not change randomness, card zones, statistics or turn results',async()=>{
  const results=[];for(const enabled of [true,false]){const h=ready();let randomCalls=0,coins=0;h.r.api.setChoices(()=>{randomCalls++;return h.r.random()},h.r.choose,()=>{coins++;return true});if(!enabled)await h.r.document.getElementById('playmatEffectsBtn').click();const c=inject(h,'Nemona');await h.r.api.playCard('you',c.id);assert.equal(await h.r.api.attack('you',0),true);const g=h.r.api.state();results.push(JSON.stringify({players:g.players,lastPlayed:g.lastPlayedCards,turn:g.turn,history:g.matchHistory.players,randomCalls,coins}))}assert.equal(results[0],results[1]);

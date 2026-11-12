@@ -7,7 +7,7 @@ Use the normal local app and a verified pair of registered decks. Perform at 144
 | Check | Expected result |
 | --- | --- |
 | Opening setup | Opposing Active and Bench stay face down; only counts are shown. Own Bench, hand, deck, discard, and Prizes remain accessible. |
-| Layout | Five Bench slots fit across each side. Your Prizes are left, your deck/discard right; opponent mirrors this. Stadium sits between the two Active Pokémon; both last-played areas are visible. No zone or control overlaps another. Short screens can scroll. |
+| Layout | Five Bench slots fit across each side. Your Prizes are left, your deck/discard right; opponent mirrors this. The Stadium sits between the two Active Pokémon. Drop a Trainer in the center row to play it. No zone or control overlaps another. Short screens can scroll. |
 | History & chat | Visible by default on the right on desktop. The top toggle and panel Hide button work; the AI controls, move log, and game summary remain usable. On small screens the panel appears below the mat and Inspector. |
 | Panel dividers | Drag either divider in both directions. Inspector/history resize while the playmat stays usable. Check keyboard arrows, Shift, Home/End, Escape cancellation, lost capture, and double-click reset. Refresh to check saved sizes. Shrink and re-expand the window; previous desktop widths return. |
 | Inspector | Artwork uses the full panel width; no repeated English effect paragraphs appear alongside it. Remaining HP, attached Energy/units, Weakness, Resistance, Retreat, Conditions and Tools remain readable at every panel width. Japanese translation and missing-image text are available through their collapsed fallback. |

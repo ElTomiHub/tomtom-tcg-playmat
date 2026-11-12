@@ -43,12 +43,12 @@ function makeHarness({ side = 'you', deck = [], bench = [], chooseId = null, loc
     imageFor: () => '', escapeHtml: value => String(value),
     $: () => ({ textContent: '', classList: { add() {}, remove() {} }, dataset: {}, setAttribute() {}, querySelectorAll: () => [] })
   });
-  vm.runInContext('let engineTestHooks = null;', context);
+  vm.runInContext('let engineTestHooks = null; const ionoFanDecks = new WeakMap();', context);
   vm.runInContext(html.slice(registryStart, registryEnd) + '\nglobalThis.registry = CARD_EFFECT_REGISTRY;', context);
   const functions = [
     'installEngineTestHooks', 'engineRandom', 'engineTestChoice', 'normalizeScriptedCards', 'matchEffectRule',
     'itemEffectRuleFor', 'effectHandlerIsImplemented', 'cardEffectIsSafelyImplemented', 'effectSupportFor', 'effectResolutionFor', 'resolveSearchAndMoveOperation', 'isBasicEnergy', 'basicPokemon', 'removeCardFromHand', 'consumeResolvedItem', 'snapshotResolutionState', 'restoreResolutionState', 'runResolutionTransaction', 'runEffectTransaction',
-    'shuffled', 'chooseCardsInApp', 'pickEffectCard', 'canPlayTrainerEffect', 'resolveBuiltInItem', 'playTrainerSelected', 'chooseLocalAiAction', 'canEvolveNormally', 'stadiumEffectRuleFor', 'pokemonHasType'
+    'shuffled', 'chooseCardsInApp', 'pickEffectCard', 'canPlayTrainerEffect', 'resolveBuiltInItem', 'playTrainerSelected', 'hasIonoFanStrategy', 'chooseLocalAiAction', 'canEvolveNormally', 'stadiumEffectRuleFor', 'pokemonHasType'
   ];
   for (const name of functions) vm.runInContext(engineFunction(name), context);
   vm.runInContext('globalThis.testGame = () => game; player = side => game.players[side];', context);

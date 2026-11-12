@@ -4,7 +4,7 @@ const { createEngineRunner, loadFixture } = require('./integration-harness.cjs')
 const { cards } = require('./fixtures/imported-print-batch.fixture.json');
 const fixture = loadFixture();
 
-test('latest deck prints verify and incomplete effects stay Registered', async () => {
+test('latest deck prints verify with implemented effects', async () => {
   const prints = [
     ["M2","11","Charmander","Pokemon"],
     ["MP","45","Charmeleon","Pokemon"],
@@ -39,7 +39,7 @@ test('latest deck prints verify and incomplete effects stay Registered', async (
   await runner.api.checkLibrary();
   const audit = new Map(runner.api.libraryAudit().map(card=>[card.id,card.status]));
   for (const card of records) assert.equal(audit.get(card.id),
-    ['M1S 90','SVK 29'].includes(card.id) ? 'registered' : 'implemented',card.id);
+    'implemented',card.id);
 });
 
 test('all distinct saved card fixture records pass the library audit together', async () => {

@@ -1,7 +1,7 @@
 const assert=require('node:assert/strict');
 const {test}=require('node:test');
 const vm=require('node:vm');
-const {createEngineRunner,loadFixture}=require('./integration-harness.cjs');
+const {createEngineRunner,loadFixture,controlPlaymatTimers}=require('./integration-harness.cjs');
 
 function ready(){
   const f=loadFixture(),r=createEngineRunner(f,61);r.api.setup(f,r.random,r.choose,()=>true);r.api.setLocalAi(false);
@@ -86,8 +86,8 @@ test('deck tags appear in setup and filter the deck manager together with search
   r.context.taggedDeckId=f.decks.ai.id;
   vm.runInContext("registeredDecks.find(deck=>deck.id===taggedDeckId).category='Master'",r.context);
   await el('menuManageDecks').click();
-  el('deckLibraryCategory').value='Master';
-  await el('deckLibraryCategory').dispatchEvent({type:'change'});
+  const filter = el('deckLibraryCategory'), master = {dataset:{filterTag:'Master'},setAttribute(){}};
+  await filter.dispatchEvent({type:'click',currentTarget:filter,target:{closest:()=>master}});
   assert.match(el('deckLibraryGrid').innerHTML,/\[M\]/);
   assert.equal((el('deckLibraryGrid').innerHTML.match(/data-play-deck=/g)||[]).length,1);
   el('deckLibrarySearch').value='nothing matches';
@@ -120,6 +120,7 @@ test('campaign locks the deck, advances after losses, and awards the winning dec
   r.api.finishMatch(null,'Close initial fixture match');
   await el('menuCampaign').click();
   el('campaignDeckSelect').value=f.decks.human.id;
+  const finishEffects = controlPlaymatTimers(r);
   const winners=['you','codex','you',null,'you'];
   const levels=['casual','competitor','competitor','competitor','master'];
   for (let round=0;round<levels.length;round++) {
@@ -138,6 +139,8 @@ test('campaign locks the deck, advances after losses, and awards the winning dec
     r.api.finishMatch(winners[round],'Campaign test result');
     const progress=vm.runInContext('JSON.stringify(loadCampaign().results)',r.context);
     assert.equal(JSON.parse(progress).length,round+1);
+    if (round === levels.length - 1) assert.doesNotMatch(el('campaignHeading').textContent,/Campaign victory/);
+    finishEffects();
     if (round<levels.length-1) await el('matchCampaignBtn').click();
   }
   assert.match(el('campaignHeading').textContent,/Campaign victory/);
@@ -148,4 +151,31 @@ test('campaign locks the deck, advances after losses, and awards the winning dec
   await el('startGameBtn').click();
   assert.equal(el('setupModal').classList.contains('campaign-coin-setup'),false);
   assert.equal(el('youRegisteredDeck').disabled,false);
+});
+
+test('Statistics and both matchup selectors follow the visible Deck Manager order',async()=>{
+  const {r,el}=ready();
+  vm.runInContext(`
+    const testDeckOrder = [
+      ['zulu','Zulu','Toma'], ['alpha','Alpha','Toma'],
+      ['boss','Boss','Master'], ['untagged','Untagged','']
+    ];
+    registeredDecks = testDeckOrder.map(([id,name,category]) => ({...registeredDecks[0],id,name,category}));
+    localStorage.setItem(DECK_ORDER_KEY,JSON.stringify(['boss','alpha','untagged','zulu']));
+  `,r.context);
+  const expected=['alpha','zulu','boss','untagged'];
+  await el('menuManageDecks').click();
+  assert.deepEqual(Array.from(el('deckLibraryGrid').innerHTML.matchAll(/data-deck-details="([^"]+)"/g),m=>m[1]),expected);
+
+  await el('menuStatistics').click();
+  const optionIds=id=>Array.from(el(id).innerHTML.matchAll(/<option value="([^"]+)"/g),m=>m[1]);
+  assert.deepEqual(optionIds('statisticsDeck'),expected);
+  const rowNames=sort=>Array.from(vm.runInContext('matchupStatisticsMarkup("alpha",'+JSON.stringify({sort})+')',r.context)
+    .matchAll(/<th scope="row">.*?<span>([^<]+)<\/span><\/div><\/th>/g),m=>m[1]);
+  assert.deepEqual(rowNames(''),['[T] Alpha','[T] Zulu','[M] Boss','Untagged']);
+  assert.deepEqual(rowNames('name'),['[T] Alpha','[M] Boss','Untagged','[T] Zulu']);
+
+  await el('startGameBtn').click();
+  assert.deepEqual(optionIds('youRegisteredDeck'),expected);
+  assert.deepEqual(optionIds('codexRegisteredDeck'),expected);
 });

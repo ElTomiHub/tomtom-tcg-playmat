@@ -242,12 +242,12 @@ function Handle-Request($Context) {
       return
     }
     $anniversaryEnergyAsset = $path -cmatch '^/assets/energy-30th/(grass|fire|water|lightning|psychic|fighting|darkness|metal).webp$'
-    if ($anniversaryEnergyAsset -or $path -in @('/', '/index.html', '/logo.png', '/README.md')) {
+    if ($anniversaryEnergyAsset -or $path -in @('/', '/index.html', '/playmat.css', '/logo.png', '/README.md')) {
       $fileName = if ($path -eq '/') { 'index.html' } else { $path.TrimStart('/') }
       $filePath = Join-Path $ProjectRoot $fileName
       if (-not (Test-Path -LiteralPath $filePath -PathType Leaf)) { throw 'The requested app file was not found.' }
       $bytes = [System.IO.File]::ReadAllBytes($filePath)
-      $type = switch ([System.IO.Path]::GetExtension($filePath).ToLowerInvariant()) { '.html' { 'text/html; charset=utf-8' } '.png' { 'image/png' } '.webp' { 'image/webp' } '.md' { 'text/plain; charset=utf-8' } default { 'application/octet-stream' } }
+      $type = switch ([System.IO.Path]::GetExtension($filePath).ToLowerInvariant()) { '.html' { 'text/html; charset=utf-8' } '.css' { 'text/css; charset=utf-8' } '.png' { 'image/png' } '.webp' { 'image/webp' } '.md' { 'text/plain; charset=utf-8' } default { 'application/octet-stream' } }
       Write-BytesResponse $Context 200 $type $bytes
       return
     }

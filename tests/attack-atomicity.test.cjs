@@ -81,6 +81,7 @@ function makeHarness({ side = 'you', targetSelection, pickResult, prizes = 6, ac
       return attacker.meta.attacks.map((attack, index) => ({ attack, index, damage: Number(String(attack.damage || '').match(/^\d+/)?.[0] || 0), manual: false }));
     },
     pickEffectCard: async (currentSide, message, choices) => context.pickResult === undefined ? choices[0] || null : context.pickResult,
+    playmatEffectBatches: [],
     pickEffectCards: async () => [],
     pickEffectCardsUpTo: async (currentSide, message, choices) => choices,
     choosePokemonOnBoard: async (currentSide, message, choices) => choices[0] || null,
@@ -92,7 +93,7 @@ function makeHarness({ side = 'you', targetSelection, pickResult, prizes = 6, ac
   const functionNames = [
     'matchEffectRule', 'effectHandlerIsImplemented', 'attackEffectRuleFor', 'attackBaseDamage', 'attackEffectChoiceCount',
     'attackChoicesAreValid', 'snapshotResolutionState', 'restoreResolutionState', 'runResolutionTransaction', 'snapshotAttackState', 'restoreAttackState', 'runAttackTransaction',
-    'resolveAttackEffect', 'recordAttackDamageKnockout', 'resolveKnockout', 'resolveBenchKnockout', 'calculateAttackDamageModifiers', 'applyDamageToPokemon',
+    'resolveAttackEffect', 'protectedFromExAttack', 'addRevealedDeckCardsToHand', 'recordAttackDamageKnockout', 'resolveKnockout', 'resolveBenchKnockout', 'calculateAttackDamageModifiers', 'applyDamageToPokemon',
     'performAttackResolution', 'useAttack', 'pokemonAbilitiesSuppressed', 'livePokemonAbilities', 'pokemonAbilityEffectType'
   ];
   for (const name of functionNames) vm.runInContext(engineFunction(name), context);

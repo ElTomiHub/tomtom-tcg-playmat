@@ -77,7 +77,6 @@ function createEngineRunner(fixture, seed = 1) {
       checkpointLock(enabled) { window.effectResolutionPending=enabled; },
       finishSetup() { return finishPokemonSetup(); },
       captureUndo() { return captureUndoSnapshot(); },
-      inspectPlayed(side) { return inspectLastPlayed(side); },
       leaveMatch() { return setView('menu'); },
       stagedKnockouts(enabled) { engineTestHooks.stageKnockouts=enabled; },
       visualTransitions() { return jsonSnapshot(activeVisualTransitions); },
@@ -391,4 +390,22 @@ function attackOptionEvent(runner, index, type = 'click') {
   });
 }
 
-module.exports = { fixturePath, seededRandom, scriptedChoices, loadFixture, loadEngineTestHooks, loadStartupCardContext, createEngineRunner, attackOptionEvent };
+function controlPlaymatTimers(runner) {
+  let nextId = 0;
+  const timers = new Map();
+  runner.context.setTimeout = callback => { timers.set(++nextId, callback); return nextId; };
+  runner.context.clearTimeout = id => timers.delete(id);
+  return () => {
+    for (let i = 0; i < 100; i++) {
+      const {timer} = runner.api.visualState();
+      if (timer === null) return;
+      const callback = timers.get(timer);
+      if (!callback) throw new Error('Playmat timer was not scheduled by this test.');
+      timers.delete(timer);
+      callback();
+    }
+    throw new Error('Playmat effects did not finish.');
+  };
+}
+
+module.exports = { controlPlaymatTimers, fixturePath, seededRandom, scriptedChoices, loadFixture, loadEngineTestHooks, loadStartupCardContext, createEngineRunner, attackOptionEvent };

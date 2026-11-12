@@ -114,7 +114,7 @@ test('coin-dependent Energy discards are described without guessing the result',
 test('HP strip displays Total, Damage, Remaining in order without a counter count',()=>{const {r,c}=setup('Fuecoco');c.damage=20;const html=r.api.markup(c);assert.match(html,/Total HP 80, Damage 20, Remaining HP 60/);assert.match(html,/<small>Total<\/small><b>80/);assert.match(html,/<small>Damage<\/small><b>20/);assert.match(html,/<small>Left<\/small><b>60/);assert.doesNotMatch(html,/damage · .*counter|card-tool-line/);});
 test('Tool tabs are separate selectable siblings behind the Pokémon, without nested buttons',()=>{const {r,c}=setup('Fuecoco');c.tools=[card('Rigid Band','band')];const html=r.api.markup(c);assert.match(html,/pokemon-card-stack tool-peek-right/);assert.match(html,/data-attached-tool="band"/);assert.match(html,/data-tool-host="Fuecoco"/);assert.equal((html.match(/<button/g)||[]).length,2);assert.ok(html.indexOf('attached-tool-tab')<html.indexOf('class="slot-card'));assert.ok(html.includes('</button><button class="slot-card'));assert.match(r.api.markup(c,'codex'),/tool-peek-left/);});
 test('four attached Tools remain individually accessible',()=>{const {r,c}=setup('Revavroom ex');c.tools=Array.from({length:4},(_,i)=>card('Rigid Band','tool'+i));const html=r.api.markup(c);for(let i=0;i<4;i++)assert.match(html,new RegExp('data-attached-tool="tool'+i+'"'));assert.equal((html.match(/data-attached-tool=/g)||[]).length,4);});
-test('the Pokémon Inspector links attached Tools and the Tool Inspector shows its artwork and effect',()=>{const {r,c}=setup('Fuecoco'),tool=card('Rigid Band','band');c.tools=[tool];r.api.inspectPokemon('you',c.id);assert.match(r.document.getElementById('cardInspector').innerHTML,/inspector-tool-button/);assert.equal(r.api.inspectTool('you',c.id,tool.id),true);const html=r.document.getElementById('cardInspector').innerHTML;assert.match(html,/Rigid Band/);assert.match(html,/inspector-art/);assert.match(html,/inspector-rules/);assert.match(html,/Stage 1 Pokémon this card is attached to takes 30 less damage/);assert.equal(r.document.getElementById('attackPanel').hidden,true);assert.equal(r.document.getElementById('playTrainerBtn').hidden,true);});
+test('the Pokémon Inspector links attached Tools and the Tool Inspector shows its artwork and effect',()=>{const {r,c}=setup('Fuecoco'),tool=card('Rigid Band','band');c.tools=[tool];r.api.inspectPokemon('you',c.id);assert.match(r.document.getElementById('cardInspector').innerHTML,/inspector-tool-button/);assert.equal(r.api.inspectTool('you',c.id,tool.id),true);const html=r.document.getElementById('cardInspector').innerHTML;assert.match(html,/Rigid Band/);assert.match(html,/inspector-art/);assert.match(html,/inspector-rules/);assert.match(html,/Stage 1 Pokémon this card is attached to takes 30 less damage/);assert.equal(r.document.getElementById('attackPanel').hidden,true);assert.equal(r.document.getElementById('cardActionMenu').hidden,true);});
 test('face-down setup Pokémon expose neither attached Tool identities nor artwork',()=>{const {r,g,c}=setup('Fuecoco');g.phase='setup';c.tools=[card('Rigid Band','secret-band')];const html=r.api.markup(c,'codex');assert.match(html,/Face.down/);assert.doesNotMatch(html,/Rigid Band|secret-band|data-attached-tool|MEW/);g.players.codex.active=c;assert.equal(r.api.inspectTool('codex',c.id,'secret-band'),false);});
 test('Tool selection cannot consume an outstanding Pokémon target choice',async()=>{const {r,p,c}=setup('Fuecoco');c.tools=[card('Rigid Band','band')];r.api.setChoices(r.random,null);const choice=r.api.rawBoardChoice('you',[c]);assert.equal(r.api.inspectTool('you',c.id,'band'),false);r.api.cancelActiveBoardChoice();assert.equal(await choice,null);});
 test('Cancel in an actual Supporter target prompt restores the card and Supporter allowance',async()=>{const {r,g,p}=setup('Fuecoco'),boss=card("Boss's Orders",'boss');p.hand.push(boss);g.players.codex.bench=[card('Magmar','bench')];r.api.setChoices(r.random,null);const before=JSON.stringify(g.players),play=r.api.playCard('you',boss.id);assert.equal(r.api.pendingChoices(),true);r.api.cancelActiveBoardChoice();await play;assert.equal(JSON.stringify(r.api.state().players),before);assert.equal(r.api.state().players.you.supporterPlayedThisTurn,false);assert.ok(r.api.state().players.you.hand.some(c=>c.id==='boss'));});
@@ -126,3 +126,43 @@ test('Rigid Band can actually attach to a Basic Pokémon while its reduction rem
 test('a Supporter cancelled before any deck reveal can be played successfully afterward',async()=>{const {r,g,p}=setup('Fuecoco'),boss=card("Boss's Orders",'boss');p.hand.push(boss);g.players.codex.bench=[card('Magmar','bench')];r.api.setChoices(r.random,null);const first=r.api.playCard('you',boss.id);r.api.cancelActiveBoardChoice();await first;r.api.setChoices(r.random,r.choose);await r.api.playCard('you',boss.id);assert.equal(r.api.state().players.you.supporterPlayedThisTurn,true);assert.ok(r.api.state().players.you.discard.some(c=>c.id==='boss'));assert.equal(r.api.state().players.codex.active.id,'bench');});
 test('a top-deck search with no eligible card still invalidates Undo once it reports its result',async()=>{const {r,p}=setup('Fuecoco'),gear=card('Pokégear 3.0','gear');p.hand.push(gear);p.deck=[energy('only-energy')];r.api.captureUndo();await r.api.playCard('you',gear.id);assert.equal(r.document.getElementById('undoBtn').disabled,true);assert.ok(r.api.state().players.you.discard.some(c=>c.id==='gear'));});
 test('attack preview includes healing before calculating retaliation Knockout risk',async()=>{const {r,c}=setup('Virizion'),defender=card('Mega Scrafty ex','defender');c.energy=[energy('g','Grass'),energy('x','Colorless')];c.damage=90;r.api.state().players.codex.active=defender;const outcome=r.api.preview('you',0).outcomes[0];assert.equal(outcome.retaliation,50);assert.equal(outcome.attackerRemaining,Number(c.meta.hp)-110);assert.equal(outcome.attackerKnockout,false);assert.equal(await r.api.attack('you',0),true);assert.equal(c.damage,110);});
+
+test('clicking a Pokémon opens its floating actions and clicking again keeps it inspected', async () => {
+ const {r,g,c}=setup("Iono's Bellibolt ex");
+ r.context.window.innerHeight=800;
+ const anchor=r.document.createElement('button');
+ anchor.dataset={card:c.id,zone:'active',side:'you'};
+ anchor.getBoundingClientRect=()=>({left:750,right:860,top:320,bottom:470,width:110,height:150});
+ r.document.querySelectorAll=selector=>selector==='[data-board-side="you"] [data-card]' ? [anchor] : [];
+ const center=r.document.getElementById('battleCenter');
+ const menu=r.document.getElementById('cardActionMenu');
+ menu.getBoundingClientRect=()=>({width:290,height:180});
+ const click=()=>center.dispatchEvent({type:'click',detail:1,target:{closest:selector=>selector==='[data-card]' ? anchor : null}});
+
+ await click();
+ assert.equal(menu.hidden,false);
+ assert.equal(anchor.getAttribute('aria-expanded'),'true');
+ assert.equal(menu.style.getPropertyValue('--card-menu-left'),'870px');
+ assert.equal(r.document.getElementById('attackPanel').hidden,false);
+ assert.equal(r.document.getElementById('useAbilityBtn').hidden,false);
+ await click();
+ assert.equal(menu.hidden,true);
+ assert.equal(anchor.getAttribute('aria-expanded'),'false');
+ assert.match(r.document.getElementById('cardInspector').innerHTML,/Bellibolt/);
+
+ await click();
+ g.turnNumber++;
+ r.api.render();
+ assert.equal(menu.hidden,true);
+});
+
+test('clicking an Item in hand inspects it without opening a play menu', async () => {
+ const {r,p}=setup();
+ const item=card('Great Ball','item-to-inspect');
+ p.hand.push(item);
+ const hand=r.document.getElementById('handCards');
+ await hand.dispatchEvent({type:'click',detail:1,target:{closest:()=>({dataset:{handCard:item.id}})}});
+ assert.equal(r.document.getElementById('cardActionMenu').hidden,true);
+ assert.match(r.document.getElementById('cardInspector').innerHTML,/Great Ball/);
+ assert.ok(p.hand.includes(item));
+});

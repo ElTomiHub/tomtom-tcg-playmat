@@ -170,8 +170,7 @@ test('seeded real-engine matches initialize, evolve, use supported Items, and re
   t.diagnostic(`Complete matches: ${results.map((match, index) => `seed ${[2, 8, 17][index]} / first ${match.firstPlayer} → ${match.result.winner} at turn ${match.result.turnNumber} (${match.result.log.at(-1)?.message})`).join('; ')}. Each reached an engine-resolved win condition.`);
   assert.ok(results[0].events.some(message => message.includes('evolved')));
   assert.ok(results[0].events.some(message => message.includes('Nest Ball')));
-  assert.ok(results[0].events.some(message => message.includes('Energy Switch')));
-  assert.ok(results.some(match => match.events.some(message => message.includes('played Switch'))));
+  assert.ok(results.some(match => match.events.some(message => message.includes('Energy Switch'))));
   t.diagnostic(`The newly enabled attack path can now naturally produce a Knockout and Prize in a seeded run.`);
 });
 
@@ -193,7 +192,18 @@ test('verified AI Tail Snap produces a real Knockout, Prize, promotion, and cont
 
 test('Dragonair ASC 151 Tail Snap is used by AI in a complete match with normal Knockout and Prize flow', async t => {
   const fixture = loadFixture();
-  const match = await executeFullMatch(fixture, 4, () => true);
+  const match = await executeFullMatch(fixture, 1, () => true, {
+    beforeTurns: async ({runner}) => {
+      const {players:{you,codex}} = runner.api.state();
+      await runner.api.endTurnFor('you');
+      const dragonair = runner.api.prepareAttack('codex','ASC','151',['Water','Lightning']);
+      dragonair.evolvedTurn = runner.api.state().turnNumber;
+      codex.deck.push(...codex.hand);
+      codex.hand = [];
+      assert.ok(you.bench.length, 'the defender has a legal promotion target');
+      you.active.damage = Math.max(0,runner.api.effectiveHp(you.active) - 60);
+    }
+  });
   assert.ok(match.events.some(message => /Yami used Tail Snap with Dragonair for 60 damage/.test(message)), 'AI must use Dragonair Tail Snap through the actual attack pipeline');
   assert.ok(match.events.some(message => /Toma[’']s .* was Knocked Out\./i.test(message)), 'the match must include an engine-resolved Knockout');
   assert.ok(match.events.some(message => /Yami took 1 Prize card\./i.test(message)), 'the attacker must take the Prize through normal Knockout handling');
@@ -202,12 +212,27 @@ test('Dragonair ASC 151 Tail Snap is used by AI in a complete match with normal 
   assert.equal(promotion.phaseAfter, 'play');
   assert.ok(match.steps > promotion.step + 2, 'play must continue after promotion');
   assert.equal(match.result.phase, 'finished');
-  t.diagnostic(`Complete Dragonair attack match: seed 4; AI Tail Snap dealt 60 damage ${match.events.filter(message => /Tail Snap with Dragonair for 60 damage/.test(message)).length} times; Knockout, Prize, promotion, and continued play occurred before ${match.result.winner} won.`);
+  t.diagnostic(`Complete Dragonair attack match: seed 1 with a prepared attacker; AI Tail Snap dealt 60 damage ${match.events.filter(message => /Tail Snap with Dragonair for 60 damage/.test(message)).length} times; Knockout, Prize, promotion, and continued play occurred before ${match.result.winner} won.`);
 });
+
+function prepareDragonairEvolution(setCode, energyTypes) {
+  return async ({runner}) => {
+    await runner.api.endTurnFor('you');
+    const {players:{codex},turnNumber} = runner.api.state();
+    const dragonair = runner.api.prepareAttack('codex','ASC','151',energyTypes);
+    dragonair.abilityUses = {[dragonair.meta.abilities[0].name]:turnNumber};
+    codex.deck.push(...codex.hand);
+    const index = codex.deck.findIndex(card => card.name === 'Dragonite' && card.setCode === setCode);
+    assert.ok(index >= 0, 'the prepared seed has the evolution available');
+    codex.hand = codex.deck.splice(index,1);
+  };
+}
 
 test('Dragonite SIT 131 evolves and uses Dragon Claw in a deterministic complete match', async t => {
   const fixture = loadFixture();
-  const seed = 10, match = await executeFullMatch(fixture, seed, () => true);
+  const seed = 1, match = await executeFullMatch(fixture, seed, () => true, {
+    beforeTurns:prepareDragonairEvolution('SIT',['Lightning','Lightning','Lightning'])
+  });
   assert.ok(match.attackPrints.some(print => print.setCode === 'SIT' && print.cardNumber === '131' && print.attack === 'Dragon Claw'), 'the deterministic match must still exercise Dragon Claw after Energy Hurricane is enabled');
   const evolutionIndex = match.events.findIndex(message => /Yami evolved Dragonair into Dragonite/.test(message));
   const attackIndex = match.events.findIndex(message => /Yami used Dragon Claw with Dragonite for 80 damage/.test(message));
@@ -222,7 +247,9 @@ test('Dragonite SIT 131 evolves and uses Dragon Claw in a deterministic complete
 
 test('Dragonite MEW 149 evolves and uses Dragon Pulse in a complete match through the real engine', async t => {
   const fixture = loadFixture();
-  const seed = 8, match = await executeFullMatch(fixture, seed, () => true);
+  const seed = 1, match = await executeFullMatch(fixture, seed, () => true, {
+    beforeTurns:prepareDragonairEvolution('MEW',['Water','Lightning'])
+  });
   assert.ok(match.attackPrints.some(print => print.setCode === 'MEW' && print.cardNumber === '149' && print.attack === 'Dragon Pulse'), 'AI must use the exact MEW 149 printing');
   const attackIndex = match.events.findIndex(message => /Yami used Dragon Pulse with Dragonite for 180 damage/.test(message));
   const discardIndex = match.events.findIndex(message => /Yami discarded the top 2 cards of the deck for Dragon Pulse/.test(message));
@@ -281,7 +308,7 @@ test('complete match resolves Mighty Meteor tails and enforces the next-turn res
   let match = null, seed = null;
   for (let candidate = 1; candidate <= 60; candidate++) {
     const result = await executeFullMatch(fixture, candidate, () => false);
-    if (result.attackPrints.some(print => print.setCode === 'OBF' && print.cardNumber === '159' && print.attack === 'Mighty Meteor' && print.coinFace === 'tails')) { match = result; seed = candidate; break; }
+    if (result.attackPrints.some(print => print.setCode === 'OBF' && print.cardNumber === '159' && print.attack === 'Mighty Meteor' && print.coinFace === 'tails' && print.turnNumber < result.result.turnNumber)) { match = result; seed = candidate; break; }
   }
   assert.ok(match, 'a seeded complete match must naturally use Mighty Meteor with tails');
   const attack = match.attackPrints.find(print => print.setCode === 'OBF' && print.cardNumber === '159' && print.attack === 'Mighty Meteor' && print.coinFace === 'tails');

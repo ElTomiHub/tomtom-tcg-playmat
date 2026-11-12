@@ -28,7 +28,7 @@ async function drop(h,target,root='battleCenter') {
   return accepted;
 }
 const pokemonTarget=(card,side='you')=>({closest:s=>s==='[data-card]'?{dataset:{side,card:card.id}}:null});
-const playedTarget=(side='you')=>({closest:s=>s==='[data-trainer-drop-side]'?{dataset:{trainerDropSide:side}}:null});
+const centerTarget={closest:s=>s==='#battleCenter'?{}:null};
 const benchTarget=(side='you')=>({closest:s=>s==='[data-bench-drop-side]'?{dataset:{benchDropSide:side}}:null});
 const activeZone={closest:selector=>selector==='#youActiveZone'?{}:null};
 async function startBoard(h,card,root='youRow') {
@@ -125,15 +125,15 @@ for(const invalid of ['opponent','wrong-name','first-turn','entered-this-turn','
   assert.equal(publicState(h.r),before);
 });
 
-test('dropping a Supporter on the last-played area uses its normal effect and allowance',async()=>{
+test('dropping a Supporter in the center of the mat uses its normal effect and allowance',async()=>{
   const h=ready(),card=h.make('Nemona');h.p.hand=[card];h.p.deck=[h.make('Dratini','draw-1'),h.make('Dratini','draw-2'),h.make('Dratini','draw-3')];
-  assert.equal(await start(h,card),false);assert.equal(await drop(h,playedTarget()),true);
+  assert.equal(await start(h,card),false);assert.equal(await drop(h,centerTarget),true);
   assert.equal(h.p.hand.length,3);assert.equal(h.p.supporterPlayedThisTurn,true);assert.ok(h.p.discard.includes(card));assert.equal(h.g.lastPlayedCards.you.card.id,card.id);
 });
 
-test('dropping a Trainer on Yami’s last-played area cannot play it',async()=>{
+test('dropping a Trainer on Yami’s Bench row cannot play it',async()=>{
   const h=ready(),card=h.make('Nemona');h.p.hand=[card];await start(h,card);const before=publicState(h.r);
-  assert.equal(await drop(h,playedTarget('codex')),false);assert.equal(publicState(h.r),before);
+  assert.equal(await drop(h,{closest:()=>null},'codexRow'),false);assert.equal(publicState(h.r),before);
 });
 
 for(const restriction of ['supporter-used','first-player-first-turn','unsupported-print','coin-pending','choice-pending'])test('Trainer drag respects '+restriction,async()=>{
@@ -143,13 +143,13 @@ for(const restriction of ['supporter-used','first-player-first-turn','unsupporte
   if(restriction==='unsupported-print')card.cardNumber='999';
   if(restriction==='coin-pending')vm.runInContext('coinPresentationPending=true;',h.r.context);
   if(restriction==='choice-pending')h.r.api.checkpointLock(true);
-  const before=publicState(h.r);assert.equal(await start(h,card),true);assert.equal(await drop(h,playedTarget()),false);assert.equal(publicState(h.r),before);
+  const before=publicState(h.r);assert.equal(await start(h,card),true);assert.equal(await drop(h,centerTarget),false);assert.equal(publicState(h.r),before);
 });
 
 test('an Item cancelled before hidden information is revealed stays in hand with its cost and allowance intact',async()=>{
   const h=ready(),ball=h.make('Ultra Ball'),cost1=h.make('Dratini','cost-1'),cost2=h.make('Dratini','cost-2');h.p.hand=[ball,cost1,cost2];
   h.r.api.setChoices(h.r.random,()=>null);const before=publicState(h.r);
-  await start(h,ball);await drop(h,playedTarget());assert.equal(publicState(h.r),before);assert.equal(h.p.supporterPlayedThisTurn,false);
+  await start(h,ball);await drop(h,centerTarget);assert.equal(publicState(h.r),before);assert.equal(h.p.supporterPlayedThisTurn,false);
 });
 
 test('a Tool may be dropped directly onto a legal Pokémon or used through the usual target picker',async()=>{
@@ -162,7 +162,7 @@ test('a Tool may be dropped directly onto a legal Pokémon or used through the u
 
 test('a Stadium drop uses the shared placement rule and does not bypass same-name or once-per-turn restrictions',async()=>{
   const h=ready(),card=h.make('Levincia');h.p.hand=[card];await start(h,card);
-  assert.equal(await drop(h,{closest:s=>s==='#stadiumSlot'?{}:null}),true);assert.equal(h.g.stadium.card,card);
+  assert.equal(await drop(h,centerTarget),true);assert.equal(h.g.stadium.card,card);
   h.p.hand=[h.make('Levincia','same-name')];assert.equal(await start(h,h.p.hand[0]),true);
 });
 
@@ -170,4 +170,114 @@ test('discard and deck pile markup exposes only the deck count, with matching sm
   const h=ready();h.p.deck=[h.make('Dratini','SECRET_DECK_CARD')];h.p.discard=[h.make('Judge')];h.r.api.render();
   const html=h.r.document.getElementById('youRow').innerHTML;
   assert.match(html,/deck-pile-back/);assert.match(html,/deck, 1 cards, face down/);assert.match(html,/pile-count">1/);assert.doesNotMatch(html,/SECRET_DECK_CARD/);
+});
+
+test('bonus mulligan cards are marked and cannot enter Active through setup drags or swaps',async()=>{
+  const h=ready(),{r,g,p}=h, opening=p.active, bonus=h.make('Tatsugiri','mulligan-basic'), item=h.make('Great Ball','mulligan-item');
+  g.phase='setup';p.hand=[bonus,item];p.openingBasicIds=[opening.id];p.bonusOpeningIds=[bonus.id,item.id];
+  r.api.render();
+  const hand=r.document.getElementById('handCards');
+  assert.match(hand.innerHTML,/Bonus · Bench only/);
+  assert.match(hand.innerHTML,/Mulligan bonus/);
+
+  assert.equal(await start(h,bonus),false);
+  assert.equal(await drop(h,activeZone),false);
+  assert.equal(p.active,opening);
+  assert.equal(await start(h,bonus),false);
+  assert.equal(await drop(h,benchTarget(),'youRow'),true);
+  assert.ok(p.bench.includes(bonus));
+  assert.match(r.document.getElementById('youRow').innerHTML,/Bonus · Bench only/);
+
+  await startBoard(h,bonus);
+  assert.equal(await drop(h,activeZone),false);
+  await startBoard(h,opening,'battleCenter');
+  const swapTarget={closest:selector=>selector==='[data-card]' ? {dataset:{card:bonus.id,side:'you'}} :
+    selector==='[data-bench-drop-side]' ? {dataset:{benchDropSide:'you'}} : null};
+  assert.equal(await drop(h,swapTarget,'youRow'),false);
+  assert.equal(p.active,opening);
+  assert.ok(p.bench.includes(bonus));
+
+  r.api.finishSetup();
+  assert.equal(g.phase,'play');
+  assert.doesNotMatch(hand.innerHTML,/mulligan-badge/);
+  assert.doesNotMatch(r.document.getElementById('youRow').innerHTML,/mulligan-badge/);
+});
+
+test('only cards drawn for an opposing mulligan receive the bonus marker',()=>{
+  const {r,g,p,foe,make}=ready();
+  g.phase='setup';
+  const original=make('Dratini','opening-original'), bonus=make('Tatsugiri','drawn-for-mulligan');
+  p.active=null;p.hand=[original];p.deck=[bonus];p.bonusDraws=0;
+  foe.bonusDraws=0;
+  foe.hand=Array.from({length:7},(_,index)=>make('Great Ball','mulligan-'+index));
+  foe.deck=[make('Dratini','new-opening-basic'),...Array.from({length:6},(_,index)=>make('Great Ball','replacement-'+index))];
+  r.context.shuffled=cards=>[...cards.slice(7),...cards.slice(0,7)];
+  r.context.resolveOpeningMulligans();
+  assert.deepEqual(Array.from(p.openingBasicIds),[original.id]);
+  assert.deepEqual(Array.from(p.bonusOpeningIds),[bonus.id]);
+  assert.ok(p.hand.includes(bonus));
+  r.api.render();
+  const hand=r.document.getElementById('handCards').innerHTML;
+  assert.match(hand,/class="hand-card mulligan-bonus" data-hand-card="drawn-for-mulligan"/);
+  assert.match(hand,/class="hand-card" data-hand-card="opening-original"/);
+});
+
+function preview(h, card) {
+  h.r.context.hoveredCard = card;
+  return vm.runInContext("handTargetPreview(hoveredCard,'you')",h.r.context);
+}
+
+test('hover preview respects Energy, Evolution, and Tool legality without using the card',()=>{
+  const h=ready(), {p,g}=h;
+  const bench=h.make('Dratini','older'), fresh=h.make('Dratini','fresh');
+  const evolution=h.make('Dragonair'), tool=h.make('Bravery Charm');
+  const energy={id:'energy',name:'Water Energy',meta:{category:'Energy',energyType:'Water'}};
+  fresh.enteredTurn=g.turnNumber;
+  bench.tools=[h.make('Bravery Charm','attached')];
+  p.bench=[bench,fresh]; p.hand=[evolution,tool,energy]; p.energyAttachedThisTurn=false;
+  const before=publicState(h.r);
+  assert.deepEqual(Array.from(preview(h,evolution).targets,c=>c.id),[p.active.id,bench.id]);
+  assert.deepEqual(Array.from(preview(h,tool).targets,c=>c.id),[p.active.id,fresh.id]);
+  assert.equal(preview(h,energy).targets.length,3);
+  assert.equal(publicState(h.r),before);
+  p.energyAttachedThisTurn=true;
+  assert.equal(preview(h,energy),null);
+});
+
+test('switch previews distinguish the outgoing Active from Bench targets and skip coin effects',()=>{
+  const h=ready(), {p,foe}=h;
+  const ownBench=h.make('Dratini','my-bench'), opposingBench=h.make('Dratini','their-bench');
+  const swap=h.make('Switch'), catcher=h.make('Pokémon Catcher');
+  const bossSource=require('./fixtures/metal-and-japanese-cards.fixture.json').cards.find(card=>card.name==="Boss's Orders");
+  assert.ok(bossSource);
+  const boss={...structuredClone(bossSource),id:'boss'};
+  p.bench=[ownBench]; foe.bench=[opposingBench]; p.hand=[swap,boss,catcher];
+  assert.equal(preview(h,swap).outgoing,p.active);
+  assert.equal(preview(h,swap).targets[0],ownBench);
+  assert.equal(preview(h,boss).outgoing,foe.active);
+  assert.equal(preview(h,boss).targets[0],opposingBench);
+  assert.equal(preview(h,catcher),null);
+  p.supporterPlayedThisTurn=true;
+  assert.equal(preview(h,boss),null);
+});
+
+test('pointer events mark legal board targets and remove the outlines on exit',async()=>{
+  const h=ready(), {r,p}=h;
+  const bench=h.make('Dratini','bench'), swap=h.make('Switch');
+  p.bench=[bench]; p.hand=[swap];
+  const hand=r.document.getElementById('handCards'), button={dataset:{handCard:swap.id}};
+  const activeSlot=r.document.getElementById('hover-active');
+  const benchSlot=r.document.getElementById('hover-bench');
+  activeSlot.dataset.card=p.active.id; benchSlot.dataset.card=bench.id;
+  r.document.querySelectorAll=selector=>selector.includes('data-board-side="you"') ? [activeSlot,benchSlot] :
+    selector.includes('.hand-preview-target') ? [activeSlot,benchSlot] : [];
+  const target={closest:()=>button};
+  await hand.dispatchEvent({type:'pointerover',target,pointerType:'mouse'});
+  assert.equal(activeSlot.classList.contains('hand-preview-outgoing'),true);
+  assert.equal(benchSlot.classList.contains('hand-preview-target'),true);
+  await hand.dispatchEvent({type:'pointerout',target,relatedTarget:target});
+  assert.equal(benchSlot.classList.contains('hand-preview-target'),true);
+  await hand.dispatchEvent({type:'pointerout',target,relatedTarget:null});
+  assert.equal(activeSlot.classList.contains('hand-preview-outgoing'),false);
+  assert.equal(benchSlot.classList.contains('hand-preview-target'),false);
 });

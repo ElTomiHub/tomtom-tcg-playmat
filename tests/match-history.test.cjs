@@ -1,10 +1,10 @@
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
-const { loadFixture, createEngineRunner } = require('./integration-harness.cjs');
+const { loadFixture, createEngineRunner, controlPlaymatTimers } = require('./integration-harness.cjs');
 function ready(dragon=false) {
   const fixture=loadFixture();if(dragon)fixture.decks.human={...fixture.decks.ai,id:'history-dragon'};else fixture.decks.ai={...fixture.decks.human,id:'history-opponent'};
-  const r=createEngineRunner(fixture,951);r.api.setup(fixture,r.random,r.choose,()=>true);r.api.setLocalAi(false);const g=r.api.state();g.phase='play';g.turn='you';g.players.you.turnsTaken=1;
-  return {r,fixture,g,p:g.players.you};
+  const r=createEngineRunner(fixture,951);const finishEffects=controlPlaymatTimers(r);r.api.setup(fixture,r.random,r.choose,()=>true);r.api.setLocalAi(false);const g=r.api.state();g.phase='play';g.turn='you';g.players.you.turnsTaken=1;
+  return {r,fixture,g,p:g.players.you,finishEffects};
 }
 function take(p,predicate){for(const zone of [p.hand,p.deck,p.discard,p.prizes]){const i=zone.findIndex(predicate);if(i>=0)return zone.splice(i,1)[0]}return null}
 const historyFor=(r,id)=>r.api.backup().data.deckStats[id].history||[];
@@ -112,7 +112,7 @@ test('a failed attack after a provisional win rolls back counters, Knockouts and
   const state=r.api.state();assert.equal(state.phase,'play');assert.equal(JSON.stringify(state.matchHistory),before);assert.equal(historyFor(r,g.deckIds.you).length,0);assert.equal(historyFor(r,g.deckIds.codex).length,0);assert.equal(r.document.getElementById('matchSummaryCard').hidden,true);assert.equal(Object.values(r.api.backup().data.deckStats).some(stats=>Object.keys(stats.matchups || {}).length),false);
 });
 test('a finished match is saved once per deck, with the correct win/loss perspective',()=>{
-  const {r,g}=ready();r.api.finishMatch('you','All Prize cards taken');r.api.finishMatch('you','Again');const human=historyFor(r,g.deckIds.you),opponent=historyFor(r,g.deckIds.codex);assert.equal(human.length,1);assert.equal(opponent.length,1);assert.equal(human[0].perspective,'you');assert.equal(opponent[0].perspective,'codex');assert.equal(human[0].winner,'you');assert.equal(r.api.backup().data.deckStats[g.deckIds.you].completed,1);assert.equal(r.document.getElementById('matchSummaryCard').hidden,false);
+  const {r,g,finishEffects}=ready();r.api.finishMatch('you','All Prize cards taken');assert.equal(r.document.getElementById('matchSummaryCard').hidden,true);finishEffects();r.api.finishMatch('you','Again');const human=historyFor(r,g.deckIds.you),opponent=historyFor(r,g.deckIds.codex);assert.equal(human.length,1);assert.equal(opponent.length,1);assert.equal(human[0].perspective,'you');assert.equal(opponent[0].perspective,'codex');assert.equal(human[0].winner,'you');assert.equal(r.api.backup().data.deckStats[g.deckIds.you].completed,1);assert.equal(r.document.getElementById('matchSummaryCard').hidden,false);
 });
 test('current summary and deck history are reviewable through their controls',async()=>{
   const {r,g}=ready();r.api.finishMatch(null,'Simultaneous final Knockouts');await r.document.getElementById('viewMatchSummaryBtn').click();assert.match(r.document.getElementById('matchHistoryContent').innerHTML,/Draw/);assert.match(r.document.getElementById('matchHistoryContent').innerHTML,/Knockout timeline/);assert.equal(r.document.getElementById('matchHistoryModal').classList.contains('hidden'),false);
@@ -129,7 +129,7 @@ test('history is bounded to the latest twenty matches and earlier summaries rema
   for(let i=0;i<21;i++){r.api.setup(fixture,r.random,r.choose,()=>true);r.api.setLocalAi(false);r.api.finishMatch(i%2?'you':'codex','Match '+i)}const history=historyFor(r,g.deckIds.you);assert.equal(history.length,20);assert.equal(history[0].reason,'Match 20');assert.equal(new Set(history.map(h=>h.id)).size,20);const stats=r.api.backup().data.deckStats[g.deckIds.you];assert.equal(stats.matchups[g.deckIds.codex].completed,22);
 });
 test('storage failure leaves the completed match summary visible with an honest save message',()=>{
-  const {r}=ready();r.context.localStorage.setItem=()=>{throw new Error('Quota')};r.api.finishMatch('you','No Pokémon left');assert.equal(r.api.state().phase,'finished');assert.ok(r.api.matchSummary());assert.match(r.document.getElementById('matchSummarySaved').textContent,/could not be saved/);
+  const {r,finishEffects}=ready();r.context.localStorage.setItem=()=>{throw new Error('Quota')};r.api.finishMatch('you','No Pokémon left');finishEffects();assert.equal(r.api.state().phase,'finished');assert.ok(r.api.matchSummary());assert.match(r.document.getElementById('matchSummarySaved').textContent,/could not be saved/);
 });
 test('Double Dragon Energy is counted as one physical attachment rather than two Energy units',()=>{
   const {r,g,p}=ready(true);const target=r.api.prepareAttack('you','OBF','157',[]),energy=take(p,c=>c.name==='Double Dragon Energy');p.energyAttachedThisTurn=false;p.hand.push(energy);r.api.attachFor('you',energy.id,target.id);assert.equal(g.matchHistory.players.you.energyAttached,1);assert.equal(g.matchHistory.players.you.energy[0].count,1);
@@ -163,7 +163,7 @@ test('deck records split wins, defeats and attack Knock Outs by player and survi
   assert.deepEqual(JSON.stringify(second.api.backup().data.deckStats),JSON.stringify(backup.data.deckStats));
   await second.document.getElementById('menuManageDecks').click();
   const html = second.document.getElementById('deckLibraryGrid').innerHTML;
-  assert.match(html,/Deck rankings by win rate/);
+  assert.doesNotMatch(html,/Deck rankings by win rate/);
   assert.match(html,/<th scope="row">Toma<\/th>/);
   assert.match(html,/<th scope="row">Yami<\/th>/);
   assert.match(html,/<th scope="row">Total<\/th>/);
@@ -172,19 +172,20 @@ test('deck records split wins, defeats and attack Knock Outs by player and survi
 });
 
 test('deck records separate opponents and players and appear in the full summary', async () => {
-  const {r,fixture,g}=ready(), deckId=g.deckIds.you, opponentId=g.deckIds.codex;
+  const {r,fixture,g,finishEffects}=ready(), deckId=g.deckIds.you, opponentId=g.deckIds.codex;
   r.api.finishMatch('you','First win');
   r.api.finishMatch('you','Repeated finish');
   r.api.setup(fixture,r.random,r.choose,()=>true);
   r.api.setLocalAi(false);
   r.api.finishMatch('codex','Second game');
+  finishEffects();
   await r.document.getElementById('viewMatchSummaryBtn').click();
   const html=r.document.getElementById('matchHistoryContent').innerHTML;
   assert.match(html,/Current deck record/);
   assert.match(html,/<caption>All opponents<\/caption>/);
   assert.match(html,/<caption>Against Iono Fan<\/caption>/);
   assert.match(html,/<th scope="row">Toma<\/th><td>2<\/td><td>1<\/td><td>1<\/td><td>0<\/td>/);
-  assert.match(r.document.getElementById('matchSummaryDeckRecord').textContent,/2 games · 1 win · 1 loss · 0 draws/);
+  assert.match(r.document.getElementById('matchSummaryDeckRecord').innerHTML,/2 games · 1 win · 1 loss · 0 draws/);
 
   const swapped=structuredClone(fixture);
   swapped.decks.human={...fixture.decks.human,id:'third-deck',name:'Third deck'};
