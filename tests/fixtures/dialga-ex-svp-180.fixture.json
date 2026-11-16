@@ -1,0 +1,54 @@
+{
+  "source": "Limitless",
+  "sourceUrl": "https://limitlesstcg.com/cards/SVP/180",
+  "language": "en",
+  "name": "Dialga ex",
+  "setCode": "SVP",
+  "cardNumber": "180",
+  "category": "Pokemon",
+  "stage": "Basic",
+  "evolveFrom": "",
+  "hp": 220,
+  "types": [
+    "Metal"
+  ],
+  "retreat": 2,
+  "weaknesses": [
+    {
+      "type": "Fire",
+      "value": "×2"
+    }
+  ],
+  "resistances": [
+    {
+      "type": "Grass",
+      "value": "-30"
+    }
+  ],
+  "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/SVP/SVP_180_R_EN.png",
+  "effect": "",
+  "attacks": [
+    {
+      "name": "Time Bellow",
+      "cost": [
+        "Metal"
+      ],
+      "damage": 20,
+      "effect": "Draw a card."
+    },
+    {
+      "name": "Metal Blast",
+      "cost": [
+        "Colorless",
+        "Colorless",
+        "Colorless"
+      ],
+      "damage": "100+",
+      "effect": "This attack does 20 more damage for each {M} Energy attached to this Pokémon."
+    }
+  ],
+  "abilities": [],
+  "rules": [
+    "When your Pokémon ex is Knocked Out, your opponent takes 2 Prize cards."
+  ]
+}

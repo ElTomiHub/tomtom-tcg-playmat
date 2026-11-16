@@ -1,0 +1,85 @@
+{
+  "description": "Exact TWM 125 and PRE 126 printings checked against linked Limitless pages; TWM 125 numeric Resistance cross-checked against Pokemon TCG API sv6 data.",
+  "cards": [
+    {
+      "id": "verified:TWM:125",
+      "name": "Revavroom",
+      "setCode": "TWM",
+      "cardNumber": "125",
+      "language": "en",
+      "categoryHint": "Pokemon",
+      "sourceUrl": "https://limitlesstcg.com/cards/TWM/125",
+      "meta": {
+        "source": "Limitless",
+        "language": "en",
+        "category": "Pokemon",
+        "stage": "Stage 1",
+        "evolveFrom": "Varoom",
+        "hp": 140,
+        "types": [
+          "Metal"
+        ],
+        "retreat": 2,
+        "weaknesses": [
+          {
+            "type": "Fire",
+            "value": "×2"
+          }
+        ],
+        "resistances": [
+          {
+            "type": "Grass",
+            "value": "-30"
+          }
+        ],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/TWM/TWM_125_R_EN.png",
+        "effect": "",
+        "attacks": [
+          {
+            "name": "Rally Back",
+            "cost": [
+              "Colorless"
+            ],
+            "damage": "30+",
+            "effect": "If any of your Pokémon were Knocked Out by damage from an attack during your opponent's last turn, this attack does 90 more damage.",
+            "effectTextStatus": "present"
+          },
+          {
+            "name": "Running Charge",
+            "cost": [
+              "Metal",
+              "Colorless",
+              "Colorless"
+            ],
+            "damage": "100×",
+            "effect": "Flip a coin until you get tails. This attack does 100 damage for each heads.",
+            "effectTextStatus": "present"
+          }
+        ],
+        "abilities": [],
+        "rules": [],
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:PRE:126",
+      "name": "Rescue Board",
+      "setCode": "PRE",
+      "cardNumber": "126",
+      "language": "en",
+      "categoryHint": "Trainer",
+      "sourceUrl": "https://limitlesstcg.com/cards/PRE/126",
+      "meta": {
+        "source": "Limitless",
+        "language": "en",
+        "category": "Trainer",
+        "trainerType": "Tool",
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/PRE/PRE_126_R_EN.png",
+        "effect": "The Retreat Cost of the Pokémon this card is attached to is {C} less. If that Pokémon's remaining HP is 30 or less, it has no Retreat Cost.",
+        "attacks": [],
+        "abilities": [],
+        "rules": []
+      }
+    }
+  ]
+}
