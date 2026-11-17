@@ -98,11 +98,13 @@ function createLibrarySyncClient({projectUrl,publishableKey,storage,fetcher,cloc
       finally { resetSession(); }
     },
     read:()=>rpc('playmat_library_read',{}),
+    readProgress:()=>rpc('playmat_progress_read',{}),
+    writeProgress:(expected_revision,progress_data)=>rpc('playmat_progress_write',{expected_revision,progress_data}),
     write:(expected_revision,library_data)=>rpc('playmat_library_write',{expected_revision,library_data})
   };
 }
 
-function mountPlaymatLibrarySync({projectUrl,publishableKey,snapshot,apply,validate,canSync}) {
+function mountPlaymatLibrarySync({projectUrl,publishableKey,snapshot,apply,validate,canSync,progress}) {
   const byId = id=>document.getElementById(id);
   const panel = byId('librarySyncPanel'), form = byId('librarySyncForm'), controls = byId('librarySyncControls');
   const status = byId('librarySyncStatus'), choices = byId('librarySyncConflict');
@@ -113,6 +115,7 @@ function mountPlaymatLibrarySync({projectUrl,publishableKey,snapshot,apply,valid
   let client;
   try { client = createLibrarySyncClient({projectUrl,publishableKey,storage:localStorage,fetcher:window.fetch.bind(window)}); }
   catch (error) { status.textContent = error.message; return null; }
+  const progressSync = progress && mountPlaymatProgressSync(client,progress);
   let running = false, conflict = null, timer;
   const syncButton = byId('librarySyncNow'), signOut = byId('librarySyncSignOut');
   const syncButtons = [syncButton,signOut,byId('librarySyncUseCloud'),byId('librarySyncKeepLocal'),byId('librarySyncSignIn')];
@@ -199,7 +202,7 @@ function mountPlaymatLibrarySync({projectUrl,publishableKey,snapshot,apply,valid
         remember(key,cloud.revision,remoteHash);
       }
       conflict = null;
-      status.textContent = 'Library synced. Match history and recordings stay on this device.';
+      status.textContent = 'Library synced.';
     } catch (error) {
       status.textContent = !client.getSession() ? 'Your session ended. Sign in to continue syncing.' :
         error.status ? 'Sync is unavailable right now. Your local library is still saved.' :
@@ -219,6 +222,7 @@ function mountPlaymatLibrarySync({projectUrl,publishableKey,snapshot,apply,valid
     try {
       await client.signIn(byId('librarySyncEmail').value.trim(),password.value);
       status.textContent = 'Signed in. Checking your library…';
+      progressSync?.changed();
     } catch (error) {
       status.textContent = error.status===403 ? 'This account is not the configured library owner.' :
         'Sign-in failed. Check your email, password, and site setup.';
@@ -240,9 +244,10 @@ function mountPlaymatLibrarySync({projectUrl,publishableKey,snapshot,apply,valid
       running = false;
       refreshUi();
       status.textContent = 'Signed out on this device. Your local library is still available.';
+      progressSync?.signedOut();
     }
   });
-  syncButton.addEventListener('click',()=>void sync());
+  syncButton.addEventListener('click',()=>{ void sync(); progressSync?.syncNow(); });
   byId('librarySyncUseCloud').addEventListener('click',()=>void sync('cloud'));
   byId('librarySyncKeepLocal').addEventListener('click',()=>void sync('local'));
   window.addEventListener('focus',()=>void sync());
@@ -251,7 +256,179 @@ function mountPlaymatLibrarySync({projectUrl,publishableKey,snapshot,apply,valid
   refreshUi();
   if (client.getSession()) { status.textContent = 'Checking your private library…'; schedule(400); }
   else status.textContent = 'Sign in with your private library account.';
-  return {changed:()=>schedule(500)};
+  return {changed:()=>schedule(500),progressChanged:()=>progressSync?.changed()};
 }
 
-if (typeof module === 'object' && module.exports) module.exports = {librarySyncDecision,canonicalLibraryJson,createLibrarySyncClient};
+if (typeof module === 'object' && module.exports) module.exports = {librarySyncDecision,canonicalLibraryJson,createLibrarySyncClient,progressStatsDelta,mergePlaymatProgress};
+
+const PROGRESS_MATCH_SUFFIX = /:(you|codex)$/;
+const UNSAFE_PROGRESS_KEYS = new Set(['__proto__','constructor','prototype']);
+
+function progressStatsDelta(before, after) {
+  const delta = {};
+  for (const [key,value] of Object.entries(after || {})) {
+    if (key==='history' || UNSAFE_PROGRESS_KEYS.has(key)) continue;
+    const previous = before?.[key];
+    if (Number.isSafeInteger(value)) {
+      const increase = value-Math.max(0,Number(previous) || 0);
+      if (increase>0) delta[key] = key==='bestWins' || key==='trophy' ? value : increase;
+      else if (value===0 && previous===undefined) delta[key] = 0;
+    } else if (typeof value==='boolean' || typeof value==='string') {
+      if (value!==previous) delta[key] = value;
+    } else if (value && typeof value==='object' && !Array.isArray(value)) {
+      const changes = progressStatsDelta(previous,value);
+      if (Object.keys(changes).length || previous===undefined) delta[key] = changes;
+    }
+  }
+  return delta;
+}
+
+function addProgressStats(target, delta) {
+  for (const [key,value] of Object.entries(delta)) {
+    if (UNSAFE_PROGRESS_KEYS.has(key) || key==='history') throw new Error('Invalid progress counter.');
+    const existing = Object.hasOwn(target,key) ? target[key] : undefined;
+    if (Number.isSafeInteger(value) && value>=0) {
+      target[key] = ['bestWins','trophy'].includes(key) ? Math.max(existing || 0,value) : (existing || 0)+value;
+    } else if (typeof value==='string' || typeof value==='boolean') {
+      target[key] = value;
+    } else if (value && typeof value==='object' && !Array.isArray(value)) {
+      target[key] = existing && typeof existing==='object' ? existing : {};
+      addProgressStats(target[key],value);
+    } else throw new Error('Invalid progress counter.');
+  }
+}
+
+function newerCampaignRun(current, incoming) {
+  if (!current) return incoming;
+  if (!incoming) return current;
+  if (current.id===incoming.id) {
+    if (current.results.some((result,index)=>index<incoming.results.length && result!==incoming.results[index])) {
+      return current;
+    }
+    return incoming.results.length>=current.results.length ? incoming : current;
+  }
+  const started = run=>Number(/^match-(\d+)-/.exec(run.id)?.[1] || 0);
+  return started(incoming)>started(current) || (started(incoming)===started(current) && incoming.id>current.id) ? incoming : current;
+}
+
+function mergePlaymatProgress(cloud, events) {
+  const merged = JSON.parse(JSON.stringify(cloud));
+  const receipts = new Set(merged.receipts);
+  const historicalIds = new Set(Object.values(merged.deckStats).flatMap(stats=>
+    (stats.history || []).map(match=>match.id.replace(PROGRESS_MATCH_SUFFIX,''))));
+  for (const event of events) {
+    if (receipts.has(event.id)) continue;
+    if (event.campaign) {
+      const current = merged.campaign;
+      merged.campaign = newerCampaignRun(current,event.campaign);
+      if (event.id.startsWith('campaign-finish:') && current?.id===event.campaign.id &&
+          merged.campaign.results.join()!==event.campaign.results.join()) continue;
+    }
+    if (!historicalIds.has(event.id)) {
+      addProgressStats(merged.deckStats,event.stats || {});
+      for (const summary of event.summaries || []) {
+        const deckId = summary.decks[summary.perspective].id;
+        if (!deckId || UNSAFE_PROGRESS_KEYS.has(deckId)) continue;
+        const stats = merged.deckStats[deckId] ||= {plays:0,completed:0,wins:0,losses:0,draws:0,cards:{}};
+        stats.history = [summary,...(stats.history || [])].sort((a,b)=>
+          b.endedAt.localeCompare(a.endedAt) || b.id.localeCompare(a.id)).slice(0,20);
+      }
+    }
+    receipts.add(event.id);
+  }
+  merged.receipts = [...receipts];
+  return merged;
+}
+
+function mountPlaymatProgressSync(client,{snapshot,apply,validate,events,acknowledge,canSync}) {
+  const status = document.getElementById('progressSyncStatus');
+  const review = document.getElementById('progressSyncReview');
+  const useOnline = document.getElementById('progressSyncUseOnline');
+  let timer, running = false, awaitingReview = false, reviewAccepted = false, seedRequested = false;
+  const keyFor = userId=>client.baselineKey(userId)+'.progress';
+  const serialized = value=>canonicalLibraryJson(value);
+  function schedule(delay = 30000) {
+    clearTimeout(timer);
+    if (client.getSession()) timer = setTimeout(()=>void sync(),delay);
+  }
+  async function sync(acceptOnline = false) {
+    const session = client.getSession();
+    if (!session || running || (awaitingReview && !acceptOnline && !reviewAccepted)) return;
+    reviewAccepted ||= acceptOnline;
+    if (!canSync()) { schedule(); return; }
+    running = true;
+    useOnline.disabled = true;
+    let retry = false;
+    try {
+      const remote = await client.readProgress();
+      if (client.getSession()?.userId!==session.userId || !canSync()) return;
+      if (!Number.isSafeInteger(remote?.revision) || remote.revision<0 || (remote.revision===0)!==(remote.progress===null)) {
+        throw new Error('The online progress format is invalid.');
+      }
+      const key = keyFor(session.userId);
+      const local = snapshot();
+      const pending = events();
+      const pendingIds = pending.map(event=>event.id);
+      const cloud = remote.progress===null ? null : validate(remote.progress);
+      const baseline = localStorage.getItem(key);
+      if (!cloud && !seedRequested) {
+        status.textContent = 'To start syncing results, click Sync now on the device with the history you want to keep.';
+        return;
+      }
+      const same = cloud && serialized(local)===serialized({deckStats:cloud.deckStats,campaign:cloud.campaign});
+      const hasLocal = Object.keys(local.deckStats).length || local.campaign;
+      if (cloud && !same && !baseline && hasLocal && !reviewAccepted) {
+        awaitingReview = true;
+        review.hidden = false;
+        status.textContent = 'This browser has older progress that differs from the online copy. Download a backup before switching to online progress. New matches are queued to sync.';
+        return;
+      }
+      const merged = cloud ? mergePlaymatProgress(cloud,pending) :
+        {schemaVersion:1,...local,receipts:pendingIds};
+      validate(merged);
+      if (!cloud || merged.receipts.length!==cloud.receipts.length) {
+        const revision = await client.writeProgress(remote.revision,merged);
+        if (revision===null) { retry = true; return; }
+        if (revision!==remote.revision+1) throw new Error('The server did not confirm the progress save.');
+        if (!cloud) localStorage.setItem(key,'1');
+      }
+      if (client.getSession()?.userId!==session.userId || !canSync()) return;
+      if (serialized(snapshot())!==serialized(local) || serialized(events())!==serialized(pending)) {
+        retry = true;
+        return;
+      }
+      if (serialized(local)!==serialized({deckStats:merged.deckStats,campaign:merged.campaign})) apply(merged);
+      localStorage.setItem(key,'1');
+      acknowledge(pendingIds);
+      awaitingReview = false;
+      reviewAccepted = false;
+      seedRequested = false;
+      review.hidden = true;
+      status.textContent = 'Results, statistics, badges and campaign progress synced.';
+    } catch (error) {
+      status.textContent = error.status===404 ? 'Progress sync is awaiting database setup.' :
+        'Progress sync is temporarily unavailable. Your progress is saved on this device.';
+    } finally {
+      running = false;
+      useOnline.disabled = false;
+      schedule(retry ? 800 : 30000);
+    }
+  }
+  useOnline.addEventListener('click',()=>void sync(true));
+  window.addEventListener('focus',()=>void sync());
+  window.addEventListener('online',()=>void sync());
+  document.addEventListener('visibilitychange',()=>{ if (!document.hidden) void sync(); });
+  schedule(600);
+  return {
+    changed:()=>schedule(600),
+    syncNow:()=>{ seedRequested = true; schedule(0); },
+    signedOut:()=>{
+      clearTimeout(timer);
+      awaitingReview = false;
+      reviewAccepted = false;
+      seedRequested = false;
+      review.hidden = true;
+      status.textContent = '';
+    }
+  };
+}

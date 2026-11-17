@@ -255,7 +255,7 @@
       <div class="setup-top"><div><h2 id="backupToolsHeading">Backup &amp; restore</h2><p>Keep your saved decks, card library, pictures, results, and text sizes safe.</p></div><button class="btn small" id="closeBackupToolsBtn" aria-label="Close backup and restore">✕</button></div>
       <section class="library-sync-panel" id="librarySyncPanel" aria-labelledby="librarySyncHeading">
         <h3 id="librarySyncHeading">Private library sync</h3>
-        <p class="data-tools-note">Use the same account on both devices to sync your cards and decks.</p>
+        <p class="data-tools-note">Use the same account on both devices to sync your cards, decks, completed results, badges, and campaign progress.</p>
         <form id="librarySyncForm" hidden>
           <label>Email <input type="email" id="librarySyncEmail" autocomplete="username" required></label>
           <label>Password <input type="password" id="librarySyncPassword" autocomplete="current-password" required></label>
@@ -266,6 +266,10 @@
           <button class="btn small" type="button" id="librarySyncSignOut">Sign out</button>
         </div>
         <p id="librarySyncStatus" role="status" aria-live="polite"></p>
+        <p id="progressSyncStatus" role="status" aria-live="polite"></p>
+        <div id="progressSyncReview" hidden>
+          <button class="btn" type="button" id="progressSyncUseOnline">Use online progress</button>
+        </div>
         <div id="librarySyncConflict" hidden>
           <button class="btn" type="button" id="librarySyncUseCloud">Use online copy</button>
           <button class="btn" type="button" id="librarySyncKeepLocal">Replace online copy</button>
@@ -488,7 +492,7 @@
   <div class="toast" id="toast" role="status"></div>
 
   <script src="assets/starter-library.js"></script>
-  <script id="librarySyncScript" src="assets/library-sync.js" data-project-url="https://wkoahwwmtpdzjiwsrpwm.supabase.co" data-publishable-key="sb_publishable_AxjAliDTreGdaVGovenCUA_j0bOeepR"></script>
+  <script id="librarySyncScript" src="assets/library-sync.js?v=2" data-project-url="https://wkoahwwmtpdzjiwsrpwm.supabase.co" data-publishable-key="sb_publishable_AxjAliDTreGdaVGovenCUA_j0bOeepR"></script>
   <script>
     const $ = (id) => document.getElementById(id);
     const deckInputs = { you: $('youDeck'), codex: $('codexDeck') };
@@ -7046,7 +7050,7 @@
     }
     function newMatchHistory() {
       const counters = () => ({ pokemonPlayed: 0, evolutions: 0, energyAttached: 0, attacks: 0, knockedOut: 0, pokemon: [], energy: [] });
-      return { id: `match-${Date.now()}-${++matchRecordSequence}`, startedAt: new Date().toISOString(), endedAt: null, players: { you: counters(), codex: counters() }, knockouts: [], timeline: [], mastery: {} };
+      return { id: `match-${Date.now()}-${globalThis.crypto?.randomUUID?.() || `${++matchRecordSequence}-${Math.random().toString(36).slice(2)}`}`, startedAt: new Date().toISOString(), endedAt: null, players: { you: counters(), codex: counters() }, knockouts: [], timeline: [], mastery: {} };
     }
     function recordMatchActivity(kind, side, card, detail = '') {
       const history = game?.matchHistory, stats = history?.players?.[side];
@@ -7671,19 +7675,26 @@
     const CAMPAIGN_LEVELS = ['casual','competitor','competitor','competitor','master'];
     let campaignSetup = null;
     let campaignChoosingNewRun = false;
+    function validCampaignRun(run) {
+      return typeof run?.id === 'string' && typeof run.deckId === 'string' &&
+          Array.isArray(run.rounds) && run.rounds.length === CAMPAIGN_LEVELS.length && run.rounds.every(round =>
+            typeof round?.deckId === 'string' && Object.hasOwn(YAMI_STYLE_LABELS,round.style)) &&
+          Array.isArray(run.results) && run.results.length <= CAMPAIGN_LEVELS.length &&
+          run.results.every(result => ['win','loss','draw'].includes(result));
+    }
     function loadCampaign() {
       try {
         const run = JSON.parse(localStorage.getItem(CAMPAIGN_KEY) || 'null');
-        return typeof run?.id === 'string' && typeof run.deckId === 'string' &&
-          run.rounds?.length === CAMPAIGN_LEVELS.length && run.rounds.every(round =>
-            typeof round?.deckId === 'string' && Object.hasOwn(YAMI_STYLE_LABELS,round.style)) &&
-          Array.isArray(run.results) && run.results.length <= CAMPAIGN_LEVELS.length &&
-          run.results.every(result => ['win','loss','draw'].includes(result)) ? run : null;
+        return validCampaignRun(run) ? run : null;
       } catch { return null; }
     }
-    function saveCampaign(run) {
-      try { localStorage.setItem(CAMPAIGN_KEY,JSON.stringify(run)); return true; }
+    function saveCampaign(run, sync = true) {
+      try { localStorage.setItem(CAMPAIGN_KEY,JSON.stringify(run)); }
       catch { showToast('Campaign progress could not be saved in this browser.'); return false; }
+      if (sync && typeof queueProgressEvent === 'function') {
+        queueProgressEvent({id:'campaign:'+run.id+':'+run.rounds.map(round=>round.deckId).join('|'),campaign:run});
+      }
+      return true;
     }
     function campaignBadge(deckId) {
       const run = loadCampaign();
@@ -7832,7 +7843,7 @@
       if (!round || run?.id !== round.id || run.results.length !== round.round ||
           game.deckIds?.you !== run.deckId || game.deckIds?.codex !== run.rounds[round.round]?.deckId) return false;
       run.results.push(winner === 'you' ? 'win' : winner === 'codex' ? 'loss' : 'draw');
-      if (!saveCampaign(run)) return false;
+      if (!saveCampaign(run,false)) return false;
       if (run.results.length !== CAMPAIGN_LEVELS.length) return false;
       const wins = run.results.filter(result=>result==='win').length, deck = statsForDeck(run.deckId);
       const stats = deck.campaign ||= {completed:0,cleared:0,bestWins:0};
@@ -9686,6 +9697,7 @@
       };
       lastUndoSnapshot = null; activeBoardChoice = null; activeBoardChoiceResolver = null;
       game.deckIds = { ...resolvedDecks.deckIds };
+      if (typeof progressMatchBaseline === 'function') game.progressBaseline = progressMatchBaseline();
       game.resumeDecks = Object.fromEntries(['you','codex'].map(side => [side, { id:game.deckIds[side], decklist:registeredDecks.find(deck=>deck.id===game.deckIds[side]).decklist }]));
       game.resumeManifest = Object.fromEntries(['you','codex'].map(side => [side, [...player(side).deck,...player(side).hand].map(card=>jsonSnapshot({ id:card.id,name:card.name,setCode:card.setCode,cardNumber:card.cardNumber,language:card.language,categoryHint:card.categoryHint,meta:card.meta }))]));
       clearTimeout(localAiTimer); localAiTimer = null; localAiActionCount = 0;
@@ -14527,6 +14539,7 @@
       if (cancelled) game.matchCancelled = true;
       if (game.matchHistory) game.matchHistory.endedAt = new Date().toISOString();
       if (!cancelled) {
+        if (!game.progressBaseline && typeof progressMatchBaseline === 'function') game.progressBaseline = progressMatchBaseline();
         if (typeof awardMastery==='function') awardMastery(winner);
         recordDeckResult(winner);
       }
@@ -14538,6 +14551,7 @@
       logEvent(`${cancelled ? 'Match cancelled' : winner ? `${player(winner).name} wins` : 'The match is a draw'}${reason ? ` — ${reason}` : ''}.`);
       game.log[0].afterPresentation = true;
       if (typeof syncFinishedMatchHistory === 'function') syncFinishedMatchHistory();
+      if (!cancelled && typeof queueFinishedProgress === 'function' && !runResolutionTransaction.depth) queueFinishedProgress();
       $('localAiStatus').textContent = cancelled ? 'Match cancelled.' : winner === 'codex' ? 'Local opponent won this match.' : winner === 'you' ? 'You won this match.' : 'The match is a draw.';
       if (!cancelled && typeof queuePlaymatEffect === 'function') queuePlaymatEffect({ kind: 'victory', winner, reason });
       render();
@@ -14743,6 +14757,7 @@
       return {
         game: JSON.parse(JSON.stringify(game)),
         deckStats: JSON.parse(JSON.stringify(deckStats)),
+        campaign: game?.campaign && typeof loadCampaign === 'function' ? loadCampaign() : null,
         selected: selected ? { ...selected } : null,
         controlSide
       };
@@ -14751,6 +14766,7 @@
       game = snapshot.game;
       game.log = (game.log || []).map(item => item && typeof item === 'object' && typeof item.time === 'string' ? { ...item, time: new Date(item.time) } : item);
       deckStats = snapshot.deckStats;
+      if (snapshot.campaign && typeof saveCampaign === 'function') saveCampaign(snapshot.campaign,false);
       selected = snapshot.selected;
       controlSide = snapshot.controlSide;
       logEvent(`${label} resolution failed; no changes were kept.`, false);
@@ -14783,7 +14799,14 @@
         restoreResolutionState(snapshot, label);
         showToast(error?.code==='CARD_ACTION_CANCELLED'?'Action cancelled. Your card and turn allowance are unchanged.':`${label} failed to resolve; no changes were kept. ${error?.message || ''}`.trim());
         return false;
-      } finally { runResolutionTransaction.depth--; if(!runResolutionTransaction.depth && (typeof attackResolutionPending==='undefined' || !attackResolutionPending))resolutionInformationRevealed=false; if (typeof queueMatchAutosave === 'function') queueMatchAutosave(); }
+      } finally {
+        runResolutionTransaction.depth--;
+        if (!runResolutionTransaction.depth) {
+          if (typeof attackResolutionPending==='undefined' || !attackResolutionPending) resolutionInformationRevealed=false;
+          if (game?.phase==='finished' && typeof queueFinishedProgress==='function') queueFinishedProgress();
+        }
+        if (typeof queueMatchAutosave==='function') queueMatchAutosave();
+      }
     }
     function runEffectTransaction(resolve, options = {}) { return runResolutionTransaction(resolve, options); }
     function snapshotAttackState() { return snapshotResolutionState(); }
@@ -19960,7 +19983,7 @@
       });
     }
     function managedBackupKeys() {
-      return { decks: DECK_STORAGE_KEY, cards: CARD_STORAGE_KEY, deckOrder: DECK_ORDER_KEY, deletedDeckIds: DELETED_DECKS_STORAGE_KEY, deletedCardIds: DELETED_CARDS_STORAGE_KEY, deckStats: DECK_STATS_STORAGE_KEY, fontSizes: FONT_SIZE_STORAGE_KEY, playmats: PLAYMATS_STORAGE_KEY };
+      return { decks: DECK_STORAGE_KEY, cards: CARD_STORAGE_KEY, deckOrder: DECK_ORDER_KEY, deletedDeckIds: DELETED_DECKS_STORAGE_KEY, deletedCardIds: DELETED_CARDS_STORAGE_KEY, deckStats: DECK_STATS_STORAGE_KEY, campaign: CAMPAIGN_KEY, fontSizes: FONT_SIZE_STORAGE_KEY, playmats: PLAYMATS_STORAGE_KEY };
     }
     function librarySyncStorageKeys() {
       return {decks:DECK_STORAGE_KEY,cards:CARD_STORAGE_KEY,deckOrder:DECK_ORDER_KEY,
@@ -20021,7 +20044,7 @@
     }
     function buildLibraryBackup() {
       return jsonSnapshot({ kind: 'pokemon-tcg-playmat-backup', schemaVersion: 1, engineVersion: ENGINE_VERSION, createdAt: new Date().toISOString(),
-        data: { decks: registeredDecks, cards: registeredCards, deckOrder: decksInManagerOrder().map(deck=>deck.id), deletedDeckIds: [...deletedDeckIds], deletedCardIds: [...deletedCardIds], deckStats, fontSizes: fontSizeSettings, playmats: savedPlaymats }
+        data: { decks: registeredDecks, cards: registeredCards, deckOrder: decksInManagerOrder().map(deck=>deck.id), deletedDeckIds: [...deletedDeckIds], deletedCardIds: [...deletedCardIds], deckStats, campaign:loadCampaign(), fontSizes: fontSizeSettings, playmats: savedPlaymats }
       });
     }
     function validateLibraryBackup(input) {
@@ -20090,6 +20113,7 @@
         for (const field of ['plays', 'completed', 'wins', 'losses', 'draws']) if (stats[field] != null && (!Number.isSafeInteger(stats[field]) || stats[field] < 0)) throw new Error('Saved play results contain an invalid count.');
         if (!validDeckStatsDetails(stats)) throw new Error('Saved card results or player splits are invalid.');
       }
+      if (data.campaign!=null && !validCampaignRun(data.campaign)) throw new Error('Saved campaign progress is invalid.');
       if (!object(data.fontSizes) || Object.keys(FONT_AREA_DEFAULT).some(area => typeof data.fontSizes[area] !== 'number' || data.fontSizes[area] < .9 || data.fontSizes[area] > 1.5)) throw new Error('Saved text sizes are invalid.');
       const checked = JSON.parse(serialized);
       if (data.deckOrder !== undefined) {
@@ -20112,6 +20136,7 @@
       if (dataTransferBusy()) throw new Error('Finish the current choice or card update before restoring a backup.');
       const backup = validateLibraryBackup(input), keys = managedBackupKeys();
       if (backup.data.deckOrder === undefined) delete keys.deckOrder;
+      if (backup.data.campaign === undefined) delete keys.campaign;
       let previous;
       try { previous = Object.fromEntries(Object.entries(keys).map(([name, key]) => [name, localStorage.getItem(key)])); }
       catch { throw new Error('The browser blocked access to saved data. No data was changed.'); }
@@ -20217,11 +20242,133 @@
         showToast('Game state copied. Paste it into chat.');
       }
     }
+    const PROGRESS_OUTBOX_KEY = 'codexPokemonPlaymat.progressOutbox.v1';
+    function progressDeckStats(id, source) {
+      const {history,...stats} = source;
+      if (!stats.matchups && history?.length) stats.matchups = deckMatchupsFor(id);
+      if (!stats.mastery) {
+        const mastery = masteryProgress(id);
+        if (Object.keys(mastery).length) stats.mastery = mastery;
+      }
+      return stats;
+    }
+    function progressMatchBaseline() {
+      return jsonSnapshot(Object.fromEntries([...new Set(Object.values(game.deckIds || {}))].filter(Boolean)
+        .map(id=>[id,progressDeckStats(id,deckStats[id] || emptyDeckStats())])));
+    }
+    function progressSnapshot() {
+      return jsonSnapshot({deckStats:Object.fromEntries(Object.entries(deckStats).map(([id,stats])=>
+        [id,{...progressDeckStats(id,stats),...(stats.history ? {history:stats.history} : {})}])),campaign:loadCampaign()});
+    }
+    function progressOutbox() {
+      const value = JSON.parse(localStorage.getItem(PROGRESS_OUTBOX_KEY) || '{}');
+      if (!value || typeof value!=='object' || Array.isArray(value)) throw new Error('Invalid local progress queue.');
+      return value;
+    }
+    function queueProgressEvent(...events) {
+      try {
+        const outbox = progressOutbox();
+        for (const event of events) outbox[event.id] = event;
+        localStorage.setItem(PROGRESS_OUTBOX_KEY,JSON.stringify(outbox));
+        librarySync?.progressChanged();
+        return true;
+      } catch {
+        showToast('This device could not queue progress for online sync.');
+        return false;
+      }
+    }
+    function queueFinishedProgress() {
+      if (!game?.progressBaseline || !game.matchHistory || game.matchCancelled || game.progressQueued ||
+          typeof progressStatsDelta!=='function') return;
+      const id = game.matchHistory.id;
+      const summaries = [];
+      const stats = Object.fromEntries(Object.keys(game.progressBaseline).map(deckId=>
+        [deckId,progressStatsDelta(game.progressBaseline[deckId],deckStats[deckId])]));
+      for (const side of ['you','codex']) {
+        const summary = buildMatchSummary(side);
+        if (summary?.decks[side].id && !summaries.some(item=>item.decks[item.perspective].id===summary.decks[side].id)) summaries.push(summary);
+      }
+      const campaign = game.campaign && loadCampaign();
+      let campaignFinish;
+      if (campaign && campaign.id===game.campaign.id && campaign.results.length===game.campaign.round+1) {
+        if (campaign.results.length===CAMPAIGN_LEVELS.length) {
+          const campaignStats = stats[campaign.deckId];
+          if (campaignStats?.campaign) {
+            const {campaign:counts,campaignChampion} = campaignStats;
+            const finishStats = {[campaign.deckId]:{campaign:counts,...(campaignChampion ? {campaignChampion} : {})}};
+            campaignFinish = {id:'campaign-finish:'+campaign.id,stats:finishStats,campaign};
+            delete campaignStats.campaign;
+            delete campaignStats.campaignChampion;
+          }
+        }
+      }
+      const event = {id,stats,summaries,...(campaign ? {campaign} : {})};
+      game.progressQueued = campaignFinish ? queueProgressEvent(event,campaignFinish) : queueProgressEvent(event);
+    }
+    function validateSyncedProgress(progress) {
+      const unsafe = new Set(['__proto__','constructor','prototype']);
+      let nodes = 0;
+      function check(value,depth = 0) {
+        if (++nodes>350000 || depth>24) throw new Error('Online progress is too large.');
+        if (value && typeof value==='object') for (const [key,child] of Object.entries(value)) {
+          if (unsafe.has(key)) throw new Error('Invalid online progress field.');
+          check(child,depth+1);
+        }
+      }
+      check(progress);
+      if (progress?.schemaVersion!==1 || !Array.isArray(progress.receipts) ||
+          progress.receipts.some(id=>typeof id!=='string' || !id.length || id.length>12000) ||
+          !progress.deckStats || typeof progress.deckStats!=='object' || Array.isArray(progress.deckStats) ||
+          progress.campaign!==null && !validCampaignRun(progress.campaign)) throw new Error('Invalid online progress.');
+      for (const stats of Object.values(progress.deckStats)) {
+        if (!stats || !validDeckStatsDetails(stats) || stats.history!==undefined &&
+            (!Array.isArray(stats.history) || stats.history.length>20 || !stats.history.every(validSavedMatchSummary))) {
+          throw new Error('Invalid online match history.');
+        }
+      }
+      return progress;
+    }
+    function canApplyProgressSync() {
+      if (!canApplyLibrarySync() || game?.phase==='setup' || game?.phase==='play' ||
+          runResolutionTransaction.depth || matchFinishPresentationBusy()) return false;
+      if (game?.phase==='finished') return true;
+      try { return !['setup','play'].includes(JSON.parse(localStorage.getItem(MATCH_STORAGE_KEY) || 'null')?.game?.phase); }
+      catch { return false; }
+    }
+    function applySyncedProgress(progress) {
+      if (!canApplyProgressSync()) return;
+      const priorStats = localStorage.getItem(DECK_STATS_STORAGE_KEY), priorCampaign = localStorage.getItem(CAMPAIGN_KEY);
+      const store = (key,value)=>value===null ? localStorage.removeItem(key) : localStorage.setItem(key,value);
+      try {
+        store(DECK_STATS_STORAGE_KEY,JSON.stringify(progress.deckStats));
+        store(CAMPAIGN_KEY,progress.campaign ? JSON.stringify(progress.campaign) : null);
+      } catch (error) {
+        store(DECK_STATS_STORAGE_KEY,priorStats);
+        store(CAMPAIGN_KEY,priorCampaign);
+        throw error;
+      }
+      deckStats = progress.deckStats;
+      updateMenuCounts();
+      if (!$('statisticsPage').classList.contains('app-hidden')) renderStatisticsTable();
+      if (!$('deckManagerModal').classList.contains('hidden') && deckManagerView!=='build') renderDeckLibrary();
+      if (!$('campaignModal').classList.contains('hidden') && !campaignChoosingNewRun) openCampaign();
+      if (game?.phase==='finished') renderMatchSummaryCard();
+    }
     if (typeof mountPlaymatLibrarySync === 'function') {
       const config = $('librarySyncScript').dataset;
       librarySync = mountPlaymatLibrarySync({
         projectUrl:config.projectUrl,publishableKey:config.publishableKey,
-        snapshot:librarySyncSnapshot,apply:applySyncedLibrary,validate:validateSyncedLibrary,canSync:canApplyLibrarySync
+        snapshot:librarySyncSnapshot,apply:applySyncedLibrary,validate:validateSyncedLibrary,canSync:canApplyLibrarySync,
+        progress:{
+          snapshot:progressSnapshot,apply:applySyncedProgress,validate:validateSyncedProgress,canSync:canApplyProgressSync,
+          events:()=>Object.values(progressOutbox()),
+          acknowledge:ids=>{
+            if (!ids.length) return;
+            const outbox = progressOutbox();
+            for (const id of ids) delete outbox[id];
+            localStorage.setItem(PROGRESS_OUTBOX_KEY,JSON.stringify(outbox));
+          }
+        }
       });
     }
     const settingsMenu = $('playmatSettings'), volumeSlider = $('playmatVolume');

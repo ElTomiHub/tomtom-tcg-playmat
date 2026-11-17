@@ -73,3 +73,75 @@ test('applying an online library keeps match data and writes only library keys',
   assert.equal(run('localStorage.getItem(DECK_STATS_STORAGE_KEY)'),'{"secret":"history"}');
   assert.equal(run('localStorage.getItem(MATCH_STORAGE_KEY)'),'{"private":"unfinished"}');
 });
+
+test('completed results from two devices add once, including matchup and badge counters',()=>{
+  const {progressStatsDelta,mergePlaymatProgress} = require('../assets/library-sync.js');
+  const baseline = {deck:{plays:10,wins:3,losses:7,mastery:{dedication:10},cards:{}}};
+  const cloud = {schemaVersion:1,deckStats:baseline,campaign:null,receipts:[]};
+  const summary = id=>({id:id+':you',endedAt:'2026-11-17T00:00:00Z',perspective:'you',decks:{you:{id:'deck'}}});
+  const win = {id:'match-win',stats:progressStatsDelta(baseline,{deck:{plays:11,wins:4,losses:7,
+    mastery:{dedication:11},cards:{pika:{name:'Pikachu',used:2}}}}),summaries:[summary('match-win')]};
+  const loss = {id:'match-loss',stats:progressStatsDelta(baseline,{deck:{plays:11,wins:3,losses:8,
+    mastery:{dedication:11},cards:{pika:{name:'Pikachu',used:1}}}}),summaries:[summary('match-loss')]};
+  const merged = mergePlaymatProgress(mergePlaymatProgress(cloud,[win]),[loss,win,loss]);
+  assert.equal(merged.deckStats.deck.plays,12);
+  assert.equal(merged.deckStats.deck.wins,4);
+  assert.equal(merged.deckStats.deck.losses,8);
+  assert.equal(merged.deckStats.deck.mastery.dedication,12);
+  assert.equal(merged.deckStats.deck.cards.pika.used,3);
+  assert.equal(merged.deckStats.deck.history.length,2);
+  assert.equal(cloud.deckStats.deck.plays,10);
+  assert.deepEqual(mergePlaymatProgress(merged,[win,loss]),merged);
+});
+
+test('campaign progress cannot go backwards and campaign completion counts only once',()=>{
+  const {mergePlaymatProgress} = require('../assets/library-sync.js');
+  const campaign = {id:'match-100-run',deckId:'deck',results:['win','loss']};
+  const cloud = {schemaVersion:1,deckStats:{},campaign,receipts:[]};
+  const finish = {...campaign,results:['win','loss','win','win','draw']};
+  const conflicting = {...finish,results:['loss','loss','loss','win','draw']};
+  const stats = {deck:{campaign:{completed:1,cleared:1,bestWins:3},campaignChampion:true}};
+  const merged = mergePlaymatProgress(cloud,[
+    {id:'old-round',campaign:{...campaign,results:['win']}},
+    {id:'campaign-finish:'+campaign.id,campaign:conflicting,stats},
+    {id:'campaign-finish:'+campaign.id,campaign:finish,stats},
+    {id:'campaign-finish:'+campaign.id,campaign:finish,stats}
+  ]);
+  assert.deepEqual(merged.campaign,finish);
+  assert.deepEqual(merged.deckStats,stats);
+});
+
+test('the progress snapshot excludes recordings and saved games and validates before applying',()=>{
+  const r = createEngineRunner(loadFixture());
+  const run = code=>vm.runInContext(code,r.context);
+  run(`for (const id of ['setupModal','deckManagerModal','campaignModal']) $(id).classList.add('hidden');
+       $('statisticsPage').classList.add('app-hidden');
+       localStorage.setItem(MATCH_STORAGE_KEY,'{"game":{"phase":"play"}}');`);
+  assert.equal(run('canApplyProgressSync()'),false);
+  assert.deepEqual(Object.keys(run('progressSnapshot()')),['deckStats','campaign']);
+  assert.throws(()=>run("validateSyncedProgress({schemaVersion:1,receipts:[],deckStats:{},campaign:{id:'invalid'}})"));
+  run(`localStorage.removeItem(MATCH_STORAGE_KEY);
+       applySyncedProgress(validateSyncedProgress({schemaVersion:1,receipts:[],deckStats:{test:{wins:1}},campaign:null}));`);
+  assert.equal(run('deckStats.test.wins'),1);
+  assert.equal(run('localStorage.getItem(MATCH_STORAGE_KEY)'),null);
+});
+
+test('the engine queues only committed results and the queued counters rebuild deck history', async()=>{
+  const {progressStatsDelta,mergePlaymatProgress} = require('../assets/library-sync.js');
+  const fixture = loadFixture(), r = createEngineRunner(fixture);
+  const run = code=>vm.runInContext(code,r.context);
+  r.context.progressStatsDelta = progressStatsDelta;
+  const seed = run('progressSnapshot()');
+  r.api.setup(fixture,r.random,r.choose,()=>true);
+  await run("runResolutionTransaction(async()=>{finishMatch('you','Rolled back');return false;})");
+  assert.equal(run('Object.keys(progressOutbox()).length'),0);
+  run("finishMatch('you','Test win')");
+  const events = run('Object.values(progressOutbox())');
+  assert.equal(events.length,1);
+  assert.equal(events[0].summaries.length,2);
+  r.context.merged = mergePlaymatProgress({schemaVersion:1,...seed,receipts:[]},events);
+  assert.doesNotThrow(()=>run('validateSyncedProgress(merged)'));
+  assert.equal(r.context.merged.deckStats[fixture.decks.human.id].bySide.you.wins,1);
+  assert.equal(r.context.merged.deckStats[fixture.decks.ai.id].bySide.codex.losses,1);
+  assert.equal(r.context.merged.deckStats[fixture.decks.human.id].history.length,1);
+});

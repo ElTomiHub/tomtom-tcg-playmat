@@ -274,3 +274,9 @@ The playmat still runs locally when the sync connection is unconfigured or unava
 4. Deploy the updated site. Sign in first on the PC under Settings → Backup & restore → Private library sync, then sign in on the phone. If those browsers contain different changes, choose the copy you want to keep. You can use Sync now or leave the app to sync on its own when idle.
 
 The remembered session stays in the current browser. Signing out of this browser keeps the local library. Follow the [Supabase API key guide](https://supabase.com/docs/guides/getting-started/api-keys) to locate the publishable key.
+
+### Syncing completed results and campaign progress
+
+Run `progress-sync.sql` once in the same Supabase SQL Editor. It reuses the existing private library owner and keeps its own revision. On the device with the results you want to carry forward, open **Settings → Backup & restore** and click **Sync now** to initialize online progress. Other signed-in devices pick up the online results the next time they sync. If a device already has a different set of older totals, download a full backup before choosing **Use online progress**. Older lifetime totals cannot be merged reliably because only the most recent match summaries were kept. New completed results merge by match ID, including games played offline after the update. If two devices finish the same campaign round with different outcomes, the campaign keeps the first synced outcome for that round. Both games still count in match statistics.
+
+Saved recordings and unfinished games stay on the device where they were played.
