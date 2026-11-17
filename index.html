@@ -6,13 +6,16 @@
   <meta name="theme-color" content="#082d5f">
   <title>Pokémon TCG Playmat</title>
   <link rel="icon" type="image/png" href="logo.png">
-  <link rel="stylesheet" href="playmat.css?v=phone2a">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/playmat-icon-192.png">
+  <link rel="stylesheet" href="playmat.css?v=phone3">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
   <div class="playmat-effects coin-flip-overlay" id="coinFlipOverlay" aria-hidden="true"></div>
   <div class="effect-announcement" id="playmatEffectAnnouncement" role="status" aria-live="polite" aria-atomic="true"></div>
   <button class="btn small report-problem-shortcut" id="reportProblemBtn">Report a problem</button>
+  <p id="phonePortraitNotice" role="status">Rotate your phone to portrait to play.</p>
   <main class="app-shell">
     <header class="topbar">
       <div class="brand"><img class="brand-mark" src="logo.png" alt=""><div>POKÉMON TCG</div></div>
@@ -10014,7 +10017,7 @@
       return null;
     }
     function mobileMatchLayout() {
-      return window.matchMedia('(max-width: 600px), (orientation: landscape) and (max-height: 570px) and (pointer: coarse)').matches;
+      return window.matchMedia('(max-width: 600px) and (orientation: portrait)').matches;
     }
     function setMobileMatchPanel(panel, returnFocus = false) {
       const layout = $('matchLayout'), previous = layout.dataset.mobilePanel;
@@ -20888,9 +20891,13 @@
     function installTouchCardDrag() {
       const mat = $('playmatPanel'), hand = $('handCards');
       let gesture = null, suppressClickUntil = 0, lastTap = null;
+      mat.addEventListener('selectstart',event=>{
+        if (mobileMatchLayout() && !event.target.closest?.('input, textarea, select')) event.preventDefault();
+      });
       mat.addEventListener('contextmenu',event=>{
-        if ((event.pointerType==='touch' || window.matchMedia('(any-pointer: coarse)').matches) &&
-            event.target.closest('[data-hand-card], [data-card], [data-attached-tool], [data-revealed-hand-card]')) event.preventDefault();
+        const touch = event.pointerType==='touch' || window.matchMedia('(any-pointer: coarse)').matches;
+        if (touch && (mobileMatchLayout() && !event.target.closest('input, textarea, select') ||
+            event.target.closest('[data-hand-card], [data-card], [data-attached-tool], [data-revealed-hand-card]'))) event.preventDefault();
       });
       mat.addEventListener('dragstart',event=>{
         if (gesture || event.sourceCapabilities?.firesTouchEvents) {
@@ -20905,9 +20912,8 @@
         if (!candidate) return;
         const fromHand = !!candidate.dataset.handCard;
         if (!fromHand && candidate.draggable!==true) return;
-        const vertical = getComputedStyle(hand).overflowY==='auto';
-        gesture = {id:event.pointerId,source:candidate,fromHand,vertical,x:event.clientX,y:event.clientY,
-          start:event.timeStamp,scroll:vertical ? hand.scrollTop : hand.scrollLeft,mode:null,ghost:null};
+        gesture = {id:event.pointerId,source:candidate,fromHand,x:event.clientX,y:event.clientY,
+          start:event.timeStamp,scroll:hand.scrollLeft,mode:null,ghost:null};
       });
       document.addEventListener('pointermove',event=>{
         const g = gesture;
@@ -20915,9 +20921,7 @@
         const dx = event.clientX-g.x, dy = event.clientY-g.y;
         if (!g.mode) {
           if (Math.hypot(dx,dy)<8) return;
-          const primary = g.vertical ? Math.abs(dy) : Math.abs(dx);
-          const secondary = g.vertical ? Math.abs(dx) : Math.abs(dy);
-          const handSwipe = g.fromHand && (g.source.draggable!==true || primary>secondary && event.timeStamp-g.start<200);
+          const handSwipe = g.fromHand && (g.source.draggable!==true || Math.abs(dx)>Math.abs(dy) && event.timeStamp-g.start<200);
           if (handSwipe) {
             g.mode = 'scroll';
           } else {
@@ -20937,8 +20941,7 @@
           }
         }
         if (g.mode==='scroll') {
-          if (g.fromHand && g.vertical) hand.scrollTop = g.scroll-dy;
-          else if (g.fromHand) hand.scrollLeft = g.scroll-dx;
+          if (g.fromHand) hand.scrollLeft = g.scroll-dx;
           return;
         }
         event.preventDefault();

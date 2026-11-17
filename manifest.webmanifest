@@ -1,0 +1,15 @@
+{
+  "id": "./",
+  "name": "Pokémon TCG Playmat",
+  "short_name": "Playmat",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#082d5f",
+  "background_color": "#0b213b",
+  "icons": [
+    { "src": "assets/playmat-icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/playmat-icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
