@@ -125,7 +125,7 @@ test('AI uses the same Thunderous Bolt resolver and receives the next-turn restr
   assert.equal(runner.api.canUseAttack(attacker, attack), false);
 });
 
-test('Switching the restricted Bellibolt to the Bench and back preserves its lock', async () => {
+test('Switching Bellibolt to the Bench and back clears its attack lock', async () => {
   const { runner, attacker, attack, side, otherSide } = await readyRunner('you', 421);
   const owner = runner.api.state().players.you, tadbulb = getOrBenchTadbulb(owner);
   const switches = [];
@@ -135,9 +135,9 @@ test('Switching the restricted Bellibolt to the Bench and back preserves its loc
     switches.push(card);
   }
   owner.hand.push(...switches);
-  const attackTurn = runner.api.state().turnNumber;
   assert.equal(await runner.api.attack(side, 0), true);
   await runner.api.endTurnFor(otherSide);
+  assert.equal(runner.api.canUseAttack(attacker, attack), false);
   assert.equal(runner.api.state().turn, side);
   let intendedTarget = tadbulb.id;
   runner.api.setChoices(runner.random, request => request.kind === 'pokemon-target'
@@ -146,15 +146,17 @@ test('Switching the restricted Bellibolt to the Bench and back preserves its loc
   await runner.api.playCard(side, switches[0].id);
   assert.equal(owner.active.id, tadbulb.id);
   assert.equal(owner.bench.some(card => card.id === attacker.id), true);
-  assert.equal(attacker.cannotAttackUntilTurn, attackTurn + 2);
+  assert.equal(attacker.cannotAttackUntilTurn, undefined);
+  assert.equal(attacker.attackLockSource, undefined);
 
   intendedTarget = attacker.id;
   await runner.api.playCard(side, switches[1].id);
   assert.equal(owner.active.id, attacker.id);
-  assert.equal(runner.api.canUseAttack(attacker, attack), false);
+  assert.equal(runner.api.canUseAttack(attacker, attack), true);
+  assert.equal(await runner.api.attack(side, 0), true);
 });
 
-test('evolving a Pokémon preserves its active attack restriction', async () => {
+test('evolving a Pokémon clears its active attack restriction', async () => {
   const fixture = sameDeckFixture(), runner = createEngineRunner(fixture, 431);
   runner.api.setup(fixture, runner.random, request => request.candidates?.[0] || null, () => false);
   runner.api.setLocalAi(false);
@@ -167,7 +169,7 @@ test('evolving a Pokémon preserves its active attack restriction', async () => 
   owner.hand.push(bellibolt);
   await runner.api.humanAction({ type: 'evolve', cardId: bellibolt.id, targetId: tadbulb.id });
   assert.equal(owner.active.id, bellibolt.id);
-  assert.equal(owner.active.cannotAttackUntilTurn, expires);
+  assert.equal(owner.active.cannotAttackUntilTurn, undefined);
 });
 
 test('Knockout clears the leaving Pokémon lock; replacement and a reused card have no stale restriction', async () => {
@@ -210,4 +212,23 @@ test('failed Thunderous Bolt transaction rolls back damage and the newly set loc
   assert.equal(runner.api.state().players.you.active.cannotAttackUntilTurn || 0, 0);
   assert.equal(runner.api.state().players.you.attackedThisTurn, false);
   assert.equal(runner.api.state().turn, turnBefore);
+});
+
+test('the Bench clears every registered next-turn attack lock and preserves damage and attachments', () => {
+  const vm = require('node:vm');
+  const runner = createEngineRunner(sameDeckFixture());
+  const checked = vm.runInContext(`
+    CARD_EFFECT_REGISTRY.attacks.filter(rule=>['attack_lock_next_turn','coin_bonus_and_attack_lock',
+      'named_attack_lock','torment_attack'].includes(rule.effect.type)).map(rule=>{
+      const pokemon={damage:50,energy:[{id:'energy'}],tools:[{id:'tool'}],
+        cannotAttackUntilTurn:7,attackLockSource:rule.attackName,namedAttackLock:{name:rule.attackName,turn:7}};
+      clearPokemonConditions(pokemon);
+      return {name:rule.attackName,lockCleared:!('cannotAttackUntilTurn' in pokemon || 'attackLockSource' in pokemon ||
+        'namedAttackLock' in pokemon),untouched:pokemon.damage===50 && pokemon.energy.length===1 && pokemon.tools.length===1};
+    })
+  `,runner.context);
+  for (const name of ['thunderous bolt','mighty meteor','iron buster','volcanic heat','iron blaster','hydro break','laser blade','burning salto']) {
+    assert.ok(checked.some(rule=>rule.name.toLowerCase()===name),name);
+  }
+  for (const rule of checked) assert.ok(rule.lockCleared && rule.untouched,rule.name);
 });

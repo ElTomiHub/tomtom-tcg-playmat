@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="playmat.css?v=coach1">
+  <link rel="stylesheet" href="playmat.css?v=stats-phone1">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -100,14 +100,14 @@
         <div id="statisticsUsage"></div>
         <div id="statisticsSuggestions"></div>
       </section>
-      <p class="data-tools-note" id="statisticsNote">Results are from Toma’s perspective. Overall shows wins, losses, and draws. The difficulty columns show wins and losses for matches with saved Yami settings. Older matches, draws, and forfeits may appear only in Overall. A dash means no recorded results. The small percentages show the chance of each combination for that matchup when both settings are on Random.</p>
-      <div class="statistics-controls">
+      <details class="statistics-notes" id="statisticsNotes" open><summary>How to read these results</summary><p class="data-tools-note" id="statisticsNote">Results are from Toma’s perspective. Overall shows wins, losses, and draws. The difficulty columns show wins and losses for matches with saved Yami settings. Older matches, draws, and forfeits may appear only in Overall. A dash means no recorded results. The small percentages show the chance of each combination for that matchup when both settings are on Random.</p></details>
+      <details class="statistics-filter-panel" id="statisticsFilterPanel" open><summary>Filters &amp; sorting</summary><div class="statistics-controls">
         <label>Opponent <input class="btn" id="statsOpponent" type="search" placeholder="Search deck name"></label>
         <label>Difficulty <select class="btn" id="statsLevel"><option value="">All difficulties</option><option value="casual">Casual</option><option value="competitor">Competitor</option><option value="master">Master</option></select></label>
         <label>Playstyle <select class="btn" id="statsStyle"><option value="">All styles</option><option value="aggro">Aggro</option><option value="balanced">Balanced</option><option value="control">Control</option></select></label>
         <label>Sort <select class="btn" id="statsSort"><option value="">Deck order</option><option value="name">Deck name</option><option value="games">Most games</option><option value="least">Fewest games</option><option value="wins">Most wins</option><option value="losses">Most losses</option><option value="rate">Highest win rate</option></select></label>
         <label><input id="statsPlayed" type="checkbox"> Played matchups only</label>
-      </div>
+      </div></details>
       <div class="statistics-table-wrap" id="statisticsResults" role="region" aria-label="Deck matchup results" tabindex="0"></div>
     </section>
     <div class="match-layout app-hidden" id="matchLayout">
@@ -7988,13 +7988,16 @@
       const difficultyTotal = difficultyWeights.reduce((sum,weight)=>sum+weight,0);
       const difficultyKeys = Object.keys(YAMI_DIFFICULTY_LABELS);
       const styleKeys = Object.keys(YAMI_STYLE_LABELS);
-      const cell = (wins, losses, draws = null, groupStart = false, chance = null) => {
-        const border = groupStart ? " data-group-start" : "";
+      const resultText = (wins, losses, draws = null, chance = null) => {
         const hasResults = wins || losses || draws;
         const result = hasResults ? `${wins || 0} W · ${losses || 0} L${draws === null ? "" : ` · ${draws || 0} D`}` : '—';
         const percent = chance === null ? '' : chance === 0 ? '0%' : chance < .001 ? '&lt;0.1%' : (chance*100).toFixed(1)+'%';
         const odds = percent ? `<small class="statistics-odds" title="Next match with both settings on Random">${percent}</small>` : '';
-        return `<td${hasResults ? '' : ' class="no-results"'}${border}>${result}${odds}</td>`;
+        return result+odds;
+      };
+      const cell = (wins, losses, draws = null, groupStart = false, chance = null) => {
+        const border = groupStart ? " data-group-start" : "";
+        return `<td${wins || losses || draws ? '' : ' class="no-results"'}${border}>${resultText(wins,losses,draws,chance)}</td>`;
       };
       const overallMatchups = deckMatchupsFor(deckId);
       const opponents = decksInManagerDisplayOrder().filter(deck => deckDisplayName(deck).toLocaleLowerCase().includes(query));
@@ -8019,27 +8022,35 @@
       }).filter(entry => !played || entry.games);
       if (sort) entries.sort((a,b) => (sort === 'name' ? 0 : sort === 'least' ? a.games-b.games : b[sort] - a[sort]) || a.deck.name.localeCompare(b.deck.name));
       if (!entries.length) return '<p>No matchups match these filters.</p>';
+      const mobileRows = [];
       const rows = entries.map(({deck: opponent}) => {
         const overall = overallMatchups[opponent.id]?.bySide?.you;
         const matchup = yamiMatchup(opponent.id, deckId);
-        const breakdown = levels.flatMap(([level]) => {
+        const breakdown = levels.map(([level,label]) => {
           const records = level === "competitor" ? matchup?.styles : matchup?.difficulties?.[level]?.styles;
           const difficultyChance = difficultyWeights[difficultyKeys.indexOf(level)] / difficultyTotal;
           const styleWeights = yamiStyleWeights(opponent.id,deckId,level);
           const styleTotal = styleWeights.reduce((sum,weight)=>sum+weight,0);
-          return styles.map(([style], index) => {
+          return {label,styles:styles.map(([style,styleLabel]) => {
             const record = records?.[style];
             const chance = difficultyChance * styleWeights[styleKeys.indexOf(style)] / styleTotal;
-            return cell(record?.losses, record?.wins, null, index === 0, chance);
-          });
+            return {label:styleLabel,wins:record?.losses,losses:record?.wins,chance};
+          })};
         });
-        return `<tr><th scope="row"><div class="statistics-deck-name">${statisticsDeckCover(opponent)}<span>${escapeHtml(deckDisplayName(opponent))}</span></div></th>${cell(overall?.wins, overall?.losses, overall?.draws || 0)}${breakdown.join("")}</tr>`;
+        const deck = `<span class="statistics-deck-name">${statisticsDeckCover(opponent)}<span>${escapeHtml(deckDisplayName(opponent))}</span></span>`;
+        const total = resultText(overall?.wins,overall?.losses,overall?.draws || 0);
+        mobileRows.push(`<details class="statistics-opponent"><summary>${deck}<span class="statistics-overall">${total}</span><span class="statistics-chevron" aria-hidden="true"></span></summary>
+          <div class="statistics-breakdown">${breakdown.map(({label,styles:group})=>`<section><h3>${escapeHtml(label)}</h3><dl>${group.map(row=>
+            `<div><dt>${escapeHtml(row.label)}</dt><dd>${resultText(row.wins,row.losses,null,row.chance)}</dd></div>`).join('')}</dl></section>`).join('')}</div></details>`);
+        return `<tr><th scope="row">${deck}</th>${cell(overall?.wins,overall?.losses,overall?.draws || 0)}${breakdown.flatMap(({styles:group})=>
+          group.map((row,index)=>cell(row.wins,row.losses,null,index===0,row.chance))).join('')}</tr>`;
       });
       return `<table class="statistics-table" aria-describedby="statisticsNote"><thead><tr>
         <th scope="col" rowspan="2">Yami’s deck</th><th scope="col" rowspan="2">Overall</th>
         ${levels.map(([,label]) => `<th scope="colgroup" colspan="${styles.length}" data-group-start>${escapeHtml(label)}</th>`).join("")}</tr><tr>
         ${levels.flatMap(() => styles.map(([,label], index) => `<th scope="col"${index === 0 ? " data-group-start" : ""}>${escapeHtml(label)}</th>`)).join("")}
-        </tr></thead><tbody>${rows.join("")}</tbody></table>`;
+        </tr></thead><tbody>${rows.join("")}</tbody></table><section class="statistics-mobile-results" aria-label="Matchup records">
+          <header><h2>Matchup records</h2><span>Overall · W–L–D</span></header>${mobileRows.join('')}</section>`;
     }
     function matchupUsageFor(deckId, decks = decksInManagerDisplayOrder()) {
       const records = deckMatchupsFor(deckId);
@@ -8107,6 +8118,11 @@
       const select = $("statisticsDeck"), previous = select.value;
       select.innerHTML = decksInManagerDisplayOrder().map(deck => `<option value="${escapeHtml(deck.id)}">${escapeHtml(deckDisplayName(deck))}</option>`).join("");
       if (registeredDecks.some(deck => deck.id === previous)) select.value = previous;
+      const compact = window.matchMedia('(max-width: 600px) and (orientation: portrait)').matches;
+      if ($('statisticsPage').classList.contains('app-hidden')) {
+        $('statisticsFilterPanel').open = !compact;
+        $('statisticsNotes').open = !compact;
+      }
       select.disabled = !registeredDecks.length;
       renderMatchupStatistics();
       setView("statistics");
@@ -12285,7 +12301,6 @@
       card.evolutionStack = [...(target.evolutionStack || []), { id:target.id, name:target.name, setCode:target.setCode, cardNumber:target.cardNumber, language:target.language, meta:target.meta }];
       card.enteredTurn = target.enteredTurn || 0;
       card.evolvedTurn = game.turnNumber;
-      card.cannotAttackUntilTurn = Number(target.cannotAttackUntilTurn || 0);card.attackLockSource=target.attackLockSource;
       const targetZone = p.active?.id === target.id ? 'active' : 'bench';
       if (targetZone === 'active') p.active = card;
       else p.bench[p.bench.findIndex(item => item.id === target.id)] = card;
@@ -13544,9 +13559,12 @@
       return (pokemon?.conditions || []).some(condition => condition.type === type);
     }
     function clearPokemonConditions(pokemon) {
-      if (pokemon) { delete pokemon.attackRetaliation; delete pokemon.basicAttackProtectionUntilTurn; delete pokemon.exAttackProtectionUntilTurn; }
-      if (pokemon) { pokemon.conditions = []; pokemon.growlReduction = null; delete pokemon.retreatLockUntilTurn; delete pokemon.noWeaknessUntilTurn; delete pokemon.attackDamageReduction; delete pokemon.attackDamagePenalty; delete pokemon.attackDamageImmunityUntilTurn; delete pokemon.namedAttackLock; }
-      if (['Laser Blade','Burning Salto'].includes(pokemon?.attackLockSource)) { delete pokemon.attackLockSource; delete pokemon.cannotAttackUntilTurn; }
+      if (!pokemon) return;
+      pokemon.conditions = [];
+      pokemon.growlReduction = null;
+      for (const field of ['attackRetaliation','basicAttackProtectionUntilTurn','exAttackProtectionUntilTurn',
+        'retreatLockUntilTurn','noWeaknessUntilTurn','attackDamageReduction','attackDamagePenalty',
+        'attackDamageImmunityUntilTurn','namedAttackLock','attackLockSource','cannotAttackUntilTurn']) delete pokemon[field];
     }
     function applyPokemonCondition(pokemon, condition) {
       if (typeof isOpeningDoll === 'function' && isOpeningDoll(pokemon)) return false;
@@ -20526,7 +20544,7 @@
       }
       deckStats = progress.deckStats;
       updateMenuCounts();
-      if (!$('statisticsPage').classList.contains('app-hidden')) renderStatisticsTable();
+      if (!$('statisticsPage').classList.contains('app-hidden')) renderMatchupStatistics();
       if (!$('deckManagerModal').classList.contains('hidden') && deckManagerView!=='build') renderDeckLibrary();
       if (!$('campaignModal').classList.contains('hidden') && !campaignChoosingNewRun) openCampaign();
       if (game?.phase==='finished') renderMatchSummaryCard();
