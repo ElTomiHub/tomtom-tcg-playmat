@@ -2475,11 +2475,15 @@
     display: grid; min-height: 0; gap: 4px;
     grid-template: "heading" auto "board" minmax(0,1fr) "hand" var(--phone-hand-height) "controls" auto / minmax(0,1fr);
   }
-  #matchLayout #playmatPanel, #matchLayout #playmatPanel :not(input, textarea, select) {
+  :is(#playmatPanel, #cardInspectorPanel, #cardActionMenu, #cardChoiceOverlay, #discardViewer),
+  :is(#playmatPanel, #cardInspectorPanel, #cardActionMenu, #cardChoiceOverlay, #discardViewer)
+    :not(input, textarea, select, [contenteditable], [contenteditable] *) {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     user-select: none;
+    touch-action: manipulation;
   }
+  #playmatPanel :is([data-hand-card], [data-card][draggable="true"]) { touch-action: none; }
   #matchLayout #playmatPanel .board-wrap { display: contents; }
   #matchLayout .match-heading { grid-area: heading; margin: 0; gap: 3px; }
   #matchLayout .match-heading .autosave-status { display: none; }

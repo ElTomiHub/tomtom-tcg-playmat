@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="playmat.css?v=board-icons2">
+  <link rel="stylesheet" href="playmat.css?v=board-icons3">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -21586,15 +21586,33 @@
     $('handCards').addEventListener('focusout',leaveHandTargetPreview);
     function installTouchCardDrag() {
       const mat = $('playmatPanel'), hand = $('handCards');
-      let gesture = null, suppressClickUntil = 0, lastTap = null;
-      mat.addEventListener('selectstart',event=>{
-        if (mobileMatchLayout() && !event.target.closest?.('input, textarea, select')) event.preventDefault();
+      let gesture = null, suppressClickUntil = 0, lastTap = null, cancelInspectTouchEnd = false;
+      const cardTargets = '[data-hand-card], [data-card], [data-attached-tool], [data-revealed-hand-card]';
+      const touchSurfaces = '#playmatPanel, #cardInspectorPanel, #cardActionMenu, #cardChoiceOverlay, #discardViewer';
+      const isMatchText = node => {
+        const element = node?.nodeType===3 ? node.parentElement : node;
+        return element?.closest?.(touchSurfaces) && !element.closest('input, textarea, select, [contenteditable]');
+      };
+      document.addEventListener('selectstart',event=>{
+        if (mobileMatchLayout() && isMatchText(event.target)) event.preventDefault();
+      },true);
+      document.addEventListener('selectionchange',()=>{
+        if (!mobileMatchLayout()) return;
+        const selection = window.getSelection?.();
+        if (selection && !selection.isCollapsed && isMatchText(selection.anchorNode) && isMatchText(selection.focusNode))
+          selection.removeAllRanges();
       });
-      mat.addEventListener('contextmenu',event=>{
+      document.addEventListener('contextmenu',event=>{
         const touch = event.pointerType==='touch' || window.matchMedia('(any-pointer: coarse)').matches;
-        if (touch && (mobileMatchLayout() && !event.target.closest('input, textarea, select') ||
-            event.target.closest('[data-hand-card], [data-card], [data-attached-tool], [data-revealed-hand-card]'))) event.preventDefault();
-      });
+        if (touch && (mobileMatchLayout() && isMatchText(event.target) ||
+            event.target.closest?.('#playmatPanel') && event.target.closest(cardTargets))) event.preventDefault();
+      },true);
+      document.addEventListener('touchstart',()=>{cancelInspectTouchEnd = false;},{capture:true,passive:true});
+      document.addEventListener('touchend',event=>{
+        if (!cancelInspectTouchEnd) return;
+        cancelInspectTouchEnd = false;
+        if (event.cancelable) event.preventDefault();
+      },{capture:true,passive:false});
       mat.addEventListener('dragstart',event=>{
         if (gesture || event.sourceCapabilities?.firesTouchEvents) {
           event.preventDefault();
@@ -21694,7 +21712,7 @@
           lastTap = null;
           return;
         }
-        const card = event.target.closest('[data-hand-card], [data-card], [data-attached-tool], [data-revealed-hand-card]');
+        const card = event.target.closest(cardTargets);
         if (event.target.closest('[data-effect-detail]')) { lastTap = null; return; }
         const next = card && mobileInspectSelection(card);
         if (!next) { lastTap = null; return; }
@@ -21709,7 +21727,10 @@
           event.stopImmediatePropagation();
           renderInspector(current);
           setMobileMatchPanel('inspector');
-          if (event.type==='pointerup') suppressClickUntil = Date.now()+400;
+          if (event.type==='pointerup') {
+            cancelInspectTouchEnd = true;
+            suppressClickUntil = Date.now()+400;
+          }
         } else lastTap = {game,key,time:now};
       }
       mat.addEventListener('pointerup',event=>{
