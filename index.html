@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="playmat.css?v=card-badges1">
+  <link rel="stylesheet" href="playmat.css?v=match-motion1">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -7690,7 +7690,7 @@
         const pWidth = Math.round(counts.pokemon / denom * 100), tWidth = Math.round(counts.trainer / denom * 100), eWidth = Math.max(0, 100 - pWidth - tWidth);
         const playLabel = readiness.playable ? 'Play deck' : readiness.canStart ? 'Play with warning' : 'Verify card data to play';
         return `<article class="deck-library-card">
-          <div class="deck-library-card-head"><div class="deck-cover-thumb">${deck.coverImage ? `<img src="${escapeHtml(deck.coverImage)}" alt="${escapeHtml(deck.name)} deck cover">` : coverCard?.meta?.image ? `<img src="${escapeHtml(coverCard.meta.image)}" alt="${escapeHtml(coverCard.name)} deck cover">` : `<span>${escapeHtml((coverCard?.name || deck.name).slice(0, 2).toUpperCase())}</span>`}</div><div class="deck-library-title"><h3>${escapeHtml(deckDisplayName(deck))}</h3>${campaignBadge(deck.id) ? '<span class="campaign-badge">★ Campaign Champion</span>' : ''}<small>${parsed.total} cards · ${unique.size} unique${deck.builtIn ? ' · starter deck' : ''}${deck.coverImage ? ' · Custom picture' : coverCard ? ` · Cover: ${escapeHtml(coverCard.name)}` : ''}</small><span class="deck-readiness ${readiness.playable ? 'ready' : readiness.canStart ? 'manual' : 'incomplete'}">${readiness.playable ? 'Playable' : readiness.canStart ? 'Manual effects' : 'Incomplete'}</span>${deckStrategyBadge(deck,parsed)}${deckCategoryPicker(deck)}</div><div class="deck-library-actions"><button class="btn" type="button" data-move-deck="${escapeHtml(deck.id)}" data-direction="-1">↑ Up</button><button class="btn" type="button" data-move-deck="${escapeHtml(deck.id)}" data-direction="1">↓ Down</button><button class="btn primary" data-play-deck="${escapeHtml(deck.id)}" ${readiness.canStart ? '' : 'disabled'} title="${readiness.canStart ? 'Choose this deck and open game setup.' : escapeHtml(readinessText)}">${escapeHtml(playLabel)}</button><button class="btn" data-deck-history="${escapeHtml(deck.id)}">Match history</button><button class="btn" data-cover-deck="${escapeHtml(deck.id)}">Change cover</button><button class="btn" data-edit-deck="${escapeHtml(deck.id)}">Edit deck</button><button class="btn" data-implement-deck="${escapeHtml(deck.id)}" ${readiness.playable ? 'hidden' : ''}>Update card data</button><button class="btn danger" data-delete-deck="${escapeHtml(deck.id)}" title="Delete this deck from the local library">Delete deck</button></div></div>
+          <div class="deck-library-card-head"><div class="deck-cover-thumb">${deck.coverImage ? `<img src="${escapeHtml(deck.coverImage)}" alt="${escapeHtml(deck.name)} deck cover">` : coverCard?.meta?.image ? `<img src="${escapeHtml(coverCard.meta.image)}" alt="${escapeHtml(coverCard.name)} deck cover">` : `<span>${escapeHtml((coverCard?.name || deck.name).slice(0, 2).toUpperCase())}</span>`}</div><div class="deck-library-title"><h3>${escapeHtml(deckDisplayName(deck))}</h3>${campaignBadge(deck.id) ? campaignChampionBadge() : ''}<small>${parsed.total} cards · ${unique.size} unique${deck.builtIn ? ' · starter deck' : ''}${deck.coverImage ? ' · Custom picture' : coverCard ? ` · Cover: ${escapeHtml(coverCard.name)}` : ''}</small><span class="deck-readiness ${readiness.playable ? 'ready' : readiness.canStart ? 'manual' : 'incomplete'}">${readiness.playable ? 'Playable' : readiness.canStart ? 'Manual effects' : 'Incomplete'}</span>${deckStrategyBadge(deck,parsed)}${deckCategoryPicker(deck)}</div><div class="deck-library-actions"><button class="btn" type="button" data-move-deck="${escapeHtml(deck.id)}" data-direction="-1">↑ Up</button><button class="btn" type="button" data-move-deck="${escapeHtml(deck.id)}" data-direction="1">↓ Down</button><button class="btn primary" data-play-deck="${escapeHtml(deck.id)}" ${readiness.canStart ? '' : 'disabled'} title="${readiness.canStart ? 'Choose this deck and open game setup.' : escapeHtml(readinessText)}">${escapeHtml(playLabel)}</button><button class="btn" data-deck-history="${escapeHtml(deck.id)}">Match history</button><button class="btn" data-cover-deck="${escapeHtml(deck.id)}">Change cover</button><button class="btn" data-edit-deck="${escapeHtml(deck.id)}">Edit deck</button><button class="btn" data-implement-deck="${escapeHtml(deck.id)}" ${readiness.playable ? 'hidden' : ''}>Update card data</button><button class="btn danger" data-delete-deck="${escapeHtml(deck.id)}" title="Delete this deck from the local library">Delete deck</button></div></div>
           <details class="deck-library-details" data-deck-details="${escapeHtml(deck.id)}"><summary>Deck details &amp; performance</summary><div class="deck-library-body"><div class="deck-library-overview">
           <div class="deck-preview-grid">${preview}</div>
           <div class="deck-readiness-note">${escapeHtml(readinessText)}</div>
@@ -7843,7 +7843,7 @@
       panel.innerHTML = `<div class="matchup-deck-hero"><div class="matchup-deck-cover">${image ?
         `<img src="${escapeHtml(image)}" alt="">` : escapeHtml(deck.name.slice(0,2))}</div><div>
         <h3 class="matchup-deck-name">${escapeHtml(deckDisplayName(deck))}</h3>
-        ${campaignBadge(deck.id) ? '<span class="campaign-badge">★ Campaign Champion</span>' : ''}</div></div>
+        ${campaignBadge(deck.id) ? campaignChampionBadge() : ''}</div></div>
         <div class="matchup-stat-grid">${stat('Completed runs',runs)}${stat('Victories',clears)}${stat('Best run',best == null ? '—' : best+'/5')}</div>`;
     }
     function newCampaign(deckId, pool) {
@@ -7878,7 +7878,10 @@
       $('campaignProgress').querySelectorAll('[data-campaign-node]').forEach(node=>
         node.setAttribute('aria-pressed',String(Number(node.dataset.campaignNode)===index)));
     }
-    function openCampaign({newRun = false} = {}) {
+    function campaignChampionBadge() {
+      return '<span class="campaign-badge"><span aria-hidden="true">🏆</span> Campaign Champion</span>';
+    }
+    function openCampaign({newRun = false, celebrate = false} = {}) {
       const run = loadCampaign(), finished = run?.results.length === CAMPAIGN_LEVELS.length;
       campaignChoosingNewRun = newRun && !!run && !finished;
       const choosingDeck = !run || finished || campaignChoosingNewRun;
@@ -7889,15 +7892,20 @@
       $('campaignHeading').textContent = won ? '★ Campaign victory!' : finished ? 'Circuit complete' : 'The Road to Master';
       const score = run ? `<strong>${escapeHtml(deckName(run.deckId))}</strong> · ${wins} wins · ${losses} losses · ${run.results.length-wins-losses} draws` :
         'Five arenas. One deck. Win three matches to earn the Champion badge.';
+      const champion = won && registeredDecks.find(deck=>deck.id===run.deckId);
+      const cover = champion && resolveDeckCoverImage(champion);
+      const celebration = won && celebrate && playmatEffectsEnabled && !prefersReducedPlaymatMotion();
       $('campaignProgress').innerHTML = `<p class="campaign-score">${score}</p>
-        <ol class="campaign-route" aria-label="Campaign arenas">${CAMPAIGN_LEVELS.map((level,index)=>{
+        <ol class="campaign-route${celebration ? ' campaign-route-celebrate' : ''}${celebration && fastPlaymatEffects ? ' campaign-celebration-fast' : ''}" aria-label="Campaign arenas">${CAMPAIGN_LEVELS.map((level,index)=>{
           const result = run?.results[index], current = run && index===run.results.length;
           const status = result || (current ? 'Current match' : 'Locked');
-          return `<li><button class="campaign-node" type="button" data-campaign-node="${index}" data-result="${result || ''}"
+          return `<li style="--arena-index:${index}"><button class="campaign-node" type="button" data-campaign-node="${index}" data-result="${result || ''}"
             aria-label="Arena ${index+1}, ${YAMI_DIFFICULTY_LABELS[level]}, ${status}" aria-pressed="false"
             ${current ? 'aria-current="step"' : ''} ${result || current ? '' : 'disabled'}>${index+1}</button>
             <small>${result ? {win:'Won',loss:'Lost',draw:'Draw'}[result] : current ? 'Up next' : index===4 ? 'Final' : 'Locked'}</small></li>`;
-        }).join('')}</ol>${won ? '<p>Campaign Champion badge awarded to this deck.</p>' : ''}`;
+        }).join('')}</ol>${won ? `<div class="campaign-trophy${celebration ? ' campaign-trophy-reveal' : ''}${celebration && fastPlaymatEffects ? ' campaign-celebration-fast' : ''}">
+          ${cover ? `<img src="${escapeHtml(cover)}" alt="">` : ''}<span class="campaign-trophy-icon" aria-hidden="true">🏆</span>
+          <div>${campaignChampionBadge()}<strong>${escapeHtml(deckName(run.deckId))}</strong></div></div>` : ''}`;
       renderCampaignArena(run, Math.min(run?.results.length || 0,CAMPAIGN_LEVELS.length-1));
       $('campaignDeckChoice').hidden = !choosingDeck;
       const playable = choosingDeck ? playableCampaignDecks() : [];
@@ -13171,6 +13179,7 @@
       const button = $('playmatEffectsBtn');
       button.textContent = !playmatEffectsEnabled ? 'Effects off' : prefersReducedPlaymatMotion() ? 'Effects reduced' : 'Effects on';
       button.setAttribute('aria-pressed', String(playmatEffectsEnabled));
+      $('playmatPanel').dataset.effects = playmatEffectsEnabled ? 'on' : 'off';
       $('fastEffectsBtn').setAttribute('aria-pressed', String(fastPlaymatEffects));
       $('fastEffectsBtn').classList.toggle('primary', fastPlaymatEffects);
     }
@@ -13466,7 +13475,7 @@
     function queueAttackVisualEffect(side, pokemon, attack, target) {
       try {
         const element = normalizedEnergyType(pokemon.meta?.types?.[0] || 'Colorless');
-        queuePlaymatEffect({ kind: 'attack', side, name: pokemon.name, attack: attack.name, element, from: playmatPointFor(side, pokemon), point: playmatPointFor(oppositeSide(side), target) });
+        queuePlaymatEffect({ kind: 'attack', side, name: pokemon.name, attack: attack.name, element, cardId:pokemon.id, from: playmatPointFor(side, pokemon), point: playmatPointFor(oppositeSide(side), target) });
       } catch { /* Optional decoration. */ }
     }
     function playmatEffectTheme(element) {
@@ -13584,6 +13593,33 @@
         }
       } catch { /* Audio is optional and must never change a match. */ }
     }
+    function animateAttackLunge(effect, duration) {
+      if (!effect.from || !effect.point) return;
+      const card = boardCardElements(effect.side).find(element=>element.dataset.card===effect.cardId);
+      const dx = effect.point.x-effect.from.x, dy = effect.point.y-effect.from.y;
+      const distance = Math.hypot(dx,dy);
+      if (!distance) return;
+      const lunge = Math.min(15,distance*.12)/distance;
+      const towards = `${dx*lunge}px ${dy*lunge}px`;
+      const windup = `${-dx*lunge*.24}px ${-dy*lunge*.24}px`;
+      card?.animate?.([{translate:'0 0'}, {translate:windup,offset:.22}, {translate:towards,offset:.74}, {translate:'0 0'}],
+        {duration:duration*.46,easing:'ease-out'});
+    }
+    function animateDamageHealth(effect, previous, duration) {
+      const health = boardCardElements(effect.side).find(element=>element.dataset.card===effect.cardId)?.querySelector('.hp-left');
+      const remaining = Number(health?.textContent);
+      if (!health || !Number.isFinite(previous) || previous<=remaining) return;
+      const start = performance.now(), countDuration = Math.min(duration*.55,320);
+      const epoch = playmatEffectEpoch;
+      function tick(now) {
+        if (epoch!==playmatEffectEpoch || !health.isConnected) return;
+        const progress = Math.min(1,Math.max(0,(now-start)/countDuration));
+        health.textContent = String(Math.round(remaining+(previous-remaining)*(1-progress)**2));
+        if (progress<1) requestAnimationFrame(tick);
+      }
+      health.textContent = String(previous);
+      requestAnimationFrame(tick);
+    }
     function showNextPlaymatEffect() {
       try {
         if (!playmatEffectsEnabled || document.hidden) { clearPlaymatEffects(); return; }
@@ -13605,6 +13641,8 @@
           }
           return;
         }
+        const reduced = prefersReducedPlaymatMotion();
+        const previousHealth = effect.kind==='damage' && !reduced ? Number(boardCardElements(effect.side).find(element=>element.dataset.card===effect.cardId)?.querySelector('.hp-left')?.textContent) : NaN;
         activePlaymatEffect = effect;
         playPlaymatSound(effect.kind);
         renderYamiCharacter();
@@ -13614,13 +13652,17 @@
           render();
         } else if (effect.playedCue?.boardSwitch || stagedPrizeCards.has(effect) || effect.kind === 'knockout' && effect.transitionId || effect.kind === 'damage' && stagedKnockoutsEnabled()) render();
         if (playmatActionAnnouncement(effect)) clearTurnAnnouncement();
-        const root = $('playmatEffects'), reduced = prefersReducedPlaymatMotion();
+        const root = $('playmatEffects');
         root.dataset.kind = effect.kind; root.dataset.element = effect.element || '';
         root.classList.toggle('reduced-motion', reduced);
         root.classList.toggle('fast-motion', fastPlaymatEffects);
         const duration = effect.playedCue ? (fastPlaymatEffects ? 570 : 1050) : effect.preview ? (fastPlaymatEffects ? 650 : 1150) : fastPlaymatEffects ? (effect.kind === 'victory' ? 1200 : 380) : reduced ? 850 : ({ coin: 1450, attack: 1200, ability: 950, damage: 650, knockout: 1000, victory: 3100, 'card-move': 720, 'zone-move':620, promotion:720, prize: 900 }[effect.kind] || 900);
         root.style.setProperty('--fx-duration', `${duration}ms`);
         root.innerHTML = playmatEffectMarkup(effect, reduced);
+        if (effect.kind==='attack' && !reduced) {
+          setTimeout(()=>{ if (activePlaymatEffect===effect) animateAttackLunge(effect,duration); },duration*.28);
+        }
+        if (Number.isFinite(previousHealth)) animateDamageHealth(effect,previousHealth,duration);
         $('playmatEffectAnnouncement').textContent = playmatActionAnnouncement(effect) || (effect.kind === 'coin' ? `Coin flip: ${effect.heads ? 'heads' : 'tails'}.` : effect.kind === 'attack' ? `${effect.name} used ${effect.attack}.` : effect.kind === 'damage' ? `${effect.name} took ${effect.amount} damage.` : effect.kind === 'knockout' ? `${effect.name} was Knocked Out.` : effect.kind === 'card-move' ? `${PLAYER_NAMES[effect.side]} played ${effect.name}. ${effect.detail || ''}` : effect.kind === 'zone-move' ? `${PLAYER_NAMES[effect.side]}: ${effect.faceDown?`${effect.count} cards`:effect.name}, ${effect.fromZone} to ${effect.toZone}.` : effect.kind === 'promotion' ? `${effect.name} moved to the Active Spot.` : effect.kind === 'prize' ? `${effect.side === 'you' ? 'You' : 'Yami'} took ${effect.count} Prize cards.` : effect.winner === 'you' ? 'Victory! You won the match.' : effect.winner ? 'Yami won the match.' : 'The match is a draw.');
         const epoch = playmatEffectEpoch;
         playmatEffectTimer = setTimeout(() => { if (epoch === playmatEffectEpoch) { activePlaymatEffect = null; playmatEffectTimer = null; finishVisualTransition(effect);
@@ -14748,7 +14790,7 @@
       const showCampaign = pendingCampaignPresentation === game;
       pendingCampaignPresentation = null;
       render();
-      if (showCampaign) openCampaign();
+      if (showCampaign) openCampaign({celebrate:true});
       else if (typeof mobileMatchLayout==='function' && mobileMatchLayout()) setMobileMatchPanel('log');
     }
     function finishMatch(winner, reason, { cancelled = false } = {}) {
@@ -18987,11 +19029,33 @@
         if (game.phase === 'setup' && player(side).openingBasicIds.includes(card.id)) $(side+'ActiveZone').classList.add('pokemon-drop-target');
       }
     }
+    function animateCardLanding(intent, point) {
+      if (game!==intent.match || !playmatEffectsEnabled || prefersReducedPlaymatMotion() || !point) return;
+      const {side,cardId,target,kind} = intent, owner = player(side);
+      if (owner.hand.some(card=>card.id===cardId)) return;
+      const board = boardCardElements(side);
+      const placed = board.find(element=>element.dataset.card===cardId);
+      const host = target && board.find(element=>element.dataset.card===target.id);
+      const tool = host?.closest('.pokemon-card-stack')?.querySelector(`[data-attached-tool="${CSS.escape(cardId)}"]`);
+      const element = placed || (kind==='energy' ? host?.querySelector('.card-energy-line') : tool);
+      if (!element?.animate) return;
+      const rect = element.getBoundingClientRect();
+      const offset = (value,center) => Math.max(-12,Math.min(12,(value-center)*.24));
+      element.animate([
+        {translate:`${offset(point.x,rect.x+rect.width/2)}px ${offset(point.y,rect.y+rect.height/2)}px`,scale:'.94'},
+        {translate:'0 0',scale:'1.045',offset:.68},
+        {translate:'0 0',scale:'1'}
+      ],{duration:fastPlaymatEffects ? 130 : 240,easing:'ease-out'});
+    }
     async function dropHandCard(event) {
       const intent = handDropIntent(event.target);
       clearEnergyDrag();
       if (!intent) return;
       event.preventDefault();
+      await resolveHandDrop(intent);
+      animateCardLanding(intent,Number.isFinite(event.clientX) ? {x:event.clientX,y:event.clientY} : null);
+    }
+    async function resolveHandDrop(intent) {
       captureUndoSnapshot();
       if (game.phase === 'setup' && (intent.kind === 'board' || intent.kind === 'basic')) return rearrangeOpeningPokemon(intent);
       if (intent.kind === 'board') {
@@ -21296,6 +21360,21 @@
         clearHandReorderTarget();
         if (target && handReorderTarget(target)) target.closest('[data-hand-card]').classList.add('hand-reorder-target');
       },{passive:false});
+      function returnTouchDrag(g, cardId, side) {
+        if (!g.ghost?.animate || !playmatEffectsEnabled || prefersReducedPlaymatMotion()) return false;
+        const source = g.source.isConnected ? g.source : g.fromHand ?
+          [...hand.querySelectorAll('[data-hand-card]')].find(card=>card.dataset.handCard===cardId) :
+          boardCardElements(side).find(card=>card.dataset.card===cardId);
+        if (!source) return false;
+        const from = g.ghost.getBoundingClientRect(), to = source.getBoundingClientRect();
+        if (!to.width) return false;
+        const animation = g.ghost.animate([
+          {translate:'0 0',scale:'1'},
+          {translate:`${to.x+to.width/2-from.x-from.width/2}px ${to.y+to.height/2-from.y-from.height/2}px`,scale:'.8',opacity:.25}
+        ],{duration:fastPlaymatEffects ? 100 : 200,easing:'ease-in-out'});
+        animation.finished.then(()=>g.ghost.remove(),()=>g.ghost.remove());
+        return true;
+      }
       function finish(event, cancelled) {
         const g = gesture;
         if (!g || g.id!==event.pointerId) return;
@@ -21303,16 +21382,22 @@
         if (!g.mode) return;
         lastTap = null;
         suppressClickUntil = Date.now()+400;
-        g.ghost?.remove();
         if (g.mode!=='drag') return;
         const target = !cancelled && document.elementFromPoint(event.clientX,event.clientY);
         const next = target && handReorderTarget(target);
         if (next) {
+          g.ghost?.remove();
           const {side,card} = draggedHandCard;
           clearEnergyDrag();
           reorderHandCard(side,card,next);
-        } else if (target) void dropHandCard({target,preventDefault(){}});
-        else clearEnergyDrag();
+        } else if (target && handDropIntent(target)) {
+          g.ghost?.remove();
+          void dropHandCard({target,clientX:event.clientX,clientY:event.clientY,preventDefault(){}});
+        } else {
+          const drag = draggedHandCard;
+          if (cancelled || !drag || !returnTouchDrag(g,drag.cardId,drag.side)) g.ghost?.remove();
+          clearEnergyDrag();
+        }
       }
       document.addEventListener('pointerup',event=>finish(event,false));
       document.addEventListener('pointercancel',event=>finish(event,true));

@@ -1492,12 +1492,12 @@
     @keyframes fx-ability-glow { 0%,100% { opacity:0; } 25%,75% { opacity:1; } }
 
     .fx-charge, .fx-hit-flash { position:absolute; width:112px; height:112px; margin:-56px; border-radius:50%; background:radial-gradient(circle, #fff7 0%, var(--fx-color) 22%, transparent 69%); }
-    .fx-charge { animation:fx-charge calc(var(--fx-duration) * .23) ease-in both; }
-    .fx-hit-flash { animation:fx-impact calc(var(--fx-duration) * .28) calc(var(--fx-duration) * .46) ease-out both; }
-    .fx-trail { position: absolute; width: 26px; height: 26px; margin: -13px; border-radius: 50%; background: var(--fx-color); box-shadow: 0 0 14px var(--fx-color), 0 0 30px var(--fx-color); animation: fx-travel calc(var(--fx-duration) * .28) calc(var(--fx-duration) * .19) cubic-bezier(.22,.55,.4,1) both; }
+    .fx-charge { animation:fx-charge calc(var(--fx-duration) * .18) calc(var(--fx-duration) * .28) ease-in both; }
+    .fx-hit-flash { animation:fx-impact calc(var(--fx-duration) * .28) calc(var(--fx-duration) * .62) ease-out both; }
+    .fx-trail { position: absolute; width: 26px; height: 26px; margin: -13px; border-radius: 50%; background: var(--fx-color); box-shadow: 0 0 14px var(--fx-color), 0 0 30px var(--fx-color); animation: fx-travel calc(var(--fx-duration) * .24) calc(var(--fx-duration) * .38) cubic-bezier(.22,.55,.4,1) both; }
     .fx-trail::after { content: ''; position: absolute; inset: -10px; border: 1px solid var(--fx-color); border-radius: inherit; }
-    .fx-impact { position: absolute; width: 116px; height: 116px; margin: -58px; border: 3px solid var(--fx-color); border-radius: 50%; box-shadow: inset 0 0 25px var(--fx-color), 0 0 20px var(--fx-color); animation: fx-impact calc(var(--fx-duration) * .5) calc(var(--fx-duration) * .46) ease-out both; }
-    .fx-spark { position: absolute; width: 9px; height: 21px; margin: -5px; border-radius: 50%; background: var(--fx-color); box-shadow: 0 0 7px var(--fx-color); animation: fx-spark calc(var(--fx-duration) * .46) calc(var(--fx-duration) * .47) ease-out both; }
+    .fx-impact { position: absolute; width: 116px; height: 116px; margin: -58px; border: 3px solid var(--fx-color); border-radius: 50%; box-shadow: inset 0 0 25px var(--fx-color), 0 0 20px var(--fx-color); animation: fx-impact calc(var(--fx-duration) * .36) calc(var(--fx-duration) * .62) ease-out both; }
+    .fx-spark { position: absolute; width: 9px; height: 21px; margin: -5px; border-radius: 50%; background: var(--fx-color); box-shadow: 0 0 7px var(--fx-color); animation: fx-spark calc(var(--fx-duration) * .36) calc(var(--fx-duration) * .62) ease-out both; }
     .playmat-effects[data-element="lightning"] .fx-trail, .playmat-effects[data-element="lightning"] .fx-spark { border-radius: 0; clip-path: polygon(45% 0,100% 0,60% 40%,100% 40%,10% 100%,35% 55%,0 55%); }
     .playmat-effects[data-element="fire"] .fx-spark { border-radius: 80% 0 70% 40%; }
     .playmat-effects[data-element="water"] .fx-impact { border-width: 5px; box-shadow: 0 0 0 11px #55bfff22, 0 0 0 23px #55bfff11; }
@@ -1865,7 +1865,10 @@
     .hand-cards .hand-card { height:calc(var(--hand-card-height) * .49); overflow:hidden; }
     .hand-cards .hand-card .card-art { position:absolute; inset:0 auto auto 0; height:var(--hand-card-height); object-fit:fill; }
     .hand-cards .hand-card .card-label { top:auto; bottom:1px; }
-    .hand-cards .hand-card:hover { transform:none; }
+    .hand-cards .hand-card:hover { transform: none; }
+    @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+      #playmatPanel[data-effects="on"] .hand-cards .hand-card[draggable="true"]:hover { transform: translateY(-3px); }
+    }
     #playmatPanel[data-hand-expanded='true'] { --hand-area-height:calc(var(--hand-card-height) + 52px); }
     #playmatPanel[data-hand-expanded='true'] .hand-card { height:var(--hand-card-height); }
     #toggleHandSizeBtn { flex:none; min-height:24px; padding:2px 8px; }
@@ -2019,6 +2022,40 @@
     .campaign-arena h3 { margin: 4px 0; color: #ffedbb; }
     .campaign-arena p { margin: 0; color: #c9d8e9; }
     .campaign-arena-cover { width: 52px; flex: 0 0 52px; border-radius: 5px; }
+    .campaign-trophy {
+      display: flex; align-items: center; gap: 12px; padding: 12px;
+      border: 1px solid #ebc46c; border-radius: 12px; margin: 8px 0 12px;
+      background: radial-gradient(ellipse at 15% 0%,#62513588,transparent 75%), #112843;
+    }
+    .campaign-trophy img { width: 44px; border-radius: 4px; }
+    .campaign-trophy-icon { color: #ffda77; font-size: clamp(24px,6vw,42px); }
+    .campaign-trophy strong { display: block; color: #fff0c1; overflow-wrap: anywhere; }
+    .campaign-trophy .campaign-badge span { display: none; }
+    .campaign-route-celebrate, .campaign-trophy-reveal { --campaign-beat: 155ms; }
+    .campaign-celebration-fast { --campaign-beat: 75ms; }
+    @media (prefers-reduced-motion: no-preference) {
+      .campaign-route-celebrate::before {
+        background: #ffcf6a; transform-origin: left;
+        animation: campaign-light-route calc(var(--campaign-beat) * 4) linear both;
+      }
+      .campaign-route-celebrate .campaign-node {
+        animation: campaign-light-node calc(var(--campaign-beat) * 2.4) ease-out both;
+        animation-delay: calc(var(--campaign-beat) * var(--arena-index));
+      }
+      .campaign-trophy-reveal {
+        animation: campaign-reveal-trophy calc(var(--campaign-beat) * 3) ease-out both;
+        animation-delay: calc(var(--campaign-beat) * 5);
+      }
+    }
+    @keyframes campaign-light-route { from { scale: 0 1; } }
+    @keyframes campaign-light-node {
+      from { filter: brightness(.75); }
+      48% { scale: 1.12; box-shadow: 0 0 16px #ffda77aa; }
+    }
+    @keyframes campaign-reveal-trophy {
+      from { opacity: 0; translate: 0 9px; }
+      to { opacity: 1; translate: 0 0; }
+    }
     .campaign-badge { display: inline-block; margin: 4px 0; padding: 3px 7px; border-radius: 12px; color: #261905; background: #ffda77; font-size: 11px; font-weight: 800; }
     .deck-category-picker { display: inline-flex; align-items: center; gap: 6px; margin-left: 8px; color: #bbcde0; font-size: 11px; }
     .deck-category-picker .deck-select { width: auto; min-height: 26px; padding: 3px 6px; font-size: 11px; }

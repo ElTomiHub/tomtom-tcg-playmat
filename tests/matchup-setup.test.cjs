@@ -144,6 +144,7 @@ test('campaign locks the deck, advances after losses, and awards the winning dec
     if (round<levels.length-1) await el('matchCampaignBtn').click();
   }
   assert.match(el('campaignHeading').textContent,/Campaign victory/);
+  assert.match(el('campaignProgress').innerHTML,/campaign-trophy[^>]*>[\s\S]*Campaign Champion/);
   assert.match(el('campaignDeckPreview').innerHTML,/3\/5/);
   await el('closeCampaignBtn').click();
   await el('menuManageDecks').click();
