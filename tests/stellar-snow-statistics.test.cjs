@@ -48,4 +48,8 @@ test('Statistics counts the Toma seat once, ranks its opponents and suggests an 
   assert.match(runner.document.getElementById('statisticsUsage').innerHTML,/beta · 6/);
   assert.match(runner.document.getElementById('statisticsSuggestions').innerHTML,/New matchup[\s\S]*gamma/);
   assert.match(runner.document.getElementById('statisticsSuggestions').innerHTML,/Rematch[\s\S]*2 W · 3 L/);
+  assert.match(runner.document.getElementById('statisticsSuggestions').innerHTML,/Try Master[\s\S]*beta[\s\S]*data-statistics-difficulty="master"/);
+  run("openStartGame({suggestedMatchup:{you:'alpha',codex:'beta',difficulty:'master'}});");
+  assert.equal(run("$('yamiDifficultySelect').value"),'master');
+  assert.equal(run("$('codexRegisteredDeck').value"),'beta');
 });

@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="playmat.css?v=phone3">
+  <link rel="stylesheet" href="playmat.css?v=coach1">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -212,7 +212,7 @@
           <p class="summary-meta" id="matchSummaryMeta"></p>
           <div id="matchSummaryPreview"></div>
           <div class="summary-records" id="matchSummaryDeckRecord"></div>
-          <div class="summary-card-actions"><button class="btn small" id="revengeMatchBtn" type="button" hidden>Revenge · Flip coin</button> <button class="btn small primary" id="viewMatchSummaryBtn">View full summary</button> <button class="btn small" id="saveMatchRecordingBtn" type="button" hidden>Save recording</button> <button class="btn small" id="matchCampaignBtn" type="button" hidden>Campaign progress</button></div>
+          <div class="summary-card-actions"><button class="btn small" id="revengeMatchBtn" type="button" hidden>Revenge · Flip coin</button> <button class="btn small primary" id="viewMatchSummaryBtn">View full summary</button> <button class="btn small" id="reviewMatchCoachBtn" type="button" hidden>Review decisions</button> <button class="btn small" id="saveMatchRecordingBtn" type="button" hidden>Save recording</button> <button class="btn small" id="matchCampaignBtn" type="button" hidden>Campaign progress</button></div>
           <p class="summary-save-status" id="matchSummarySaved"></p>
         </section>
         <div class="log-list" id="moveLog" role="region" aria-labelledby="moveLogHeading" tabindex="0"><div class="empty-log">Moves will appear here as the match progresses.</div></div>
@@ -7084,7 +7084,8 @@
         ...(game.matchCancelled ? { cancelled: true } : {}),
         decks: Object.fromEntries(['you','codex'].map(side => [side, { id: game.deckIds?.[side] || '', name: player(side)?.deckName || player(side)?.name || side }])),
         players: history.players, knockouts: history.knockouts, timeline: history.timeline,
-        ...(game.masteryAwards?.length ? {masteryAwards:game.masteryAwards} : {}) });
+        ...(game.masteryAwards?.length ? {masteryAwards:game.masteryAwards} : {}),
+        ...(history.coach?.length && !game.matchCancelled && perspective==='you' ? {coach:history.coach} : {}) });
     }
     function validSavedMatchSummary(record) {
       if (!record || record.schemaVersion !== 1 || typeof record.id !== 'string' || !['you','codex'].includes(record.perspective) || ![null,'you','codex'].includes(record.winner) || typeof record.reason !== 'string') return false;
@@ -7097,6 +7098,11 @@
         if (['pokemonPlayed','evolutions','energyAttached','attacks','knockedOut'].some(field => !Number.isSafeInteger(stats[field]) || stats[field] < 0)) return false;
         for (const list of [stats.pokemon, stats.energy]) if (!Array.isArray(list) || list.length > 600 || list.some(card => typeof card?.name !== 'string' || typeof card.print !== 'string' || !Number.isSafeInteger(card.count) || card.count < 1)) return false;
       }
+      if (record.coach!==undefined && (!Array.isArray(record.coach) || record.coach.length>3 || record.coach.some(moment=>
+          !['missed-knockout','return-knockout','energy'].includes(moment?.kind) ||
+          !Number.isSafeInteger(moment.turn) || moment.turn<1 || moment.turn>record.turns ||
+          moment.step!==null && (!Number.isSafeInteger(moment.step) || moment.step<1) ||
+          ['title','detail','alternative'].some(field=>typeof moment[field]!=='string' || moment[field].length>550)))) return false;
       if (record.masteryAwards !== undefined && (!Array.isArray(record.masteryAwards) || record.masteryAwards.length>9 ||
           record.masteryAwards.some(award=>!masteryAwardDetails(award)))) return false;
       if (!Array.isArray(record.knockouts) || record.knockouts.length > 120 || record.knockouts.some(item => !Number.isSafeInteger(item?.turn) || item.turn < 1 || !['you','codex'].includes(item.side) || typeof item.name !== 'string' || typeof item.print !== 'string' || typeof item.detail !== 'string')) return false;
@@ -7129,6 +7135,7 @@
       if (!summary) return;
       const result = summaryResult(summary), stats = summary.players.you, records = matchDeckRecords(summary);
       panel.dataset.result = result.toLowerCase();
+      $('reviewMatchCoachBtn').hidden = !summary.coach?.length;
       $('matchSummaryResult').textContent = result;
       $('matchSummaryMeta').textContent = [summary.reason, summaryOpponentStyle(summary) && 'Yami: ' + summaryOpponentStyle(summary)].filter(Boolean).join(' · ');
       const metrics = [[summary.turns,'Turns'],[stats.pokemonPlayed,'Pokémon played'],[stats.energyAttached,'Energy attached'],[stats.attacks,'Attacks'],[stats.knockedOut,'Your Pokémon KO’d']];
@@ -7140,6 +7147,17 @@
       const saved = $('matchSummarySaved');
       saved.dataset.state = !summary.cancelled && game.historySaved === false ? 'warning' : 'neutral';
       saved.textContent = summary.cancelled ? 'Cancelled. No result recorded.' : game.historySaved === false ? 'History could not be saved in browser storage. You can still review this match here.' : 'Saved in each deck’s match history.';
+    }
+    function matchCoachMarkup(summary) {
+      if (summary.perspective!=='you' || summary.cancelled) return '';
+      const moments = summary.coach || [];
+      if (!moments.length) return '';
+      const matchId = summary.id.replace(/:you$/,'');
+      return '<section class="summary-detail-section match-coach"><h4>Post-match coach</h4><p class="data-tools-note">Each note uses your hand and the public board at the time.</p><ol>'+
+        moments.map(moment=>`<li><span class="coach-turn">Turn ${moment.turn}</span><div><strong>${escapeHtml(moment.title)}</strong>
+          <p>${escapeHtml(moment.detail)}</p><p class="coach-alternative">${escapeHtml(moment.alternative)}</p>
+          ${moment.step!==null ? `<button type="button" class="btn small" data-coach-step="${moment.step}" data-coach-match="${escapeHtml(matchId)}" data-coach-deck="${escapeHtml(summary.decks.you.id)}">See board and hand</button>` : ''}</div></li>`).join('')+
+        '</ol></section>';
     }
     function matchSummaryMarkup(summary) {
       const result = summaryResult(summary), style = summaryOpponentStyle(summary);
@@ -7153,6 +7171,7 @@
           <p class="summary-meta">${escapeHtml(new Date(summary.endedAt).toLocaleString())} · ${summary.turns} turns${summary.reason ? ' · '+escapeHtml(summary.reason) : ''}${style ? ' · Yami: '+escapeHtml(style) : ''}</p>
         </header>
         ${masteryAwardsMarkup(summary.masteryAwards)}
+        ${matchCoachMarkup(summary)}
         <section class="summary-detail-section"><h4>Match activity</h4>
           <table class="match-summary-table"><thead><tr><th scope="col">Activity</th><th scope="col">${names.you}</th><th scope="col">${names.codex}</th></tr></thead><tbody>${rows.map(([label,key])=>`<tr><th scope="row">${label}</th><td>${summary.players.you[key]}</td><td>${summary.players.codex[key]}</td></tr>`).join('')}</tbody></table>
           <p class="data-tools-note">Pokémon counts include opening Pokémon and Evolutions. Energy counts are physical card attachments, including attachments from effects. Moving attached Energy is excluded.</p>
@@ -7198,7 +7217,7 @@
           kind:'pokemon-tcg-match-recording', version:1, id:game.matchHistory.id,
           recordedAt:new Date().toISOString(), decks:{...game.deckIds}, cards:[], steps:[]
         },
-        cardKeys:new Map(), lastState:'', lastLog:''
+        cardKeys:new Map(), lastState:'', lastLog:'', nextStep:Date.now()*1000
       };
     }
     function captureRecordedStep() {
@@ -7245,7 +7264,7 @@
           ['Recording started'];
         // Preserve the opening and final state if a very long match reaches the limit.
         if (record.steps.length >= 2000) { record.steps.splice(1,1); record.truncated = true; }
-        record.steps.push({...state,messages});
+        record.steps.push({...state,messages,sequence:draft.nextStep++});
         draft.lastState = stateKey;
         draft.lastLog = newest;
       }
@@ -7339,7 +7358,7 @@
       ].join(' · ')) : '<span>Empty</span>';
       const side = key => {
         const p = step.players[key];
-        return `<section class="replay-side"><strong>${escapeHtml(p.name)} · ${escapeHtml(deckLabel(replayRecord.decks?.[side],p.deckName))}</strong>
+        return `<section class="replay-side"><strong>${escapeHtml(p.name)} · ${escapeHtml(deckLabel(replayRecord.decks?.[key],p.deckName))}</strong>
           <div>Deck ${p.deckCount} · Prizes ${p.prizeCount} · Discard ${p.discard.length}</div>
           <small>Hand · ${p.hand.length}</small><div class="replay-zone">${p.hand.map(ref=>card(ref)).join('') || 'Empty'}</div>
           <small>Bench</small><div class="replay-zone">${p.bench.map(pokemon).join('') || 'Empty'}</div></section>`;
@@ -7355,12 +7374,29 @@
       $('replayPrevious').disabled = index === 0;
       $('replayNext').disabled = index === replayRecord.steps.length-1;
     }
-    function openMatchReplay(record) {
+    async function openCoachReplay(button) {
+      const {coachMatch,coachDeck,coachStep} = button.dataset;
+      let record = [pendingRecording,...visibleRecordings].find(item=>item?.id===coachMatch);
+      if (!record && coachDeck && typeof indexedDB!=='undefined') {
+        try {
+          await recordingSave;
+          const saved = await recordingTransaction('readonly',store=>store.get(coachDeck));
+          record = saved?.find(item=>item.id===coachMatch);
+        } catch { /* The written coach notes remain available. */ }
+      }
+      const index = record?.steps.findIndex(step=>step.sequence===Number(coachStep)) ?? -1;
+      if (index<0) {
+        showToast('This replay moment is unavailable on this device. The coach notes are still saved.');
+        return;
+      }
+      openMatchReplay(record,index);
+    }
+    function openMatchReplay(record, index = 0) {
       replayRecord = record;
       $('replayPosition').max = String(record.steps.length-1);
       $('matchHistoryModal').classList.add('hidden');
       $('matchReplayModal').classList.remove('hidden');
-      renderMatchReplay(0);
+      renderMatchReplay(index);
       $('closeReplayBtn').focus();
     }
     function closeMatchReplay() {
@@ -7369,12 +7405,14 @@
       $('matchReplayModal').classList.add('hidden');
       $('matchHistoryModal').classList.remove('hidden');
     }
-    function openCurrentMatchSummary() {
+    function openCurrentMatchSummary({coach = false} = {}) {
+      if (typeof captureRecordedStep==='function') captureRecordedStep();
       const summary = buildMatchSummary();
       if (!summary) return;
       $('matchHistoryHeading').textContent = 'Game summary'; $('matchHistoryContent').innerHTML = matchSummaryMarkup(summary);
       $('matchHistoryModal').classList.remove('hidden');
       void showMatchRecordings(game.deckIds?.you);
+      if (coach) $('matchHistoryContent').querySelector('.match-coach')?.scrollIntoView?.({block:'start'});
     }
     function openDeckMatchHistory(deckId) {
       const deck = registeredDecks.find(deck => deck.id === deckId);
@@ -7875,6 +7913,7 @@
       campaignSetup = campaignRound;
       populateDeckSelectors();
       const matchup = campaignRound || rematch || suggestedMatchup;
+      if (Object.hasOwn(YAMI_DIFFICULTY_LABELS,suggestedMatchup?.difficulty)) $('yamiDifficultySelect').value = suggestedMatchup.difficulty;
       if (matchup) {
         for (const side of ['you','codex']) {
           $(side+'RegisteredDeck').value = matchup[side];
@@ -8034,10 +8073,15 @@
       const least = rivals.slice().sort((a,b)=>a.games-b.games).find(pair=>canStart(pair.deck));
       const rematch = rivals.filter(pair=>pair.losses>0 && pair!==least)
         .sort((a,b)=>(b.losses-b.wins)-(a.losses-a.wins) || b.games-a.games).find(pair=>canStart(pair.deck));
-      const row = (title, pair, detail) => pair ? `<div class="statistics-suggestion"><div>${statisticsDeckCover(pair.deck)}<span><small>${title}</small><strong>${escapeHtml(deckDisplayName(pair.deck))}</strong><small>${detail}</small></span></div><button type="button" class="btn small" data-statistics-match="${escapeHtml(pair.deck.id)}">Set up match</button></div>` : '';
+      const master = rivals.filter(pair=>{
+        const difficulty = yamiMatchup(pair.deck.id,deck.id)?.difficulties?.master;
+        return pair.games>0 && !((difficulty?.wins || 0)+(difficulty?.losses || 0));
+      }).sort((a,b)=>b.games-a.games).find(pair=>canStart(pair.deck));
+      const row = (title, pair, detail, difficulty='') => pair ? `<div class="statistics-suggestion"><div>${statisticsDeckCover(pair.deck)}<span><small>${title}</small><strong>${escapeHtml(deckDisplayName(pair.deck))}</strong><small>${detail}</small></span></div><button type="button" class="btn small" data-statistics-match="${escapeHtml(pair.deck.id)}" data-statistics-difficulty="${difficulty}">Play this matchup</button></div>` : '';
       const suggestions = canStart(deck) ? row(least?.games ? 'Least played' : 'New matchup',least,
         least?.games ? `${least.games} completed ${least.games===1 ? 'game' : 'games'}` : 'No recorded games')+
-        row('Rematch',rematch,rematch ? `${rematch.wins} W · ${rematch.losses} L` : '') : '';
+        row('Rematch',rematch,rematch ? `${rematch.wins} W · ${rematch.losses} L` : '')+
+        row('Try Master',master,'Played before · no recorded Master wins or losses','master') : '';
       root.innerHTML = `<h2>Play next</h2><p class="data-tools-note">${played} of ${rivals.length} other decks faced with ${escapeHtml(deckDisplayName(deck))}.</p>`+
         (suggestions || '<p class="data-tools-note">No playable pairing is available for this deck.</p>');
     }
@@ -14679,6 +14723,9 @@
       if (!knockedOut) return;
       if (fromAttack) await resolveExpShare(defenderSide, knockedOut);
       recordAttackDamageKnockout(defenderSide,fromAttack,knockedOut);
+      if (fromAttack && attackerSide==='codex' && defenderSide==='you' && typeof coachReturnKnockout==='function') {
+        coachReturnKnockout(knockedOut,options.source || attacker.active);
+      }
       if (typeof recordKnockoutDeckStats === 'function') recordKnockoutDeckStats(defenderSide, knockedOut, attackerSide, options.source || (fromAttack ? attacker.active : null));
       if (typeof recordMatchActivity === 'function') recordMatchActivity('knockout', defenderSide, knockedOut, fromAttack ? 'Active · attack damage' : 'Active');
       if (typeof queuePokemonVisualEffect === 'function') queuePokemonVisualEffect('knockout', defenderSide, knockedOut);
@@ -14710,6 +14757,9 @@
       if (typeof queuePokemonVisualEffect === 'function') queuePokemonVisualEffect('knockout', defenderSide, defender.bench[index]);
       const knockedOut = defender.bench.splice(index, 1)[0];
       recordAttackDamageKnockout(defenderSide,fromAttack,knockedOut);
+      if (fromAttack && attackerSide==='codex' && defenderSide==='you' && typeof coachReturnKnockout==='function') {
+        coachReturnKnockout(knockedOut,options.source || attacker.active);
+      }
       if (typeof recordKnockoutDeckStats === 'function') recordKnockoutDeckStats(defenderSide, knockedOut, attackerSide, source || (fromAttack ? attacker.active : null));
       if (typeof recordMatchActivity === 'function') recordMatchActivity('knockout', defenderSide, knockedOut, 'Bench');
       delete knockedOut.cannotAttackUntilTurn;
@@ -14856,7 +14906,7 @@
     function snapshotAttackState() { return snapshotResolutionState(); }
     function restoreAttackState(snapshot) { return restoreResolutionState(snapshot, 'Attack'); }
     function runAttackTransaction(resolve) { return runResolutionTransaction(resolve, { label: 'Attack' }); }
-    async function performAttackResolution(side, attackIndex, selectedEnergyIds = [], allowManual = false, attackerId = null) {
+    async function performAttackResolution(side, attackIndex, selectedEnergyIds = [], allowManual = false, attackerId = null, coach = null) {
       const p = player(side), attacker = attackerId ? [p?.active,...(p?.bench || [])].find(card=>card?.id === attackerId) : p?.active;
       if (!attacker) return false;
       const option = playableAttacks(side, allowManual, attacker).find(item => item.index === attackIndex);
@@ -15111,6 +15161,7 @@
       if (!option.manual && !attackChoicesAreValid(side, attacker, option.attack, choices)) { showToast('One of the attack choices is no longer legal.'); return false; }
       if (option.manual && ![defender.active, ...defender.bench].some(item => item?.id === manualTarget?.id)) return false;
       const committed = await runAttackTransaction(async () => {
+        if (coach && typeof rememberCoachMoment==='function') rememberCoachMoment(coach.moment,coach.attack);
         if (choices.rocketPayments) {
           const paid = choices.rocketPayments;
           if (new Set(paid).size !== paid.length || paid.some(card=>!p.hand.includes(card) || !isRocketSupporter(card))) return false;
@@ -15180,7 +15231,7 @@
       await endTurn();
       return true;
     }
-    async function useAttack(side, attackIndex, selectedEnergyIds = [], allowManual = false, attackerId = null) {
+    async function useAttack(side, attackIndex, selectedEnergyIds = [], allowManual = false, attackerId = null, coach = null) {
       if (attackResolutionPending) return false;
       const owner = player(side), attacker = attackerId ? [owner?.active,...(owner?.bench || [])].find(card=>card?.id === attackerId) : owner?.active;
       const attack = typeof attackEntries === 'function' && attacker ? attackEntries(side,attacker).find(entry=>entry.index === attackIndex)?.attack : attacker?.meta?.attacks?.[attackIndex];
@@ -15192,7 +15243,7 @@
       attackResolutionPending = true;
       const visualBatch = typeof beginPlaymatEffectBatch === 'function' ? beginPlaymatEffectBatch() : null;
       try {
-        const committed = await performAttackResolution(side, attackIndex, selectedEnergyIds, allowManual, attackerId);
+        const committed = await performAttackResolution(side, attackIndex, selectedEnergyIds, allowManual, attackerId, coach);
         if (visualBatch) settlePlaymatEffectBatch(visualBatch, committed === true);
         return committed;
       } catch(error) {if(error?.code==='CARD_ACTION_CANCELLED'){showToast('Attack cancelled. Your turn continues.');return false;}throw error;} finally { resolutionInformationRevealed=false; if (visualBatch) settlePlaymatEffectBatch(visualBatch, false); attackResolutionPending = false; if(typeof queueMatchAutosave==='function')queueMatchAutosave(); }
@@ -19704,6 +19755,75 @@
       if (canRetreatPokemon(p.active, side)) actions.add('Retreat your Active Pokémon');
       return [...actions];
     }
+    function coachPlainAttackOutcome(side, pokemon, attack) {
+      if (hasCondition(pokemon,'confused') || attackEffectRuleFor(pokemon,attack)?.effect?.type!=='none') return null;
+      const preview = attackPreviewFor(side,pokemon,attack);
+      if (preview.reason || preview.outcomes?.length!==1) return null;
+      return preview.outcomes[0];
+    }
+    function coachEnergyAlternative(side) {
+      const p = player(side);
+      for (const card of p.hand) {
+        if (!isBasicEnergy(card.name) || actionUnavailableReason('energy',{card,side})) continue;
+        const targets = energyAttachmentTargets(card,side);
+        for (const pokemon of p.bench) {
+          if (!targets.includes(pokemon)) continue;
+          const powered = {...pokemon,energy:[...(pokemon.energy || []),card]};
+          const attack = pokemon.meta?.attacks?.find(move=>attackEffectRuleFor(pokemon,move)?.effect?.type==='none' &&
+            Number(attackBaseDamage(move)?.amount)>0 && !canPayAttack(pokemon,move) && canPayAttack(powered,move));
+          if (attack) return {card,pokemon,attack};
+        }
+      }
+      return null;
+    }
+    function coachMomentBeforeAction(chosenAttack = null) {
+      if (game?.phase!=='play' || game.turn!=='you' || controlSide!=='you' || !game.matchHistory) return null;
+      const active = player('you').active, target = player('codex').active;
+      if (!active || !target) return null;
+      captureRecordedStep();
+      const replayStep = matchRecording?.record.steps.at(-1);
+      const turn = game.turnNumber, step = replayStep?.turnNumber===turn ? replayStep.sequence : null;
+      const chosen = chosenAttack && coachPlainAttackOutcome('you',active,chosenAttack);
+      let moment;
+      if (!chosenAttack || chosen && !chosen.knockout) {
+        const alternatives = playableAttacks('you',false,active).map(({attack})=>({
+          attack,outcome:coachPlainAttackOutcome('you',active,attack)
+        })).filter(({outcome})=>outcome?.knockout && !outcome.attackerKnockout);
+        const alternative = alternatives[0];
+        if (alternative) moment = {kind:'missed-knockout',turn,step,title:'A knockout was available',
+          detail:chosenAttack ? `${chosenAttack.name} would leave ${target.name} with ${chosen.remaining} HP.` : `You ended the turn with ${target.name} still Active.`,
+          alternative:`${active.name} could use ${alternative.attack.name} for ${alternative.outcome.damage} damage after modifiers, enough to Knock Out ${target.name}.`};
+      }
+      if (!moment) {
+        const energy = coachEnergyAlternative('you');
+        if (energy) moment = {kind:'energy',turn,step,title:'A Benched attacker could be powered up',
+          detail:`${energy.card.name} was in your hand and you still had your manual attachment.`,
+          alternative:`Attaching it to ${energy.pokemon.name} would cover the Energy cost of ${energy.attack.name} at this point in the match.`};
+      }
+      return {moment,attack:chosenAttack ? {turn,step,id:active.id,name:active.name,move:chosenAttack.name} : null};
+    }
+    function rememberCoachMoment(moment, attack = null) {
+      const history = game?.matchHistory;
+      if (!history) return;
+      if (attack) history.lastCoachAttack = attack;
+      if (!moment) return;
+      const priority = {'missed-knockout':3,'return-knockout':2,energy:1};
+      const notes = history.coach ||= [];
+      const sameTurn = notes.findIndex(note=>note.turn===moment.turn);
+      if (sameTurn>=0 && priority[notes[sameTurn].kind]>=priority[moment.kind]) return;
+      if (sameTurn>=0) notes.splice(sameTurn,1);
+      notes.push({...moment,step:moment.step ?? null,
+        detail:moment.detail.slice(0,550),alternative:moment.alternative.slice(0,550)});
+      notes.sort((a,b)=>priority[b.kind]-priority[a.kind] || b.turn-a.turn);
+      notes.length = Math.min(notes.length,3);
+    }
+    function coachReturnKnockout(knockedOut, source) {
+      const previous = game.matchHistory?.lastCoachAttack;
+      if (!previous || previous.id!==knockedOut.id || previous.turn+1!==game.turnNumber || !source) return;
+      rememberCoachMoment({kind:'return-knockout',turn:previous.turn,step:previous.step,title:'Yami answered with a knockout',
+        detail:`After you used ${previous.move}, Yami’s ${source.name} Knocked Out your ${previous.name} on the next turn.`,
+        alternative:'Review which opposing attacks your Active could survive before committing to this attack.'});
+    }
     async function confirmEndTurn() {
       const side = controlSide, currentGame = game, turn = game?.turnNumber;
       if ($('playmatConfirmDialog').open || !canEndTurnManually(side)) return;
@@ -19717,6 +19837,7 @@
       })) return;
       if (game !== currentGame || game.turnNumber !== turn || controlSide !== side || !canEndTurnManually(side)) return;
       captureUndoSnapshot();
+      rememberCoachMoment(coachMomentBeforeAction()?.moment);
       await endTurn();
     }
     async function attackFromPlaymat(event) {
@@ -19752,7 +19873,8 @@
         if (!latest || actionUnavailableReason('attack',{side,pokemon,attack:latest.attack,energyIds})) return;
       }
       captureUndoSnapshot();
-      await useAttack(side,index,energyIds,true,pokemon.id);
+      const coach = side==='you' && pokemon===player(side).active ? coachMomentBeforeAction(attack) : null;
+      await useAttack(side,index,energyIds,true,pokemon.id,coach);
     }
     function renderActionAvailability(current, selectedPokemon, selectedIsActive, side) {
       const messages = [];
@@ -20486,6 +20608,11 @@
     $('viewMatchSummaryBtn').addEventListener('click', openCurrentMatchSummary);
     $('closeMatchHistoryBtn').addEventListener('click', () => $('matchHistoryModal').classList.add('hidden'));
     $('saveMatchRecordingBtn').addEventListener('click',saveFinishedRecording);
+    $('reviewMatchCoachBtn').addEventListener('click',()=>openCurrentMatchSummary({coach:true}));
+    $('matchHistoryContent').addEventListener('click',event=>{
+      const step = event.target.closest('[data-coach-step]');
+      if (step) void openCoachReplay(step);
+    });
     $('matchRecordings').addEventListener('click',event=>{
       const replay = event.target.closest('[data-open-replay]');
       const download = event.target.closest('[data-download-recording]');
@@ -20568,7 +20695,7 @@
       const toma = registeredDecks.find(deck=>deck.id===$('statisticsDeck').value);
       const yami = registeredDecks.find(deck=>deck.id===button.dataset.statisticsMatch);
       if (!toma || !yami || !deckReadiness(toma).canStart || !deckReadiness(yami).canStart) return;
-      openStartGame({suggestedMatchup:{you:toma.id,codex:yami.id}});
+      openStartGame({suggestedMatchup:{you:toma.id,codex:yami.id,difficulty:button.dataset.statisticsDifficulty}});
     });
     $("statisticsDeck").addEventListener("change", renderMatchupStatistics);
     $("statisticsBack").addEventListener("click", () => { setView("menu"); $("menuStatistics").focus(); });
