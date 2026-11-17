@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#082d5f">
   <title>Pokémon TCG Playmat</title>
   <link rel="icon" type="image/png" href="logo.png">
-  <link rel="stylesheet" href="playmat.css?v=phone1">
+  <link rel="stylesheet" href="playmat.css?v=phone2">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -335,22 +335,14 @@
           <div class="selected-deck-summary" id="youDeckSummary">Choose a deck from the registered collection.</div><textarea class="hidden-deck-text" id="youDeck" spellcheck="false" placeholder="Deck lists are managed in the deck builder."></textarea>
           <div class="validation" id="youValidation"></div>
         </div>
-        <div class="matchup-center">
-          <div class="coin-panel" id="coinPanel" aria-live="polite">
-            <div class="eyebrow">Who goes first?</div>
-            <button class="coin-disc" id="coinDisc" type="button" aria-label="Flip coin to choose the first player">?</button>
-            <div class="coin-copy"><strong id="coinHeadline">Click the coin to flip</strong><span id="coinSubline">Heads · Toma first. Tails · Yami first.</span></div>
-            <div class="matchup-coin-actions"><button class="btn small" id="rerollCoinBtn" disabled>Flip again</button><button class="btn primary" id="startBtn" disabled>Flip &amp; get ready</button></div>
-          </div>
-          <section class="matchup-records" aria-labelledby="matchupRecordsHeading"><div class="eyebrow">The rivalry</div><h3 id="matchupRecordsHeading">Head to head</h3><div id="setupMatchupStats" aria-live="polite"></div></section>
-        </div>
         <div class="deck-box matchup-player yami-player">
           <div class="matchup-player-heading"><span class="matchup-avatar">Y</span><div><div class="eyebrow">Opponent</div><h3>Yami</h3></div></div>
           <div class="deck-box-head"><label for="codexRegisteredDeck">Choose deck</label><span class="deck-count" id="codexCount">0 / 60 cards</span></div>
           <div class="matchup-deck-choice"><select class="deck-select" id="codexRegisteredDeck" aria-label="Choose Yami's registered deck"></select><button class="btn small" type="button" id="randomYamiDeckBtn" aria-label="Choose a random deck for Yami">⚄ Random</button></div>
           <div class="selected-deck-summary" id="codexDeckSummary">Choose a deck from the registered collection.</div><textarea class="hidden-deck-text" id="codexDeck" spellcheck="false" placeholder="Deck lists are managed in the deck builder."></textarea>
           <div class="validation" id="codexValidation"></div>
-          <section class="matchup-yami-settings" aria-label="Yami settings">
+          <details class="matchup-yami-settings" id="matchupYamiSettings" open>
+          <summary>Yami settings</summary>
           <label class="matchup-stat-label" for="yamiStyleSelect">Yami style</label>
           <select class="deck-select" id="yamiStyleSelect" aria-describedby="yamiStyleNote">
             <option value="random">Random</option>
@@ -367,7 +359,16 @@
             <option value="master">Master</option>
           </select>
           <p class="matchup-stat-note" id="yamiDifficultyNote" role="status"></p>
-          </section>
+          </details>
+        </div>
+        <div class="matchup-center">
+          <div class="coin-panel" id="coinPanel" aria-live="polite">
+            <div class="eyebrow">Who goes first?</div>
+            <button class="coin-disc" id="coinDisc" type="button" aria-label="Flip coin to choose the first player">?</button>
+            <div class="coin-copy"><strong id="coinHeadline">Click the coin to flip</strong><span id="coinSubline">Heads · Toma first. Tails · Yami first.</span></div>
+            <div class="matchup-coin-actions"><button class="btn small" id="rerollCoinBtn" disabled>Flip again</button><button class="btn primary" id="startBtn" disabled>Flip &amp; get ready</button></div>
+          </div>
+          <details class="matchup-records" id="matchupRecords" open><summary><span class="eyebrow">The rivalry</span><strong id="matchupRecordsHeading">Head to head</strong></summary><div id="setupMatchupStats" aria-live="polite"></div></details>
         </div>
       </div>
       <div class="deck-selection-warning" id="deckSelectionWarning" role="status">Decks with verified card details can be selected even when some effects need manual resolution.</div>
@@ -378,7 +379,7 @@
       </section>
       <div class="setup-status" id="setupStatus" aria-live="polite">Card type, Pokémon stats, artwork, and effect text load from Limitless when available.</div>
       <div class="setup-bottom">
-        <div class="note">Deck records stay on this device. Changing either deck resets the coin flip.</div>
+        <div class="note">Changing either deck resets the coin flip.</div>
         <div class="setup-actions"><button class="btn small" id="setupManageDecksBtn">Manage decks</button><button class="btn small" id="setupManageCardsBtn">Card library</button></div>
       </div>
     </section>
@@ -7888,7 +7889,13 @@
       renderPlaymatChoices();
       if (!coinResult) clearCoinDecision();
       showValidation('you'); showValidation('codex');
+      const showDetails = !mobileMatchLayout();
+      $('matchupYamiSettings').open = showDetails;
+      $('matchupRecords').open = showDetails;
       $('setupModal').classList.remove('hidden');
+      $('setupModal').scrollTop = 0;
+      const setupCard = $('setupModal').querySelector?.('.matchup-setup');
+      if (setupCard) setupCard.scrollTop = 0;
     }
     function deckCategory(card) { return card.meta?.category || card.category || card.categoryHint || 'Unknown'; }
     function resolveDeckCoverImage(deck) {
@@ -7903,7 +7910,7 @@
       const overall = deckStats[deck.id], personal = overall?.bySide?.[side];
       const stat = (count,label) => '<div><strong>'+count+'</strong><span>'+label+'</span></div>';
       return '<div class="matchup-deck-hero"><div class="matchup-deck-cover">'+(image ? '<img src="'+escapeHtml(image)+'" alt="'+escapeHtml(deck.name)+' deck cover">' : escapeHtml(deck.name.slice(0,2)))+'</div><div><h4 class="matchup-deck-name">'+escapeHtml(deckDisplayName(deck))+'</h4><div class="matchup-deck-detail">'+breakdown.pokemon+' Pokémon<br>'+breakdown.trainer+' Trainers · '+breakdown.energy+' Energy</div></div></div>'+
-        '<div class="matchup-deck-results"><p class="matchup-stat-label">Played by '+PLAYER_NAMES[side]+'</p><div class="matchup-stat-grid">'+stat(personal?.plays || 0,'Starts')+stat(personal?.wins || 0,'Wins')+stat(personal?.losses || 0,'Losses')+'</div><p class="matchup-stat-note">'+deckCompletedGames(personal)+' finished'+(personal?.draws ? ' · '+personal.draws+' draws' : '')+'</p><p class="matchup-stat-note"><strong>All players</strong><br>'+(overall?.plays || 0)+' starts · '+deckRecordText(overall)+'</p></div>';
+        '<details class="matchup-deck-results"'+(mobileMatchLayout() ? '' : ' open')+'><summary>Deck record</summary><p class="matchup-stat-label">Played by '+PLAYER_NAMES[side]+'</p><div class="matchup-stat-grid">'+stat(personal?.plays || 0,'Starts')+stat(personal?.wins || 0,'Wins')+stat(personal?.losses || 0,'Losses')+'</div><p class="matchup-stat-note">'+deckCompletedGames(personal)+' finished'+(personal?.draws ? ' · '+personal.draws+' draws' : '')+'</p><p class="matchup-stat-note"><strong>All players</strong><br>'+(overall?.plays || 0)+' starts · '+deckRecordText(overall)+'</p></details>';
     }
     const YAMI_STYLE_LABELS = {aggro:'Aggro',balanced:'Balanced',control:'Control'};
     const YAMI_DIFFICULTY_LABELS = {casual:'Casual',competitor:'Competitor',master:'Master'};
@@ -19261,7 +19268,7 @@
       const handCount = p.hand.length - pendingPrizes.reduce((sum, effect) => sum + effect.count, 0);
       const handText = opponent && game.phase !== 'finished' && !(canOperate && !openingCardIsHidden(side)) ? `${handCount} cards · hidden` : `${handCount} in hand`;
       return `${opponent ? opponentHandMarkup(handCount) : ''}
-        <div class="row-head"><div class="player-name"><span class="avatar">${PLAYER_NAMES[side][0]}</span><div>${escapeHtml(p.name)}<small>${escapeHtml(handText)}</small></div></div><div class="row-stats"><span class="row-deck-name" title="${escapeHtml(deckLabel(game.deckIds?.[side],p.deckName))}">${escapeHtml(deckLabel(game.deckIds?.[side],p.deckName))}</span></div></div>
+        <div class="row-head"><div class="player-name"><span class="avatar">${PLAYER_NAMES[side][0]}</span><div>${escapeHtml(p.name)}<small>${escapeHtml(handText)}</small></div></div>${opponent ? `<span class="mobile-yami-hand"><strong>${handCount}</strong> in hand</span>` : ''}<div class="row-stats"><span class="row-deck-name" title="${escapeHtml(deckLabel(game.deckIds?.[side],p.deckName))}">${escapeHtml(deckLabel(game.deckIds?.[side],p.deckName))}</span></div></div>
         <div class="mat-layout">
           <div class="side-piles">
             <div class="pile-zone"><div class="zone-title">Deck</div><div class="pile-card deck-pile-card${p.deck.length ? '' : ' empty-deck'}" role="img" aria-label="${escapeHtml(p.name)}’s deck, ${p.deck.length} cards, face down"><span class="deck-pile-back" aria-hidden="true"></span><span class="pile-count">${p.deck.length}</span></div></div>
@@ -20880,7 +20887,7 @@
     $('handCards').addEventListener('focusout',leaveHandTargetPreview);
     function installTouchCardDrag() {
       const mat = $('playmatPanel'), hand = $('handCards');
-      let gesture = null, suppressClickUntil = 0;
+      let gesture = null, suppressClickUntil = 0, lastTap = null;
       mat.addEventListener('contextmenu',event=>{
         if ((event.pointerType==='touch' || window.matchMedia('(any-pointer: coarse)').matches) &&
             event.target.closest('[data-hand-card], [data-card], [data-attached-tool], [data-revealed-hand-card]')) event.preventDefault();
@@ -20946,6 +20953,7 @@
         if (!g || g.id!==event.pointerId) return;
         gesture = null;
         if (!g.mode) return;
+        lastTap = null;
         suppressClickUntil = Date.now()+400;
         g.ghost?.remove();
         if (g.mode!=='drag') return;
@@ -20965,8 +20973,36 @@
           event.preventDefault();
           event.stopImmediatePropagation();
           suppressClickUntil = 0;
+          return;
         }
+        if (!mobileMatchLayout() || !event.detail || !game ||
+            activeBoardChoiceResolver || activeCardChoiceResolver || coinPresentationPending || visualTransitionBusy()) {
+          lastTap = null;
+          return;
+        }
+        const card = event.target.closest('[data-hand-card], [data-card], [data-attached-tool], [data-revealed-hand-card]');
+        const next = card && mobileInspectSelection(card);
+        if (!next) { lastTap = null; return; }
+        const key = cardActionKey(next), now = event.timeStamp;
+        if (lastTap?.game===game && lastTap.key===key && now-lastTap.time<=350) {
+          lastTap = null;
+          const previous = selected;
+          selected = next;
+          const current = findSelected();
+          if (!current) { selected = previous; return; }
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          renderInspector(current);
+          setMobileMatchPanel('inspector');
+        } else lastTap = {game,key,time:now};
       },true);
+    }
+    function mobileInspectSelection(card) {
+      const {handCard,side,zone,card:id,attachedTool,toolHost,revealedHandCard} = card.dataset;
+      if (handCard) return {side:viewedSide(),zone:'hand',id:handCard};
+      if (revealedHandCard) return {side:'codex',zone:'revealed-hand',id:revealedHandCard};
+      if (attachedTool) return {side,zone:'attached-tool',id:attachedTool,hostId:toolHost};
+      return id ? {side,zone,id} : null;
     }
     installTouchCardDrag();
     $('handCards').addEventListener('dragstart',beginHandCardDrag);
