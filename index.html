@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="playmat.css?v=board-icons1">
+  <link rel="stylesheet" href="playmat.css?v=board-icons2">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -19739,19 +19739,28 @@
     function attachedEnergyMarkup(card) {
       const cards = card.energy || [];
       if (!cards.length) return '';
-      const visible = cards.slice(0,5), rest = cards.slice(5);
+      const iconLimit = 5;
+      const visible = cards.slice(0,iconLimit), rest = cards.slice(iconLimit);
       return `<span class="card-energy-line" role="img" aria-label="Attached Energy: ${escapeHtml(cards.map(energy=>energy.name).join(', '))}">
         ${visible.map(energy=>playmatTypeIcon(isDoubleDragonEnergyCard(energy) ? 'double-dragon' :
           energyUnitsForPokemon(energy,card)[0] || 'special',energy.name)).join('')}
         ${rest.length ? `<span class="energy-overflow" title="${escapeHtml(rest.map(energy=>energy.name).join(', '))}">+${rest.length}</span>` : ''}</span>`;
     }
-    const conditionExpiry = {
-      poisoned:'Damage at each Pokémon Checkup until removed.',
-      burned:'Recovery coin flip at Pokémon Checkup.',
-      asleep:'Recovery coin flip at Pokémon Checkup.',
-      paralyzed:'Clears at the end of its controller’s next turn after it was applied.',
-      confused:'Stays until removed. Moving to the Bench clears it.'
+    const conditionDisplay = {
+      poisoned: ['Poisoned','☠','Damage at each Pokémon Checkup until removed.'],
+      burned: ['Burned','🔥','Recovery coin flip at Pokémon Checkup.'],
+      asleep: ['Asleep','☾','Recovery coin flip at Pokémon Checkup.'],
+      paralyzed: ['Paralyzed','Ⅱ','Clears at the end of its controller’s next turn after it was applied.'],
+      confused: ['Confused','?','Stays until removed. Moving to the Bench clears it.']
     };
+    function cardConditionMarkup(conditions) {
+      if (!conditions?.length) return '';
+      return `<span class="card-condition-line">${conditions.map(({type,source})=>{
+        const [label,symbol,expiry] = Object.hasOwn(conditionDisplay,type) ? conditionDisplay[type] : [type,'!'];
+        const details = [label,source,expiry].filter(Boolean).join(' · ');
+        return `<span class="condition-chip" data-condition="${escapeHtml(type)}" data-effect-detail="${escapeHtml(details)}" title="${escapeHtml(label)}">${symbol} ${escapeHtml(label)}</span>`;
+      }).join('')}</span>`;
+    }
     function showCardEffectDetails(event) {
       const badge = event.target.closest('[data-effect-detail]');
       if (!badge || !game || activeBoardChoiceResolver || activeCardChoiceResolver ||
@@ -19759,19 +19768,16 @@
       event.stopPropagation();
       showToast(badge.dataset.effectDetail, 4800);
     }
-    function cardMarkup(card, side, zone, index = 0) {
+    function cardMarkup(card, side, zone) {
       if (!card) return `<button class="empty-slot" data-place="${zone}" data-side="${side}">${zone === 'active' ? 'Choose Active' : zone === 'stadium' ? '+ Stadium' : '+ Bench'}</button>`;
       if (openingCardIsHidden(side) && ['active','bench'].includes(zone)) return '<div class="face-down-card" role="img" aria-label="Face-down opponent Pokémon; revealed when the match begins"><span>Face down</span></div>';
       const isSelected = selected?.side === side && selected?.zone === zone && selected?.id === card.id;
-      const statusNames = { paralyzed: 'Paralyzed', burned: 'Burned', poisoned: 'Poisoned', asleep: 'Asleep', confused: 'Confused' };
-      const statusSymbols = { paralyzed: 'Ⅱ', burned: '🔥', poisoned: '☠', asleep: '☾', confused: '?' };
-      const conditions = card.conditions?.length ? `<span class="card-condition-line">${card.conditions.map(condition => `<span class="condition-chip" data-condition="${escapeHtml(condition.type)}" data-effect-detail="${escapeHtml([statusNames[condition.type] || condition.type, condition.source, conditionExpiry[condition.type]].filter(Boolean).join(' · '))}" title="${escapeHtml(statusNames[condition.type] || condition.type)}">${statusSymbols[condition.type] || '!' } ${escapeHtml(statusNames[condition.type] || condition.type)}</span>`).join('')}</span>` : '';
       const hpStrip = pokemonHpSummaryMarkup(card, side);
 
       const image = imageFor(card);
       const art = image ? `<img class="card-art" src="${escapeHtml(image)}" alt="${escapeHtml(card.name)}" loading="lazy" draggable="false">` : '';
       const bonus = isMulliganBonusCard(side, card);
-      const pokemonButton=`<button class="slot-card${isSelected ? ' selected' : ''}${bonus ? ' mulligan-bonus' : ''}" draggable="${canDragBoardPokemon(card,side)}" data-card="${escapeHtml(card.id)}" data-zone="${zone}" data-side="${side}" title="${escapeHtml(card.name)}">${art}${bonus ? mulliganBonusBadge(true) : ''}${hpStrip}<span class="card-board-footer"><span class="card-status-badges">${conditions}${effectReminderMarkup(card,side,true)}</span>${attachedEnergyMarkup(card)}<span class="card-label">${escapeHtml(card.name)}</span></span></button>`;
+      const pokemonButton=`<button class="slot-card${isSelected ? ' selected' : ''}${bonus ? ' mulligan-bonus' : ''}" draggable="${canDragBoardPokemon(card,side)}" data-card="${escapeHtml(card.id)}" data-zone="${zone}" data-side="${side}" title="${escapeHtml(card.name)}">${art}${bonus ? mulliganBonusBadge(true) : ''}${hpStrip}<span class="card-board-footer"><span class="card-status-badges">${cardConditionMarkup(card.conditions)}${effectReminderMarkup(card,side,true)}</span>${attachedEnergyMarkup(card)}<span class="card-label">${escapeHtml(card.name)}</span></span></button>`;
       return attachedToolStackMarkup(card,side,zone,pokemonButton);
     }
     function opponentHandMarkup(count) {
@@ -19806,7 +19812,7 @@
       for (const transition of departing) benchCards.splice(transition.benchIndex, 0, transition.card);
       const bench = Array.from({ length: 5 }, (_, i) => {
         const transition = departing.find(item => item.card === benchCards[i]);
-        return transition ? knockoutPlaceholderMarkup(transition) : cardMarkup(benchCards[i], side, 'bench', i);
+        return transition ? knockoutPlaceholderMarkup(transition) : cardMarkup(benchCards[i], side, 'bench');
       }).join('');
       const pendingPrizes = pendingPrizeEffects(side);
       const prizeCount = p.prizes.length + pendingPrizes.filter(effect => effect !== activePlaymatEffect).reduce((sum, effect) => sum + effect.count, 0);
