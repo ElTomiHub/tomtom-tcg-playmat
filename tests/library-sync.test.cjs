@@ -145,3 +145,51 @@ test('the engine queues only committed results and the queued counters rebuild d
   assert.equal(r.context.merged.deckStats[fixture.decks.ai.id].bySide.codex.losses,1);
   assert.equal(r.context.merged.deckStats[fixture.decks.human.id].history.length,1);
 });
+
+
+test('a storage quota preserves the latest matchup and record by reducing move history',()=>{
+  const r = createEngineRunner(loadFixture());
+  const run = code=>vm.runInContext(code,r.context);
+  const fixture = loadFixture();
+  r.api.setup(fixture,r.random,r.choose,()=>true);
+  run(`const originalSetItem = localStorage.setItem;
+    localStorage.setItem = (key,value)=>{
+      if (key===DECK_STATS_STORAGE_KEY && value.includes('too-large-move')) {
+        const error = new Error('full'); error.name='QuotaExceededError'; throw error;
+      }
+      originalSetItem(key,value);
+    };
+    game.matchHistory.timeline=Array.from({length:100},(_,index)=>({turn:1,message:'too-large-move '+index}));`);
+  run("finishMatch('you','Test storage quota')");
+  assert.equal(run('game.historySaved'),true);
+  assert.equal(run("JSON.parse(localStorage.getItem(DECK_STATS_STORAGE_KEY))[game.deckIds.you].wins"),1);
+  assert.equal(run("JSON.parse(localStorage.getItem(DECK_STATS_STORAGE_KEY))[game.deckIds.you].history[0].timelineTrimmed"),true);
+  assert.equal(run("JSON.parse(localStorage.getItem(DECK_STATS_STORAGE_KEY))[game.deckIds.you].history[0].decks.codex.id"),fixture.decks.ai.id);
+  assert.equal(run("buildMatchSummary().timeline.some(step=>step.message.startsWith('too-large-move'))"),true);
+});
+
+test('the sync outbox can survive the tab closing when browser string storage is full',async()=>{
+  const r = createEngineRunner(loadFixture());
+  const run = code=>vm.runInContext(code,r.context);
+  r.context.indexedDB = {};
+  run(`const memoryDisk = new Map(), originalSetItem = localStorage.setItem;
+    localStorage.setItem = (key,value)=>{
+      if (key===PROGRESS_OUTBOX_KEY) { const error = new Error('full'); error.name='QuotaExceededError'; throw error; }
+      originalSetItem(key,value);
+    };
+    recordingTransaction = async (mode,work)=>{
+      const store = {
+        get(key) { const request = {result:structuredClone(memoryDisk.get(key))}; Promise.resolve().then(()=>request.onsuccess?.()); return request; },
+        put(value,key) { memoryDisk.set(key,structuredClone(value)); }
+      };
+      const request=work(store);
+      await Promise.resolve();
+      return request?.result;
+    };
+    queueProgressEvent({id:'test-match-quota',stats:{}});`);
+  await run('progressFallbackWrite');
+  run('progressMemoryQueue.clear()');
+  assert.equal((await run('readPendingProgress()'))[0].id,'test-match-quota');
+  await run("acknowledgeProgress(['test-match-quota'])");
+  assert.equal((await run('readPendingProgress()')).length,0);
+});

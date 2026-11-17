@@ -358,7 +358,7 @@ function mountPlaymatProgressSync(client,{snapshot,apply,validate,events,acknowl
     if (!canSync()) { schedule(); return; }
     running = true;
     useOnline.disabled = true;
-    let retry = false;
+    let retry = false, onlineSaved = false;
     try {
       const remote = await client.readProgress();
       if (client.getSession()?.userId!==session.userId || !canSync()) return;
@@ -366,8 +366,9 @@ function mountPlaymatProgressSync(client,{snapshot,apply,validate,events,acknowl
         throw new Error('The online progress format is invalid.');
       }
       const key = keyFor(session.userId);
+      const pending = await events();
+      if (client.getSession()?.userId!==session.userId || !canSync()) return;
       const local = snapshot();
-      const pending = events();
       const pendingIds = pending.map(event=>event.id);
       const cloud = remote.progress===null ? null : validate(remote.progress);
       const baseline = localStorage.getItem(key);
@@ -392,14 +393,16 @@ function mountPlaymatProgressSync(client,{snapshot,apply,validate,events,acknowl
         if (revision!==remote.revision+1) throw new Error('The server did not confirm the progress save.');
         if (!cloud) localStorage.setItem(key,'1');
       }
+      onlineSaved = true;
+      if (client.getSession()?.userId!==session.userId) return;
+      await acknowledge(pendingIds);
       if (client.getSession()?.userId!==session.userId || !canSync()) return;
-      if (serialized(snapshot())!==serialized(local) || serialized(events())!==serialized(pending)) {
+      if (serialized(snapshot())!==serialized(local)) {
         retry = true;
         return;
       }
       if (serialized(local)!==serialized({deckStats:merged.deckStats,campaign:merged.campaign})) apply(merged);
       localStorage.setItem(key,'1');
-      acknowledge(pendingIds);
       awaitingReview = false;
       reviewAccepted = false;
       seedRequested = false;
@@ -407,7 +410,8 @@ function mountPlaymatProgressSync(client,{snapshot,apply,validate,events,acknowl
       status.textContent = 'Results, statistics, badges and campaign progress synced.';
     } catch (error) {
       status.textContent = error.status===404 ? 'Progress sync is awaiting database setup.' :
-        'Progress sync is temporarily unavailable. Your progress is saved on this device.';
+        onlineSaved ? 'Your online progress is saved. This browser could not update its local copy.' :
+          'Progress sync is temporarily unavailable. Keep this tab open to retry.';
     } finally {
       running = false;
       useOnline.disabled = false;

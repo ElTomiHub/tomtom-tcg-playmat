@@ -212,7 +212,7 @@
           <p class="summary-meta" id="matchSummaryMeta"></p>
           <div id="matchSummaryPreview"></div>
           <div class="summary-records" id="matchSummaryDeckRecord"></div>
-          <div class="summary-card-actions"><button class="btn small" id="revengeMatchBtn" type="button" hidden>Revenge · Flip coin</button> <button class="btn small primary" id="viewMatchSummaryBtn">View full summary</button> <button class="btn small" id="reviewMatchCoachBtn" type="button" hidden>Review decisions</button> <button class="btn small" id="saveMatchRecordingBtn" type="button" hidden>Save recording</button> <button class="btn small" id="matchCampaignBtn" type="button" hidden>Campaign progress</button></div>
+          <div class="summary-card-actions"><button class="btn small" id="revengeMatchBtn" type="button" hidden>Revenge · Flip coin</button> <button class="btn small primary" id="viewMatchSummaryBtn">View full summary</button> <button class="btn small" id="reviewMatchCoachBtn" type="button" hidden>Review decisions</button> <button class="btn small" id="saveMatchRecordingBtn" type="button" hidden>Save recording</button> <button class="btn small" id="retryMatchSaveBtn" type="button" hidden>Retry saving result</button> <button class="btn small" id="matchCampaignBtn" type="button" hidden>Campaign progress</button></div>
           <p class="summary-save-status" id="matchSummarySaved"></p>
         </section>
         <div class="log-list" id="moveLog" role="region" aria-labelledby="moveLogHeading" tabindex="0"><div class="empty-log">Moves will appear here as the match progresses.</div></div>
@@ -497,7 +497,7 @@
   <div class="toast" id="toast" role="status"></div>
 
   <script src="assets/starter-library.js"></script>
-  <script id="librarySyncScript" src="assets/library-sync.js?v=2" data-project-url="https://wkoahwwmtpdzjiwsrpwm.supabase.co" data-publishable-key="sb_publishable_AxjAliDTreGdaVGovenCUA_j0bOeepR"></script>
+  <script id="librarySyncScript" src="assets/library-sync.js?v=3" data-project-url="https://wkoahwwmtpdzjiwsrpwm.supabase.co" data-publishable-key="sb_publishable_AxjAliDTreGdaVGovenCUA_j0bOeepR"></script>
   <script>
     const $ = (id) => document.getElementById(id);
     const deckInputs = { you: $('youDeck'), codex: $('codexDeck') };
@@ -6637,9 +6637,32 @@
       fontSizeSettings[area] = Math.max(.9, Math.min(1.5, Math.round((fontSizeSettings[area] + step * .1) * 100) / 100));
       applyFontSizeSettings(true);
     }
+    function storageQuotaExceeded(error) {
+      return ['QuotaExceededError','NS_ERROR_DOM_QUOTA_REACHED'].includes(error?.name);
+    }
+    function compactMatchSummary(summary, limit) {
+      if (!Array.isArray(summary?.timeline) || summary.timeline.length<=limit) return summary;
+      return {...summary,timeline:limit ? summary.timeline.slice(-limit) : [],timelineTrimmed:true};
+    }
+    function writeDeckStats(stats) {
+      let stored = stats;
+      for (const limit of [null,32,0]) {
+        if (limit!==null) stored = Object.fromEntries(Object.entries(stats).map(([id,entry])=>
+          [id,Array.isArray(entry.history) ? {...entry, history:entry.history.map(summary=>compactMatchSummary(summary,limit))} : entry]));
+        try {
+          localStorage.setItem(DECK_STATS_STORAGE_KEY,JSON.stringify(stored));
+          return stored;
+        } catch (error) {
+          if (limit===0 || !storageQuotaExceeded(error)) throw error;
+        }
+      }
+    }
     function persistDeckStats() {
-      try { localStorage.setItem(DECK_STATS_STORAGE_KEY, JSON.stringify(deckStats)); return true; }
-      catch { return false; }
+      try { deckStats = writeDeckStats(deckStats); return true; }
+      catch (error) {
+        if (typeof recordDiagnostic==='function') recordDiagnostic('save-error','Deck statistics could not be saved.',{storageError:error.name});
+        return false;
+      }
     }
     function emptyDeckStats() { return { plays: 0, completed: 0, wins: 0, losses: 0, draws: 0, cards: {} }; }
     function statsForDeck(id, side = null) {
@@ -6901,7 +6924,14 @@
     }
     function saveMatchCheckpoint() {
       if (!game || matchCheckpointBusy()) return false;
-      if (game.phase==='finished') { const cleared=clearSavedMatch();if(cleared)$('matchSaveStatus').textContent='Game complete';return cleared; }
+      if (game.phase==='finished') {
+        const cleared = clearSavedMatch();
+        if (cleared) {
+          $('matchSaveStatus').textContent = 'Game complete';
+          if (game.historySaved===false && !game.matchCancelled) syncFinishedMatchHistory();
+        }
+        return cleared;
+      }
       if (!game.resumeManifest || !['setup','play'].includes(game.phase)) return false;
       try {
         const current=JSON.stringify({ game,aiEnabled:localAiEnabled,deckStats:Object.fromEntries([...new Set(Object.values(game.deckIds))].map(id=>[id,statsForDeck(id)])) });
@@ -7145,6 +7175,7 @@
       $('matchSummaryDeckRecord').innerHTML = record('Your deck record', records.stats?.bySide?.you) +
         record('Against ' + records.opponent.name, records.matchup?.bySide?.you);
       const saved = $('matchSummarySaved');
+      $('retryMatchSaveBtn').hidden = summary.cancelled || game.historySaved!==false;
       saved.dataset.state = !summary.cancelled && game.historySaved === false ? 'warning' : 'neutral';
       saved.textContent = summary.cancelled ? 'Cancelled. No result recorded.' : game.historySaved === false ? 'History could not be saved in browser storage. You can still review this match here.' : 'Saved in each deck’s match history.';
     }
@@ -7179,7 +7210,7 @@
         <section class="summary-detail-section"><h4>Knockout timeline</h4>${summary.knockouts.length ? `<ol class="summary-knockouts">${summary.knockouts.map(item=>`<li><span>Turn ${item.turn}</span><div><strong>${escapeHtml(item.name)}</strong> <small>${escapeHtml(item.print)}</small><div>${names[item.side]}${item.detail ? ' · '+escapeHtml(item.detail) : ''}</div></div></li>`).join('')}</ol>` : '<p>No Pokémon were Knocked Out.</p>'}</section>
         ${matchDeckRecordsMarkup(summary)}
         <div class="match-summary-lists">${['you','codex'].map(side=>`<section class="summary-detail-section"><h4>${names[side]} · Pokémon played</h4><ul>${cardList(side,'pokemon')}</ul><h4>Energy attached</h4><ul>${cardList(side,'energy')}</ul></section>`).join('')}</div>
-        <details class="summary-detail-section"><summary>Move history · latest ${summary.timeline.length} events</summary><ol>${summary.timeline.map(item=>`<li><b>Turn ${item.turn}</b> · ${escapeHtml(item.message)}</li>`).join('')}</ol></details>
+        <details class="summary-detail-section"><summary>${summary.timelineTrimmed ? 'Reduced move history' : 'Move history'} · ${summary.timeline.length} events</summary><ol>${summary.timeline.map(item=>`<li><b>Turn ${item.turn}</b> · ${escapeHtml(item.message)}</li>`).join('')}</ol></details>
       </article>`;
     }
     let matchRecording = null;
@@ -20438,6 +20469,9 @@
       }
     }
     const PROGRESS_OUTBOX_KEY = 'codexPokemonPlaymat.progressOutbox.v1';
+    const PROGRESS_FALLBACK_KEY = 'codexPokemonPlaymat.progressOutbox.database.v1';
+    const progressMemoryQueue = new Map();
+    let progressFallbackWrite = Promise.resolve();
     function progressDeckStats(id, source) {
       const {history,...stats} = source;
       if (!stats.matchups && history?.length) stats.matchups = deckMatchupsFor(id);
@@ -20455,22 +20489,64 @@
       return jsonSnapshot({deckStats:Object.fromEntries(Object.entries(deckStats).map(([id,stats])=>
         [id,{...progressDeckStats(id,stats),...(stats.history ? {history:stats.history} : {})}])),campaign:loadCampaign()});
     }
+    function storedProgressOutbox() {
+      try {
+        const value = JSON.parse(localStorage.getItem(PROGRESS_OUTBOX_KEY) || '{}');
+        if (value && typeof value==='object' && !Array.isArray(value)) return value;
+      } catch {}
+      return {};
+    }
     function progressOutbox() {
-      const value = JSON.parse(localStorage.getItem(PROGRESS_OUTBOX_KEY) || '{}');
-      if (!value || typeof value!=='object' || Array.isArray(value)) throw new Error('Invalid local progress queue.');
-      return value;
+      return {...storedProgressOutbox(),...Object.fromEntries(progressMemoryQueue)};
+    }
+    function writeProgressFallback(transform) {
+      if (typeof indexedDB==='undefined') return Promise.reject(new Error('IndexedDB unavailable'));
+      return recordingTransaction('readwrite',store=>{
+        const request = store.get(PROGRESS_FALLBACK_KEY);
+        request.onsuccess = ()=>store.put(transform(request.result || {}),PROGRESS_FALLBACK_KEY);
+      });
+    }
+    async function readPendingProgress() {
+      let fallback = {};
+      try {
+        await progressFallbackWrite;
+        if (typeof indexedDB!=='undefined') fallback = await recordingTransaction('readonly',store=>store.get(PROGRESS_FALLBACK_KEY)) || {};
+      } catch {}
+      return Object.values({...fallback,...progressOutbox()});
     }
     function queueProgressEvent(...events) {
-      try {
-        const outbox = progressOutbox();
-        for (const event of events) outbox[event.id] = event;
-        localStorage.setItem(PROGRESS_OUTBOX_KEY,JSON.stringify(outbox));
-        librarySync?.progressChanged();
-        return true;
-      } catch {
-        showToast('This device could not queue progress for online sync.');
-        return false;
+      const additions = Object.fromEntries(events.map(event=>[event.id,event]));
+      try { localStorage.setItem(PROGRESS_OUTBOX_KEY,JSON.stringify({...progressOutbox(),...additions})); }
+      catch (error) {
+        for (const event of events) progressMemoryQueue.set(event.id,event);
+        progressFallbackWrite = progressFallbackWrite.then(()=>
+          writeProgressFallback(previous=>({...previous,...additions}))).catch(()=>{
+            if (events.some(event=>progressMemoryQueue.has(event.id))) showToast('Progress is queued in this tab. Keep it open until sync completes.');
+            recordDiagnostic('save-error','The progress queue could not be saved on this device.',{storageError:error.name});
+          });
       }
+      librarySync?.progressChanged();
+      return true;
+    }
+    async function acknowledgeProgress(ids) {
+      if (!ids.length) return;
+      const outbox = storedProgressOutbox();
+      for (const id of ids) {
+        delete outbox[id];
+        progressMemoryQueue.delete(id);
+      }
+      try {
+        if (Object.keys(outbox).length) localStorage.setItem(PROGRESS_OUTBOX_KEY,JSON.stringify(outbox));
+        else localStorage.removeItem(PROGRESS_OUTBOX_KEY);
+      } catch {}
+      await progressFallbackWrite;
+      if (typeof indexedDB==='undefined') return;
+      try {
+        await writeProgressFallback(previous=>{
+          for (const id of ids) delete previous[id];
+          return previous;
+        });
+      } catch {}
     }
     function queueFinishedProgress() {
       if (!game?.progressBaseline || !game.matchHistory || game.matchCancelled || game.progressQueued ||
@@ -20481,7 +20557,7 @@
         [deckId,progressStatsDelta(game.progressBaseline[deckId],deckStats[deckId])]));
       for (const side of ['you','codex']) {
         const summary = buildMatchSummary(side);
-        if (summary?.decks[side].id && !summaries.some(item=>item.decks[item.perspective].id===summary.decks[side].id)) summaries.push(summary);
+        if (summary?.decks[side].id && !summaries.some(item=>item.decks[item.perspective].id===summary.decks[side].id)) summaries.push(compactMatchSummary(summary,32));
       }
       const campaign = game.campaign && loadCampaign();
       let campaignFinish;
@@ -20525,7 +20601,7 @@
     }
     function canApplyProgressSync() {
       if (!canApplyLibrarySync() || game?.phase==='setup' || game?.phase==='play' ||
-          runResolutionTransaction.depth || matchFinishPresentationBusy()) return false;
+          runResolutionTransaction.depth) return false;
       if (game?.phase==='finished') return true;
       try { return !['setup','play'].includes(JSON.parse(localStorage.getItem(MATCH_STORAGE_KEY) || 'null')?.game?.phase); }
       catch { return false; }
@@ -20534,20 +20610,25 @@
       if (!canApplyProgressSync()) return;
       const priorStats = localStorage.getItem(DECK_STATS_STORAGE_KEY), priorCampaign = localStorage.getItem(CAMPAIGN_KEY);
       const store = (key,value)=>value===null ? localStorage.removeItem(key) : localStorage.setItem(key,value);
+      let storedStats;
       try {
-        store(DECK_STATS_STORAGE_KEY,JSON.stringify(progress.deckStats));
+        storedStats = writeDeckStats(progress.deckStats);
         store(CAMPAIGN_KEY,progress.campaign ? JSON.stringify(progress.campaign) : null);
       } catch (error) {
         store(DECK_STATS_STORAGE_KEY,priorStats);
         store(CAMPAIGN_KEY,priorCampaign);
         throw error;
       }
-      deckStats = progress.deckStats;
+      deckStats = storedStats;
       updateMenuCounts();
       if (!$('statisticsPage').classList.contains('app-hidden')) renderMatchupStatistics();
       if (!$('deckManagerModal').classList.contains('hidden') && deckManagerView!=='build') renderDeckLibrary();
       if (!$('campaignModal').classList.contains('hidden') && !campaignChoosingNewRun) openCampaign();
-      if (game?.phase==='finished') renderMatchSummaryCard();
+      if (game?.phase==='finished') {
+        const matchId = game.matchHistory?.id;
+        if (matchId && deckStats[game.deckIds?.you]?.history?.some(record=>record.id===matchId+':you')) game.historySaved = true;
+        renderMatchSummaryCard();
+      }
     }
     if (typeof mountPlaymatLibrarySync === 'function') {
       const config = $('librarySyncScript').dataset;
@@ -20556,13 +20637,7 @@
         snapshot:librarySyncSnapshot,apply:applySyncedLibrary,validate:validateSyncedLibrary,canSync:canApplyLibrarySync,
         progress:{
           snapshot:progressSnapshot,apply:applySyncedProgress,validate:validateSyncedProgress,canSync:canApplyProgressSync,
-          events:()=>Object.values(progressOutbox()),
-          acknowledge:ids=>{
-            if (!ids.length) return;
-            const outbox = progressOutbox();
-            for (const id of ids) delete outbox[id];
-            localStorage.setItem(PROGRESS_OUTBOX_KEY,JSON.stringify(outbox));
-          }
+          events:readPendingProgress,acknowledge:acknowledgeProgress
         }
       });
     }
@@ -20626,6 +20701,14 @@
     $('viewMatchSummaryBtn').addEventListener('click', openCurrentMatchSummary);
     $('closeMatchHistoryBtn').addEventListener('click', () => $('matchHistoryModal').classList.add('hidden'));
     $('saveMatchRecordingBtn').addEventListener('click',saveFinishedRecording);
+    $('retryMatchSaveBtn').addEventListener('click',()=>{
+      if (game?.phase!=='finished' || game.matchCancelled) return;
+      clearSavedMatch();
+      syncFinishedMatchHistory();
+      queueFinishedProgress();
+      librarySync?.progressChanged();
+      showToast(game.historySaved ? 'Match result saved.' : 'Browser storage still could not save this result. Keep this tab open or download a backup.');
+    });
     $('reviewMatchCoachBtn').addEventListener('click',()=>openCurrentMatchSummary({coach:true}));
     $('matchHistoryContent').addEventListener('click',event=>{
       const step = event.target.closest('[data-coach-step]');
