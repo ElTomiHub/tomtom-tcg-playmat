@@ -18886,7 +18886,8 @@
           aiAttackScore(option.pokemon || codex.active,option.attack)})).sort((a,b) => b.score-a.score);
         const {option,score} = ranked[0], attacker = option.pokemon || codex.active, discardCount = attackEffectChoiceCount(attacker, option.attack);
         if (peter && score < 0 || gen && score <= -2000 || (ethan || skeleridge) && score<=0 || stageTwo && score<=0 && !attackBaseDamage(option.attack)?.amount ||
-            chien && score <= 0 && !attackBaseDamage(option.attack)?.amount) return {type:'end_turn'};
+            chien && score <= 0 && !attackBaseDamage(option.attack)?.amount ||
+            stageTwo==='obstagogo' && score<=0 && attackEffectRuleFor(attacker,option.attack)?.effect?.type==='defender_counter_damage') return {type:'end_turn'};
         const discard = zoo && game.yamiDifficulty!=='casual' ? aiAttackDiscardPayment(attacker,discardCount,option.attack) : gen && genAiTier() > 0 ? aiAttackDiscardPayment(attacker,discardCount,option.attack) :
           peter && game.yamiDifficulty === 'master' ? aiAttackDiscardPayment(attacker,discardCount) : attacker.energy.slice(0,discardCount);
         return { type: 'attack', index: option.index, name: option.attack.name, attackerId: attacker.id, discardEnergyIds: discard.map(energy => energy.id) };

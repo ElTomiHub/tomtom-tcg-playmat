@@ -73,7 +73,7 @@ test('Master takes the guaranteed Scar Shout instead of gusting a harmless Basic
   run(`player('you').active=player('you').bench[0]; player('you').bench=[xerneas];
     player('codex').hand=[]; player('codex').supporterPlayedThisTurn=true; player('codex').energyAttachedThisTurn=true;`);
   assert.equal(run('canRetreatPokemon(obstagoon,"codex")'),true);
-  assert.notEqual(run('chooseLocalAiAction().type'),'retreat');
+  assert.equal(run('chooseLocalAiAction().type'),'end_turn');
 });
 
 test('Master plans Darkness attachment, Adrena-Brain, Switch and Scar Shout as one line',async()=>{
