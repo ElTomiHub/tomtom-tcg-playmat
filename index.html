@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#082d5f">
   <title>Pokémon TCG Playmat</title>
   <link rel="icon" type="image/png" href="logo.png">
-  <link rel="stylesheet" href="playmat.css?v=phone2">
+  <link rel="stylesheet" href="playmat.css?v=phone2a">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -20898,9 +20898,9 @@
           event.stopPropagation();
         }
       },true);
+      document.addEventListener('pointerdown',()=>{ suppressClickUntil = 0; },true);
       mat.addEventListener('pointerdown',event=>{
         if (event.pointerType!=='touch' || !event.isPrimary || gesture) return;
-        suppressClickUntil = 0;
         const candidate = event.target.closest('[data-hand-card], [data-card]');
         if (!candidate) return;
         const fromHand = !!candidate.dataset.handCard;
@@ -20968,14 +20968,8 @@
       }
       document.addEventListener('pointerup',event=>finish(event,false));
       document.addEventListener('pointercancel',event=>finish(event,true));
-      mat.addEventListener('click',event=>{
-        if (event.detail && Date.now()<suppressClickUntil) {
-          event.preventDefault();
-          event.stopImmediatePropagation();
-          suppressClickUntil = 0;
-          return;
-        }
-        if (!mobileMatchLayout() || !event.detail || !game ||
+      function handleInspectTap(event) {
+        if (!mobileMatchLayout() || !game ||
             activeBoardChoiceResolver || activeCardChoiceResolver || coinPresentationPending || visualTransitionBusy()) {
           lastTap = null;
           return;
@@ -20984,7 +20978,7 @@
         const next = card && mobileInspectSelection(card);
         if (!next) { lastTap = null; return; }
         const key = cardActionKey(next), now = event.timeStamp;
-        if (lastTap?.game===game && lastTap.key===key && now-lastTap.time<=350) {
+        if (lastTap?.game===game && lastTap.key===key && now-lastTap.time<=450) {
           lastTap = null;
           const previous = selected;
           selected = next;
@@ -20994,7 +20988,24 @@
           event.stopImmediatePropagation();
           renderInspector(current);
           setMobileMatchPanel('inspector');
+          if (event.type==='pointerup') suppressClickUntil = Date.now()+400;
         } else lastTap = {game,key,time:now};
+      }
+      mat.addEventListener('pointerup',event=>{
+        if (event.pointerType==='touch' && event.isPrimary && !gesture?.mode) {
+          handleInspectTap(event);
+          if (event.defaultPrevented && gesture?.id===event.pointerId) gesture = null;
+        }
+      },true);
+      document.addEventListener('click',event=>{
+        if (event.detail && Date.now()<suppressClickUntil) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          suppressClickUntil = 0;
+        }
+      },true);
+      mat.addEventListener('click',event=>{
+        if (event.detail && event.pointerType!=='touch' && !event.sourceCapabilities?.firesTouchEvents) handleInspectTap(event);
       },true);
     }
     function mobileInspectSelection(card) {

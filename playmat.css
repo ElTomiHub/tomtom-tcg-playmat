@@ -2350,6 +2350,7 @@
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
+  touch-action: manipulation;
 }
 #playmatPanel :is([data-hand-card], [data-card], [data-attached-tool], [data-revealed-hand-card]) img {
   pointer-events: none;
