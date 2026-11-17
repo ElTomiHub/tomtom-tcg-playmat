@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="playmat.css?v=match-motion1">
+  <link rel="stylesheet" href="playmat.css?v=board-icons1">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -17,6 +17,7 @@
   <button class="btn small report-problem-shortcut" id="reportProblemBtn">Report a problem</button>
   <p id="phonePortraitNotice" role="status">Rotate your phone to portrait to play.</p>
   <main class="app-shell">
+    <svg class="type-symbol-definitions" width="0" height="0" aria-hidden="true"><defs><symbol id="lobby-fire" viewBox="0 0 24 24"><path fill="currentColor" d="M13 2c1 5-4 5-3 9-2-1-3-3-3-4-4 5-4 10 0 13 5 4 13 1 13-5 0-4-3-7-5-9 1 4-1 5-2 5 2-4 1-7 0-9Z"/></symbol><symbol id="lobby-water" viewBox="0 0 24 24"><path fill="currentColor" d="M19 2C9 5 4 11 4 16a8 8 0 0 0 16 0c0-5-5-5-4-9l3-5Z"/></symbol><symbol id="lobby-grass" viewBox="0 0 24 24"><path fill="currentColor" d="M20 3C9 3 4 8 4 15c0 3 2 5 5 5l3-5-5-1 1-2 5 1 3-4 1 1-3 5 4-1v2l-5 1-3 5c9-2 13-9 10-19Z"/></symbol><symbol id="lobby-lightning" viewBox="0 0 24 24"><path fill="currentColor" d="M14 1 4 14h7l-2 9 11-14h-7Z"/></symbol><symbol id="lobby-psychic" viewBox="0 0 24 24"><path fill="currentColor" d="M1 12q11-13 22 0Q12 25 1 12Zm3 0q8 8 16 0Q12 4 4 12Zm4 0a4 4 0 1 1 8 0 4 4 0 0 1-8 0Z"/></symbol><symbol id="lobby-fighting" viewBox="0 0 24 24"><path fill="currentColor" d="M3 11h4V5h3v7h2V3h3v9h2V5h3v7l-2 8H7l-5-5v-3Z"/></symbol><symbol id="lobby-metal" viewBox="0 0 24 24"><path fill="currentColor" d="M4 5h7L8 8H5l-2 4-2-3Zm9 0h7l3 4-2 3-2-4h-3Zm8 9 2 3-3 4h-6l2-3h3ZM3 14l2 4h3l2 3H4l-3-4ZM9 9h6l2 4-5 6-5-6Z"/></symbol><symbol id="lobby-darkness" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10c0-2-1-5-3-7 1 5-4 8-8 6C7 9 8 4 12 2Z"/></symbol><symbol id="lobby-dragon" viewBox="0 0 24 24"><path fill="currentColor" d="M22 5C12 2 3 7 3 13c0 6 7 9 13 8l-5-5 6 3-2-5 5 1-3-5 5-2Z"/></symbol><symbol id="lobby-colorless" viewBox="0 0 24 24"><path fill="currentColor" d="m12 1 3 7 8 1-6 5 2 8-7-4-7 4 2-8-6-5 8-1Z"/></symbol><symbol id="lobby-fairy" viewBox="0 0 24 24"><path fill="currentColor" d="M12 21S2 15 2 8a5 5 0 0 1 10-1 5 5 0 0 1 10 1c0 7-10 13-10 13Z"/></symbol></defs></svg>
     <header class="topbar">
       <div class="brand"><img class="brand-mark" src="logo.png" alt=""><div>POKÉMON TCG</div></div>
       <div class="top-actions"><details class="playmat-settings" id="playmatSettings">
@@ -30,7 +31,6 @@
     </header>
     <section class="main-menu" id="mainMenu">
       <div class="lobby-scenery" aria-hidden="true">
-        <svg width="0" height="0" aria-hidden="true"><defs><symbol id="lobby-fire" viewBox="0 0 24 24"><path fill="currentColor" d="M13 2c1 5-4 5-3 9-2-1-3-3-3-4-4 5-4 10 0 13 5 4 13 1 13-5 0-4-3-7-5-9 1 4-1 5-2 5 2-4 1-7 0-9Z"/></symbol><symbol id="lobby-water" viewBox="0 0 24 24"><path fill="currentColor" d="M19 2C9 5 4 11 4 16a8 8 0 0 0 16 0c0-5-5-5-4-9l3-5Z"/></symbol><symbol id="lobby-grass" viewBox="0 0 24 24"><path fill="currentColor" d="M20 3C9 3 4 8 4 15c0 3 2 5 5 5l3-5-5-1 1-2 5 1 3-4 1 1-3 5 4-1v2l-5 1-3 5c9-2 13-9 10-19Z"/></symbol><symbol id="lobby-lightning" viewBox="0 0 24 24"><path fill="currentColor" d="M14 1 4 14h7l-2 9 11-14h-7Z"/></symbol><symbol id="lobby-psychic" viewBox="0 0 24 24"><path fill="currentColor" d="M1 12q11-13 22 0Q12 25 1 12Zm3 0q8 8 16 0Q12 4 4 12Zm4 0a4 4 0 1 1 8 0 4 4 0 0 1-8 0Z"/></symbol><symbol id="lobby-fighting" viewBox="0 0 24 24"><path fill="currentColor" d="M3 11h4V5h3v7h2V3h3v9h2V5h3v7l-2 8H7l-5-5v-3Z"/></symbol><symbol id="lobby-metal" viewBox="0 0 24 24"><path fill="currentColor" d="M4 5h7L8 8H5l-2 4-2-3Zm9 0h7l3 4-2 3-2-4h-3Zm8 9 2 3-3 4h-6l2-3h3ZM3 14l2 4h3l2 3H4l-3-4ZM9 9h6l2 4-5 6-5-6Z"/></symbol><symbol id="lobby-darkness" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10c0-2-1-5-3-7 1 5-4 8-8 6C7 9 8 4 12 2Z"/></symbol><symbol id="lobby-dragon" viewBox="0 0 24 24"><path fill="currentColor" d="M22 5C12 2 3 7 3 13c0 6 7 9 13 8l-5-5 6 3-2-5 5 1-3-5 5-2Z"/></symbol><symbol id="lobby-colorless" viewBox="0 0 24 24"><path fill="currentColor" d="m12 1 3 7 8 1-6 5 2 8-7-4-7 4 2-8-6-5 8-1Z"/></symbol></defs></svg>
         <span class="lobby-energy" style="--x:6%;--y:13%;--energy:#ef704f"><svg viewBox="0 0 24 24"><use href="#lobby-fire"/></svg></span>
         <span class="lobby-energy" style="--x:17%;--y:13%;--energy:#56bfff"><svg viewBox="0 0 24 24"><use href="#lobby-water"/></svg></span>
         <span class="lobby-energy" style="--x:28%;--y:13%;--energy:#69c881"><svg viewBox="0 0 24 24"><use href="#lobby-grass"/></svg></span>
@@ -481,7 +481,7 @@
   <div class="turn-done-banner" id="turnDoneBanner" aria-hidden="true"></div>
   <div class="board-target-prompt" id="boardTargetPrompt" hidden><strong id="boardTargetPromptText" role="status"></strong><div class="board-target-actions"><button class="btn small primary" id="finishBoardTargetBtn" type="button" hidden>Finish selection</button><button class="btn small" id="cancelBoardTargetBtn" type="button">Cancel</button></div></div>
   <div class="card-choice-overlay hidden" id="cardChoiceOverlay" role="dialog" aria-modal="true" aria-labelledby="cardChoiceTitle">
-    <section class="card-choice-panel"><header class="card-choice-head"><div><h2 id="cardChoiceTitle">Choose a card</h2><p id="cardChoiceDescription">Select a card to continue.</p></div><button class="btn small" id="cardChoiceCloseBtn" type="button" aria-label="Cancel selection">✕</button></header><div class="card-choice-grid" id="cardChoiceGrid"></div><footer class="card-choice-foot"><span class="card-choice-count" id="cardChoiceCount" aria-live="polite"></span><div class="card-choice-actions"><button class="btn small" id="cardChoiceCancelBtn" type="button">Cancel</button><button class="btn small primary" id="cardChoiceConfirmBtn" type="button" disabled>Confirm selection</button></div></footer></section>
+    <section class="card-choice-panel"><header class="card-choice-head"><div><h2 id="cardChoiceTitle">Choose a card</h2><p id="cardChoiceDescription">Select a card to continue.</p></div><button class="btn small" id="cardChoiceCloseBtn" type="button" aria-label="Cancel selection">✕</button></header><div class="card-choice-grid" id="cardChoiceGrid"></div><div class="card-choice-picks" id="cardChoicePicks" role="group" aria-label="Selected cards" hidden></div><footer class="card-choice-foot"><span class="card-choice-count" id="cardChoiceCount" aria-live="polite"></span><div class="card-choice-actions"><button class="btn small" id="cardChoiceCancelBtn" type="button">Cancel</button><button class="btn small primary" id="cardChoiceConfirmBtn" type="button" disabled>Confirm selection</button></div></footer></section>
   </div>
   <dialog class="card-choice-panel playmat-confirm-dialog" id="playmatConfirmDialog" aria-labelledby="playmatConfirmTitle" aria-describedby="playmatConfirmMessage">
     <header class="card-choice-head"><div><h2 id="playmatConfirmTitle"></h2><p id="playmatConfirmMessage"></p></div></header>
@@ -10067,6 +10067,15 @@
         button.classList.toggle('selected',checked);
         button.setAttribute('aria-pressed',String(checked));
       }
+      const picks = $('cardChoicePicks');
+      const selectedCards = [...state.selected].map(id=>state.cards.find(card=>card.id===id)).filter(Boolean);
+      picks.hidden = !selectedCards.length;
+      picks.innerHTML = selectedCards.map(card=>{
+        const image = imageFor(card);
+        return `<button type="button" data-remove-choice="${escapeHtml(card.id)}" aria-label="Remove ${escapeHtml(card.name)}">
+          ${image ? `<img src="${escapeHtml(image)}" alt="">` : ''}<span>${escapeHtml(card.name)}</span><span aria-hidden="true">×</span></button>`;
+      }).join('');
+      if (selectedCards.length) picks.scrollLeft = picks.scrollWidth;
       $('cardChoiceCount').textContent = state.min === state.max ? `${state.selected.size} of ${state.max} selected` : `${state.selected.size} selected · up to ${state.max}`;
       $('cardChoiceConfirmBtn').disabled = state.selected.size < state.min || state.selected.size > state.max;
     }
@@ -10860,7 +10869,7 @@
             const foeSide = oppositeSide(side), foe = player(foeSide);
             const targets = [foe.active,...foe.bench].filter(Boolean);
             if (!targets.length) return true;
-            const target = await choosePokemonOnBoard(side,ability.name + ': choose an opposing Pokémon.',targets,list=>list[0],{optional:true});
+            const target = await choosePokemonOnBoard(side,ability.name + ': choose an opposing Pokémon.',targets,list=>stageTwoAiProfile()==='obstagogo' ? obstagogoCounterTarget(list,effect.count*10) : list[0],{optional:true});
             if (!target) return true;
             if (target !== foe.active && !foe.bench.includes(target)) return false;
             queueAbilityVisualEffect(side,card,ability.name);
@@ -11334,7 +11343,8 @@
       if (effect.type==='look_top_type_to_bench_bottom') {
         if (!p.turnsTaken || p.bench.length>=5 || !p.deck.length) return false;
         const looked=p.deck.slice(-effect.look),ids=looked.map(card=>card.id),candidates=looked.filter(card=>pokemonHasType(card,effect.pokemonType));
-        const chosen=candidates.length?await pickEffectCard(side,card.name+': choose a Darkness Pokémon from the top '+looked.length+' cards to put on your Bench.',candidates):null;
+        const chosen = candidates.length ? await pickEffectCard(side,card.name+': choose a Darkness Pokémon from the top '+looked.length+' cards to put on your Bench.',candidates,
+          list=>stageTwoAiProfile()==='obstagogo' ? stageTwoAiSearchChoice(list,1)[0] : list[0]) : null;
         const live=p.deck.slice(-looked.length);
         if (p.bench.length>=5 || live.length!==looked.length || live.some((item,i)=>item.id!==ids[i]) || candidates.length && !chosen || chosen && !candidates.includes(chosen)) return false;
         p.deck=p.deck.slice(0,-looked.length);p.deck.unshift(...shuffled(looked.filter(item=>item!==chosen)));
@@ -11506,8 +11516,8 @@
         const picked = [];
         for (const group of newRule.groups) {
           const candidates = owner.deck.filter(item=>supporterSearchGroup(group,item) && !picked.includes(item));
-          const stellar = side==='codex' && localAiEnabled && stageTwoAiProfile()==='stellar_snow';
-          const chosen = stellar ? stageTwoAiSearchChoice(candidates,Math.min(1,Math.max(0,owner.deck.length-picked.length-1))) :
+          const tailored = side==='codex' && localAiEnabled && ['stellar_snow','rafa_psy_zoo'].includes(stageTwoAiProfile());
+          const chosen = tailored ? stageTwoAiSearchChoice(candidates,Math.min(1,Math.max(0,owner.deck.length-picked.length-1)),[],picked) :
             await chooseUpToEffectCards(side,card.name + ': choose a ' + group + ' card.',candidates,1);
           if (!chosen || chosen.length>1 || chosen.some(item=>!candidates.includes(item) || !owner.deck.includes(item))) return false;
           picked.push(...chosen);
@@ -11990,14 +12000,15 @@
         return true;
       }
       if (effect.type === 'move_own_counters_to_opponent') {
+        const tailored = side==='codex' && typeof stageTwoAiProfile==='function' && stageTwoAiProfile()==='obstagogo';
         const foeSide = oppositeSide(side), foe = player(foeSide);
         const damaged = [p.active,...p.bench].filter(card=>card?.damage>=10);
         const source = await choosePokemonOnBoard(side,ability.name + ': choose a Pokémon to move damage from.',damaged,
           list=>list.slice().sort((a,b)=>b.damage-a.damage)[0]);
         if (!damaged.includes(source)) return false;
-        const targets = [foe.active,...foe.bench].filter(Boolean), maximum = Math.min(effect.count,Math.floor(source.damage/10));
+        const targets = [foe.active,...foe.bench].filter(card=>card && (!tailored || !battleColosseumBlocks(foeSide,card,'',false))), maximum = Math.min(effect.count,Math.floor(source.damage/10));
         const target = await choosePokemonOnBoard(side,ability.name + ': choose an opposing Pokémon.',targets,
-          list=>list.slice().sort((a,b)=>aiCounterTargetValue(b,maximum*10)-aiCounterTargetValue(a,maximum*10))[0]);
+          list=>tailored ? obstagogoCounterTarget(list,maximum*10) : list.slice().sort((a,b)=>aiCounterTargetValue(b,maximum*10)-aiCounterTargetValue(a,maximum*10))[0]);
         if (!targets.includes(target)) return false;
         const amounts = Array.from({length:maximum},(_,i)=>({id:String(i+1),name:(i+1)+' damage counter'+(i ? 's' : '')}));
         const choice = await pickEffectCard(side,ability.name + ': how many counters?',amounts,list=>list.at(-1));
@@ -14034,7 +14045,8 @@
       const p = player(side), energies = await chooseUpToEffectCards(side,attack.name+': choose Basic Energy from the discard pile.',p.discard.filter(isBasicEnergyCard),effect.count);
       if (!energies) return false;
       if (!energies.length) return true;
-      const target = await choosePokemonOnBoard(side,attack.name+': choose a Pokémon for the Energy.',[p.active,...p.bench].filter(Boolean));
+      const target = await choosePokemonOnBoard(side,attack.name+': choose a Pokémon for the Energy.',[p.active,...p.bench].filter(Boolean),
+        list=>stageTwoAiProfile()==='rafa_psy_zoo' ? rafaEmpowerPlan(list,energies)?.target || list[0] : list[0]);
       if (!target || ![p.active,...p.bench].includes(target) || attackEffectRuleFor(pokemon,attack)?.effect !== effect || energies.length > effect.count ||
           new Set(energies).size !== energies.length || energies.some(card=>!isBasicEnergyCard(card) || !p.discard.includes(card))) return false;
       p.discard = p.discard.filter(card=>!energies.includes(card)); target.energy.push(...energies);
@@ -14843,6 +14855,12 @@
           return aiBestAttackScore(card,foe) + djinnOpeningScore(card,codex.hand)/3 +
             (effectivePokemonHp(card)-Number(card.damage || 0))/4;
         }
+        const profile = typeof stageTwoAiProfile==='function' && stageTwoAiProfile();
+        if (['obstagogo','rafa_psy_zoo'].includes(profile)) {
+          const keepOnBench = profile==='rafa_psy_zoo' && rafaBenchAttack(card) && codex.bench.length>1;
+          return zooAiDefenderValue(profile,card)+(keepOnBench ? -15 : Math.min(130,aiBestAttackScore(card)))+
+            (effectivePokemonHp(card)-Number(card.damage || 0))/5;
+        }
         if (!gen && !chien) return Number(card.meta?.hp || 0);
         const development = chien ? chienPaoDevelopmentScore(card,codex.bench.filter(item=>item!==card)) :
           genAiDevelopmentScore(gen,card,codex.bench,codex.hand);
@@ -15234,7 +15252,8 @@
       if (effect?.type === 'search_basic_pokemon_to_bench') {
         const count = Math.min(Number(effect.count || 3), Math.max(0, 5 - p.bench.length));
         const candidates = p.deck.filter(card=>basicPokemon(card) && (!effect.pokemonType || pokemonHasType(card,effect.pokemonType)));
-        const chosen = count && candidates.length ? (side === 'codex' && localAiEnabled ? await pickEffectCardsUpTo(side, option.attack.name, candidates, count) : await chooseCardsInApp(side, `${option.attack.name}: choose up to ${count} Basic Pokémon to put onto your Bench.`, candidates, 0, Math.min(count, candidates.length))) : [];
+        const chosen = count && candidates.length ? (side === 'codex' && localAiEnabled ? stageTwoAiProfile()==='rafa_psy_zoo' ?
+          rafaGeoTargets(candidates,Math.min(count,Math.max(0,p.deck.length-1))) : await pickEffectCardsUpTo(side, option.attack.name, candidates, count) : await chooseCardsInApp(side, `${option.attack.name}: choose up to ${count} Basic Pokémon to put onto your Bench.`, candidates, 0, Math.min(count, candidates.length))) : [];
         if (chosen === null) return false;
         choices.benchPokemonIds = chosen.map(card => card.id);
       }
@@ -15313,7 +15332,8 @@
         }
       }
       if (effect?.type === 'gust_then_damage' && defender.bench.length) {
-        choices.gustTarget = await choosePokemonOnBoard(side,option.attack.name + ': choose the new opposing Active Pokémon.',defender.bench);
+        choices.gustTarget = await choosePokemonOnBoard(side,option.attack.name + ': choose the new opposing Active Pokémon.',defender.bench,
+          list=>stageTwoAiProfile()==='obstagogo' ? list.slice().sort((a,b)=>zooBraviaryTargetScore(attacker,b,effect.amount)-zooBraviaryTargetScore(attacker,a,effect.amount))[0] : list[0]);
         if (!choices.gustTarget) return false;
       }
       let manualTarget = null, manualDamage = null;
@@ -15448,10 +15468,221 @@
           attack('mega starmie ex','also_damage_bench') && attack('mega froslass ex','damage_per_opponent_hand') ? 'stellar_snow' :
           attack('mega gardevoir ex','search_attach_each_bench') && attack('mega gardevoir ex','damage_per_board_energy') &&
           ability('iron valiant ex','bench_to_active_counters') ? 'future_princess' :
-          attack('team rocket s honchkrow','rocket_feather') && attack('team rocket s porygon2','rocket_discard_damage') ? 'rocketo_dan' : null;
+          attack('team rocket s honchkrow','rocket_feather') && attack('team rocket s porygon2','rocket_discard_damage') ? 'rocketo_dan' :
+          attack('galarian obstagoon','defender_counter_damage') && ability('galarian zigzagoon','counter_on_bench') &&
+          ability('munkidori','move_own_counters_to_opponent') ? 'obstagogo' :
+          attack('alakazam ex','bench_attack') && ability('mr mime','mimic_barrier') &&
+          ability('kadabra','draw_on_hand_evolution') ? 'rafa_psy_zoo' : null;
         stageTwoAiDecks.set(cards,profile);
       }
       return stageTwoAiDecks.get(cards);
+    }
+    const zooAiOrders = {
+      obstagogo:{
+        aggro:['mimikyu','galarian zigzagoon','galarian linoone','galarian obstagoon','munkidori','rufflet','braviary'],
+        balanced:['galarian zigzagoon','galarian linoone','galarian obstagoon','munkidori','mimikyu','rufflet','braviary'],
+        control:['mimikyu','munkidori','galarian zigzagoon','galarian linoone','galarian obstagoon','rufflet','braviary']
+      },
+      rafa_psy_zoo:{
+        aggro:['xerneas','abra','kadabra','alakazam ex','mew','flutter mane','mewtwo','mr mime','giratina','hatterene v'],
+        balanced:['abra','kadabra','alakazam ex','xerneas','mr mime','flutter mane','mewtwo','mew','giratina','hatterene v'],
+        control:['mr mime','flutter mane','abra','kadabra','alakazam ex','xerneas','giratina','mew','mewtwo','hatterene v']
+      }
+    };
+    function zooAiDevelopment(profile, card, board, opening) {
+      const p = player('codex'), name = cleanCardKey(card.name), style = game.yamiStyle || 'balanced';
+      const rank = zooAiOrders[profile][style].indexOf(name);
+      if (rank<0) return 12;
+      const count = board.filter(item=>cleanCardKey(item.name)===name).length;
+      let score = 104-rank*7-count*38;
+      if (name==='munkidori' && count===1 && p.hand.some(energy=>energyProvidesType(energy,card,'darkness'))) score += 22;
+      if (name==='galarian zigzagoon' && !opening && player('you').active &&
+          obstagogoCounterValue(player('you').active,10)>70) score += 44;
+      if (opening && game.firstPlayer!=='codex' && name==='xerneas' && p.hand.some(energy=>energyProvidesType(energy,card,'psychic'))) score += 23;
+      if (opening && name==='abra') score -= style==='aggro' || style==='control' ? 21 : 0;
+      if (name==='hatterene v' && !opening) score -= 15;
+      return score;
+    }
+    function obstagogoCounterValue(target, amount) {
+      const foe = player('you'), p = player('codex'), before = Number(target.damage || 0);
+      const hp = effectivePokemonHp(target);
+      const lethal = before+amount>=hp;
+      if (target!==foe.active && battleColosseumBlocks('you',target,'',false)) return -1;
+      if (lethal) return 160+prizeCountFor(target)*50+(prizeCountFor(target)>=p.prizes.length ? 1000 : 0);
+      if (game.yamiDifficulty==='casual') return target===foe.active ? 20 : 4;
+      const attackers = [p.active,...p.bench].filter(card=>cleanCardKey(card?.name)==='galarian obstagoon');
+      const ready = attackers.some(card=>card===p.active && card.meta.attacks.some(attack=>
+        attackEffectRuleFor(card,attack)?.effect.type==='defender_counter_damage' && canUseAttack(card,attack)));
+      if (target===foe.active && attackers.length) {
+        const attacker = attackers.find(card=>card===p.active) || attackers[0];
+        const scar = attacker.meta.attacks.find(attack=>attackEffectRuleFor(attacker,attack)?.effect.type==='defender_counter_damage');
+        if (!scar) return 12;
+        const after = (damage)=>calculateAttackDamageModifiers('codex','you',target,'active',
+          Math.floor(damage/10)*attackEffectRuleFor(attacker,scar).effect.amount,true,true,attacker).applied+damage;
+        if (ready && after(before)<hp && after(before+amount)>=hp) return game.yamiDifficulty==='master' ? 310 : 125;
+        return ready ? 62 : 32;
+      }
+      return 8 + prizeCountFor(target)*4 + (before>0 ? 8 : 0) + (target===foe.active ? 4 : 0);
+    }
+    function obstagogoCounterTarget(candidates, amount) {
+      const best = candidates.map(target=>({target,score:obstagogoCounterValue(target,amount)})).sort((a,b)=>b.score-a.score)[0];
+      return best?.score>=0 ? best.target : null;
+    }
+    function rafaBenchAttack(card) {
+      return card?.meta?.attacks?.find(attack=>attackEffectRuleFor(card,attack)?.effect.type==='bench_attack');
+    }
+    function zooAiDefenderValue(profile, pokemon) {
+      const foe = player('you').active, style = game.yamiStyle;
+      if (!pokemon || !foe) return 0;
+      const opposingAbilities = livePokemonAbilities(foe).map(ability=>pokemonAbilityEffectType(foe,ability));
+      const suppressed = opposingAbilities.includes('suppress_opposing_active_abilities');
+      const abilities = livePokemonAbilities(pokemon).map(ability=>pokemonAbilityEffectType(pokemon,ability))
+        .filter(type=>!suppressed || type==='suppress_opposing_active_abilities');
+      const moves = (foe.meta?.attacks || []).filter(attack=>canPayAttack(foe,attack));
+      const hasIncoming = moves.some(attack=>attackBaseDamage(attack)?.amount>0);
+      const bypass = moves.some(attack=>{
+        const type = attackEffectRuleFor(foe,attack)?.effect?.type;
+        return ['active_counters','ignore_defender_effects'].includes(type) ||
+          type==='place_bench_damage_counters' && attackEffectRuleFor(foe,attack)?.effect?.anyZone;
+      });
+      const control = style==='control', master = game.yamiDifficulty==='master';
+      if (profile==='obstagogo' && !bypass && abilities.includes('safeguard_ex_v') && (isPokemonEx(foe) || / v(?:max|star|-union)?$/.test(cleanCardKey(foe.name))))
+        return control ? 133 : 70;
+      if (profile==='rafa_psy_zoo') {
+        if (!bypass && abilities.includes('mimic_barrier') && pokemonEnergyCount(pokemon)===pokemonEnergyCount(foe))
+          return (control ? 110 : 44)+(hasIncoming ? 29 : 0)-(master ? 12 : 0);
+        if (abilities.includes('suppress_opposing_active_abilities') && (foe.meta?.abilities || []).some(ability=>pokemonAbilityEffectType(foe,ability)!=='suppress_opposing_active_abilities')) return control ? 105 : 47;
+      }
+      return 0;
+    }
+    function zooAiSetupAction(profile, prizeLine) {
+      const p = player('codex'), foe = player('you'), style = game.yamiStyle || 'balanced';
+      const tier = game.yamiDifficulty, board = stageTwoAiBoard();
+      if (!foe.active || p.attackedThisTurn || game.firstPlayer==='codex' && p.turnsTaken===0) return null;
+      if (profile==='rafa_psy_zoo') {
+        const benches = sideAttackOptions('codex').filter(option=>p.bench.includes(option.pokemon));
+        const knockout = benches.find(option=>aiAttackScore(option.pokemon,option.attack)>=1000);
+        if (knockout && !prizeLine?.matchWinning && (tier==='master' || style==='aggro' || !prizeLine))
+          return {type:'attack',index:knockout.index,name:knockout.attack.name,attackerId:knockout.pokemon.id};
+        const cemetery = style!=='aggro' && p.hand.find(card=>
+          stadiumEffectRuleFor(card)?.effect.type==='old_cemetery' && canPlayTrainerEffect(card,'codex'));
+        if (cemetery && stadiumEffectRuleFor(game.stadium?.card)?.effect.type!=='old_cemetery' &&
+            board.every(card=>pokemonHasType(card,'psychic')) && [foe.active,...foe.bench].some(card=>!pokemonHasType(card,'psychic')))
+          return {type:'play_stadium',card:cemetery};
+      }
+      if (prizeLine || tier==='casual' && style!=='control') return null;
+      const switchCard = p.hand.find(card=>itemEffectRuleFor(card)?.effect?.operation==='switchPositions' && canPlayTrainerEffect(card,'codex'));
+      const payment = canRetreatPokemon(p.active,'codex') && retreatPaymentCards(p.active);
+      if (!switchCard && !payment) return null;
+      const chargedBench = profile==='rafa_psy_zoo' && sideAttackOptions('codex').some(option=>p.bench.includes(option.pokemon));
+      const role = card=>zooAiDefenderValue(profile,card) + (chargedBench && rafaBenchAttack(card) ? -35 : 0) +
+        aiBestAttackScore(card) * (chargedBench || style==='control' ? .36 : .8);
+      const next = p.bench.map(target=>({target,score:role(target)})).sort((a,b)=>b.score-a.score)[0];
+      if (next && next.score>role(p.active)+(tier==='master' ? 38 : 58)) {
+        if (payment && !payment.length) return {type:'retreat',target:next.target};
+        if (switchCard) return {type:'trainer',card:switchCard,targetId:next.target.id};
+      }
+      return null;
+    }
+    function zooAiEnergyScore(profile, energy, target, base) {
+      if (!energyAttachmentTargets(energy,'codex').includes(target) || !energyUnitsForPokemon(energy,target).length) return 0;
+      const p = player('codex'), name = cleanCardKey(target.name), style = game.yamiStyle, tier = game.yamiDifficulty;
+      const energised = {...target,energy:[...target.energy,energy]};
+      if (profile==='obstagogo') {
+        const firstDark = energyProvidesType(energy,target,'darkness') &&
+          !target.energy.some(item=>energyProvidesType(item,target,'darkness'));
+        if (firstDark && name==='munkidori') {
+          const damage = Math.max(0,...stageTwoAiBoard().map(card=>Number(card.damage || 0)));
+          const utility = damage>=10 ? (style==='aggro' ? 57 : 93) : style==='control' ? 68 : 41;
+          return Math.max(base,utility)+ (tier==='master' && damage>=30 ? 15 : 0);
+        }
+        return base>0 && name.startsWith('galarian ') ? base+(firstDark ? 42 : 17) : base;
+      }
+      if (name==='mr mime' && style!=='aggro') {
+        const current = zooAiDefenderValue(profile,target), after = zooAiDefenderValue(profile,energised);
+        if (after>current && tier!=='casual') return Math.max(base,style==='control' ? 112 : 70);
+        if (current>0 && !after) return 0;
+      }
+      const dimensional = rafaBenchAttack(target);
+      if (dimensional && canPayAttack(energised,dimensional) && !canPayAttack(target,dimensional)) return Math.max(base,145);
+      if (base>0 && ['abra','kadabra','alakazam ex'].includes(name) && energyProvidesType(energy,target,'psychic'))
+        return base+(style==='aggro' ? 26 : 49);
+      if (base>0 && name==='xerneas' && target===p.active && p.turnsTaken<=1 && p.bench.length<3)
+        return base+(style==='aggro' ? 40 : 15);
+      return base;
+    }
+    function rafaGeoTargets(candidates, limit) {
+      const board = stageTwoAiBoard().slice(), chosen = [];
+      for (let i=0;i<limit;i++) {
+        const best = candidates.filter(card=>!chosen.includes(card))
+          .map(card=>({card,score:zooAiDevelopment('rafa_psy_zoo',card,board,false)}))
+          .sort((a,b)=>b.score-a.score)[0];
+        if (!best || best.score<(board.length>=4 ? 63 : 44)) break;
+        chosen.push(best.card);
+        board.push(best.card);
+      }
+      return chosen;
+    }
+    function zooAiAttackScore(pokemon, attack, target, effect) {
+      const p = player('codex'), foe = player('you'), style = game.yamiStyle;
+      if (!target) return 0;
+      if (effect.type==='active_counters') {
+        if (attackEffectProtection('codex',pokemon,target)) return 0;
+        return zooCounterScore(target,effect.count*10);
+      }
+      if (effect.type==='gust_then_damage') return Math.max(0,...foe.bench.map(card=>zooBraviaryTargetScore(pokemon,card,effect.amount)));
+      if (effect.type==='search_basic_pokemon_to_bench') {
+        if (p.deck.length<=2) return 0;
+        const options = p.deck.filter(card=>basicPokemon(card) && pokemonHasType(card,effect.pokemonType));
+        const targets = rafaGeoTargets(options,Math.min(effect.count,5-p.bench.length));
+        return targets.reduce((score,card)=>score+(cleanCardKey(card.name)==='abra' ? 45 : 21),0);
+      }
+      let score = stageTwoAiAttackScore(pokemon,attack,target,effect);
+      if (effect.type==='inflict_confusion' && !hasCondition(target,'confused')) score += style==='control' ? 24 : 8;
+      if (effect.type==='discard_attached_energy' && score<1000) score -= style==='aggro' ? 18 : 34;
+      if (effect.type==='chaos_crawler') score += style==='control' ? 48 : 23;
+      if (effect.type==='attach_discard_basic_to_one') {
+        const plan = rafaEmpowerPlan(stageTwoAiBoard(),p.discard.filter(isBasicEnergyCard).slice(0,effect.count));
+        score += (plan?.progress || 0)*(style==='aggro' ? 34 : 49);
+      }
+      if (effect.type==='place_bench_damage_counters') {
+        const candidates = effect.anyZone ? [target,...foe.bench] : foe.bench;
+        const potential = candidates.filter(card=>!battleColosseumBlocks('you',card,'',false) && !protectedFromExAttack(pokemon,card))
+          .map(card=>zooCounterScore(card,effect.count*10+(card===target ? aiExpectedAttackDamage(pokemon,attack,target) : 0)));
+        score += Math.max(0,...potential);
+      }
+      return score;
+    }
+    function rafaEmpowerPlan(targets, energies) {
+      let best = null;
+      for (const target of targets) {
+        const energised = {...target,energy:[...target.energy,...energies]};
+        for (const attack of target.meta?.attacks || []) {
+          if (!attackEffectRuleFor(target,attack) || !attackBaseDamage(attack)?.amount) continue;
+          const progress = aiEnergyDeficit(target,attack)-aiEnergyDeficit(energised,attack);
+          if (progress<=0) continue;
+          const score = progress*25+(canPayAttack(energised,attack) ? 25 : 0)+
+            (attack===rafaBenchAttack(target) ? 35 : 0);
+          if (!best || score>best.score) best = {target,progress,score};
+        }
+      }
+      return best;
+    }
+    function zooCounterScore(target, amount) {
+      const remaining = effectivePokemonHp(target)-Number(target.damage || 0);
+      return amount>=remaining ? 1000+prizeCountFor(target)*65 : amount;
+    }
+    function zooObstagogoGustScore(pokemon, target) {
+      const attack = (pokemon.meta?.attacks || []).find(move=>attackEffectRuleFor(pokemon,move)?.effect?.type==='defender_counter_damage');
+      if (!attack || !canUseAttack(pokemon,attack)) return 0;
+      const counters = Math.floor(Number(target.damage || 0)/10);
+      const damage = calculateAttackDamageModifiers('codex','you',target,'active',
+        counters*attackEffectRuleFor(pokemon,attack).effect.amount,true,true,pokemon).applied;
+      return zooCounterScore(target,damage);
+    }
+    function zooBraviaryTargetScore(pokemon, card, raw) {
+      const damage = calculateAttackDamageModifiers('codex','you',card,'active',raw,true,true,pokemon).applied;
+      return zooCounterScore(card,damage)+(game.yamiStyle==='control' && !card.energy.length ? Math.min(50,retreatCostForPokemon(card)*14) : 0);
     }
     function rocketAiDevelopment(card, board, opening) {
       const p = player('codex'), style = game.yamiStyle || 'balanced';
@@ -15732,6 +15963,7 @@
       if (profile==='rocketo_dan') return rocketAiDevelopment(card,board,opening);
       if (profile==='future_princess') return futureAiDevelopment(card,board,opening);
       if (profile==='stellar_snow') return stellarAiDevelopment(card,board,opening);
+      if (Object.hasOwn(zooAiOrders,profile)) return zooAiDevelopment(profile,card,board,opening);
       const count = name => board.filter(item=>cleanCardKey(item.name)===name).length;
       if (profile==='dragapult_blaziken' || profile==='mega_lucario') {
         const dragapult = profile==='dragapult_blaziken';
@@ -15788,6 +16020,10 @@
       const p = player('codex'), board = stageTwoAiBoard(), profile = stageTwoAiProfile();
       const hand = [...p.hand.filter(item=>!excluded.includes(item)),...already];
       const name = cleanCardKey(card.name);
+      if (profile==='rafa_psy_zoo' && card.meta?.evolveFrom && hand.some(item=>evolutionParentMatches(card,item))) {
+        const value = stageTwoAiDevelopment(card,board)+35;
+        return value-(hand.some(item=>cleanCardKey(item.name)===name) ? 78 : 0);
+      }
       if (isBasicEnergyCard(card)) {
         const type = normalizedEnergyType(card.name), have = hand.filter(item=>basicEnergyHasType(item,type)).length;
         if (profile==='stellar_snow' && type==='water') return have===0 ? 112 : 48;
@@ -15821,10 +16057,10 @@
       if (supporter && !p.supporterPlayedThisTurn && !hand.some(item=>supporterEffectRuleFor(item))) return 77 + Math.max(0,aiSupporterScore(card))*.4;
       return 18;
     }
-    function stageTwoAiSearchChoice(cards, count, excluded = []) {
+    function stageTwoAiSearchChoice(cards, count, excluded = [], earlierPicks = []) {
       const chosen = [];
       while (chosen.length<Math.min(count,cards.length)) {
-        const next = cards.filter(card=>!chosen.includes(card)).sort((a,b)=>stageTwoAiSearchScore(b,chosen,excluded)-stageTwoAiSearchScore(a,chosen,excluded))[0];
+        const next = cards.filter(card=>!chosen.includes(card)).sort((a,b)=>stageTwoAiSearchScore(b,[...earlierPicks,...chosen],excluded)-stageTwoAiSearchScore(a,[...earlierPicks,...chosen],excluded))[0];
         chosen.push(next);
       }
       return chosen;
@@ -15876,6 +16112,7 @@
     function stageTwoAiEnergyScore(energy, target, base) {
       const p = player('codex'), profile = stageTwoAiProfile(), name = cleanCardKey(target.name);
       const style = game.yamiStyle, attached = target.energy || [];
+      if (Object.hasOwn(zooAiOrders,profile)) return zooAiEnergyScore(profile,energy,target,base);
       if (profile==='stellar_snow' && basicEnergyHasType(energy,'water') && pokemonHasType(target,'water')) {
         const first = !target.energy.some(item=>energyProvidesType(item,target,'water'));
         return base>0 ? base+(first ? 48 : 8)+stellarAiDevelopment(target,stageTwoAiBoard(),false)/8 : base;
@@ -16028,6 +16265,7 @@
       const p = player('codex'), foe = player('you'), board = stageTwoAiBoard();
       if (prizeLine?.matchWinning) return null;
       const style = game.yamiStyle, tier = game.yamiDifficulty;
+      if (Object.hasOwn(zooAiOrders,profile)) return zooAiSetupAction(profile,prizeLine);
       if (profile==='stellar_snow') {
         const winning = playableAttacks('codex').find(({attack})=>{
           const effect = attackEffectRuleFor(p.active,attack)?.effect;
@@ -16879,7 +17117,9 @@
         return stellarAiAttackPlan(pokemon,attack,target,effect).score;
       if (stageTwoAiProfile()==='future_princess' && effect && ['damage_per_board_energy','search_attach_each_bench','move_bench_damage_counters','lower_defending_attack','attack_lock_next_turn'].includes(effect.type)) return futureAiAttackScore(pokemon,attack,target,effect);
       if (stageTwoAiProfile()==='rocketo_dan' && effect && isRocketPokemon(pokemon)) return rocketAiAttackScore(pokemon,attack,target,effect);
-      if (stageTwoAiProfile() && effect && ['none','bonus_both_active_energy','bonus_per_attached_energy_type','heal_attacker',
+      const profile = stageTwoAiProfile();
+      if (Object.hasOwn(zooAiOrders,profile) && effect) return zooAiAttackScore(pokemon,attack,target,effect);
+      if (profile && effect && ['none','bonus_both_active_energy','bonus_per_attached_energy_type','heal_attacker',
         'bonus_per_prize_taken','coin_until_tails_damage','search_grass_stadium','search_basic_pokemon_to_bench','return_attacker_to_hand',
         'technical_machine_evolution','devolve_opponent_board','bonus_per_opponent_bench','bench_attack','discard_stadium',
         'lock_opponent_items','lunatone_cosmo_beam','named_attack_lock','attach_discard_fighting_to_bench','place_bench_damage_counters'].includes(effect.type))
@@ -17318,7 +17558,8 @@
       const current = aiBestAttackScore(p.active,opponent.active);
       if (current >= 1000) return null;
       const rank = target => {
-        const attack = aiBestAttackScore(p.active,target);
+        const profile = typeof stageTwoAiProfile==='function' && stageTwoAiProfile();
+        const attack = profile==='obstagogo' ? zooObstagogoGustScore(p.active,target) : aiBestAttackScore(p.active,target);
         if (attack >= 1000) return 100 + prizeCountFor(target) * 20;
         const strands = opponent.active.energy?.length && !target.energy?.length && retreatCostForPokemon(target) >= 2;
         return strands ? retreatCostForPokemon(target) * 10 + Math.min(5,Math.max(0,attack - current)/20) : 0;
@@ -17660,6 +17901,17 @@
       if (!effect) return -1;
       const chien = hasChienPaoStrategy(), ethan = hasEthanSkeledirgeStrategy(), stageTwo = stageTwoAiProfile();
       const djinn = hasDjinnStrategy(), skeleridge = hasSkeleridgeStrategy();
+      if (stageTwo==='obstagogo' && effect.type==='look_top_type_to_bench_bottom') {
+        const board = stageTwoAiBoard();
+        return p.deck.length>2 && p.bench.length<4 && p.deck.some(item=>pokemonHasType(item,effect.pokemonType) &&
+          zooAiDevelopment(stageTwo,item,board,false)>=66) ? (game.yamiStyle==='balanced' ? 76 : 53) : -1;
+      }
+      if (stageTwo==='rafa_psy_zoo' && effect.type==='search_deck_groups') {
+        const board = stageTwoAiBoard();
+        return p.deck.length>3 && p.deck.some(item=>['kadabra','alakazam ex'].includes(cleanCardKey(item.name)) &&
+          !left.some(held=>cleanCardKey(held.name)===cleanCardKey(item.name)) &&
+          (board.some(target=>evolutionParentMatches(item,target)) || left.some(target=>evolutionParentMatches(item,target)))) ? 86 : 36;
+      }
       if (stageTwo==='stellar_snow') {
         if (effect.type==='evolve_from_deck_no_ability') {
           const targets = stageTwoAiBoard().filter(target=>salvatoreEvolutionChoices('codex',target).some(card=>
@@ -17804,6 +18056,8 @@
       if (djinn) for (const type of ['optional_draw_to_limit','discard_stadium']) deterministic.add(type);
       if (stageTwo==='future_princess') deterministic.add('damage_per_board_energy');
       if (stageTwo==='stellar_snow') deterministic.add('damage_per_opponent_hand');
+      if (stageTwo==='obstagogo') deterministic.add('defender_counter_damage');
+      if (stageTwo==='rafa_psy_zoo') deterministic.add('chaos_crawler');
       if (stageTwo==='rocketo_dan') for (const type of ['rocket_feather','rocket_discard_damage','rocket_energy_bonus','torment_attack']) deterministic.add(type);
       if (stageTwo==='dracaufeu') for (const type of ['bonus_per_prize_taken','discard_stadium','bench_attack']) deterministic.add(type);
       if (gen) for (const type of ['also_damage_bench','damage_per_self_energy','return_defender_energy','random_hand_discard',
@@ -18020,7 +18274,7 @@
         if (gust) for (const target of foe.bench) {
           withSwitch('you', target, new Set(), () => evaluateDjinnTools(first || { type: 'supporter', card: gust, targetId: target.id }, cost + 8));
         }
-        if ((!ionoFan && !peter && !gen && !djinn) || !master) return;
+        if ((!ionoFan && !peter && !gen && !djinn && !Object.hasOwn(zooAiOrders,stageTwo)) || !master) return;
         const catcher = p.hand.find(card => itemEffectRuleFor(card)?.effect?.type === 'coin_gust_opponent' && canPlayTrainerEffect(card,'codex'));
         if (catcher) for (const target of foe.bench) {
           withSwitch('you', target, new Set(), () =>
@@ -18469,7 +18723,8 @@
         const pivot = futureAiPivot();
         if (pivot) return pivot;
       }
-      const catcherTarget = ionoFan || peter || gen || djinn ? aiControlCatcherTarget() : null;
+      const zoo = ['obstagogo','rafa_psy_zoo'].includes(stageTwo);
+      const catcherTarget = ionoFan || peter || gen || djinn || zoo ? aiControlCatcherTarget() : null;
       const catcher = catcherTarget && hand.find(card => itemEffectRuleFor(card)?.effect?.type === 'coin_gust_opponent' && canPlayTrainerEffect(card,'codex'));
       if (catcher) return {type:'trainer',card:catcher,targetId:catcherTarget.id};
       if (peter || gen?.id === 'gen2') {
@@ -18489,12 +18744,15 @@
       const item = hand.find(card => {
         if (card.meta?.category !== 'Trainer' || card.meta?.trainerType?.toLowerCase() !== 'item' || effectSupportFor(card) !== 'automatic' || !canPlayTrainerEffect(card, 'codex')) return false;
         const effect = itemEffectRuleFor(card)?.effect;
-        if ((ionoFan || peter || gen || djinn) && (effect?.type === 'coin_gust_opponent' || effect?.operation === 'transferAttachedEnergy')) return false;
+        if ((ionoFan || peter || gen || djinn || zoo) && (effect?.type === 'coin_gust_opponent' || effect?.operation === 'transferAttachedEnergy')) return false;
         if (skeleridge && ['evolve','switchPositions','searchAndMove'].includes(effect?.operation)) return false;
         if (skeleridge && effect?.type==='discard_two_search_pokemon') return false;
         if (skeleridge && effect?.type==='discard_two_recover_basic_energy') return false;
         if (skeleridge && effect?.type==='shuffle_discard_pokemon_energy') return skeleridgeRodChoices(codex.discard,effect.count).length>0;
         if (djinn && ['searchAndMove','switchPositions'].includes(effect?.operation)) return false;
+        if (zoo && effect?.operation==='switchPositions') return false;
+        if (stageTwo==='rafa_psy_zoo' && effect?.filter==='basic_psychic_or_energy') return codex.deck.length>2 &&
+          (!hand.some(isBasicEnergyCard) || !board.some(card=>['abra','kadabra','alakazam ex'].includes(cleanCardKey(card.name))));
         if (djinn && effect?.type==='shuffle_discard_pokemon_energy') return djinnRodChoices(codex.discard,effect.count).length>0;
         if (djinn && effect?.type==='recover_basic_energy') return djinnEnergyChoices(codex.discard.filter(isBasicEnergyCard),effect.count).length>0;
         if ((peter || gen?.id === 'gen2' || chien || ethan || stageTwo==='dracaufeu') && effect?.operation === 'evolve') return false;
@@ -18559,7 +18817,8 @@
         const pivot = skeleridgePivotAction();
         if (pivot) return pivot;
       }
-      if (!djinn && !skeleridge && canRetreatPokemon(codex.active,'codex')) {
+      if (!djinn && !skeleridge && !(zoo && zooAiDefenderValue(stageTwo,codex.active)>65 &&
+          sideAttackOptions('codex').some(option=>option.pokemon!==codex.active)) && canRetreatPokemon(codex.active,'codex')) {
         const current=aiBestAttackScore(codex.active), payment=retreatPaymentCards(codex.active) || [], remaining=effectivePokemonHp(codex.active)-Number(codex.active.damage || 0);
         const candidate=codex.bench.map(target=>({target,score:aiBestAttackScore(target)-payment.length*12})).sort((a,b)=>b.score-a.score)[0];
         if (candidate && current<1000 && (candidate.score>current+35 || current===0 && remaining<=effectivePokemonHp(codex.active)*.4 && effectivePokemonHp(candidate.target)-Number(candidate.target.damage || 0)>remaining+20)) return {type:'retreat',target:candidate.target};
@@ -18572,7 +18831,7 @@
         const {option,score} = ranked[0], attacker = option.pokemon || codex.active, discardCount = attackEffectChoiceCount(attacker, option.attack);
         if (peter && score < 0 || gen && score <= -2000 || (ethan || skeleridge) && score<=0 || stageTwo && score<=0 && !attackBaseDamage(option.attack)?.amount ||
             chien && score <= 0 && !attackBaseDamage(option.attack)?.amount) return {type:'end_turn'};
-        const discard = gen && genAiTier() > 0 ? aiAttackDiscardPayment(attacker,discardCount,option.attack) :
+        const discard = zoo && game.yamiDifficulty!=='casual' ? aiAttackDiscardPayment(attacker,discardCount,option.attack) : gen && genAiTier() > 0 ? aiAttackDiscardPayment(attacker,discardCount,option.attack) :
           peter && game.yamiDifficulty === 'master' ? aiAttackDiscardPayment(attacker,discardCount) : attacker.energy.slice(0,discardCount);
         return { type: 'attack', index: option.index, name: option.attack.name, attackerId: attacker.id, discardEnergyIds: discard.map(energy => energy.id) };
       }
@@ -19461,9 +19720,31 @@
         .filter(effect => effect.kind === 'damage' && effect.side === side && effect.cardId === card.id)
         .reduce((sum, effect) => sum + effect.amount, 0) : 0;
       const damage = Math.max(0, Number(card.damage || 0) - pendingDamage), remaining = Math.max(0, hp-damage);
-      return `<span class="card-hp-summary" role="img" aria-label="Total HP ${hp}, Damage ${damage}, Remaining HP ${remaining}"><b class="hp-left">${remaining}</b>${damage ? `<b class="hp-damage">−${damage}</b>` : ''}</span>`;
+      const types = [...new Set((card.meta?.types || []).map(normalizedEnergyType).filter(type=>Object.hasOwn(playmatTypeNames,type)))];
+      const typed = types.length ? `, ${types.map(type=>playmatTypeNames[type]).join(' and ')} type` : '';
+      return `<span class="card-hp-summary" role="img" aria-label="Total HP ${hp}, Damage ${damage}, Remaining HP ${remaining}${escapeHtml(typed)}">
+        <span class="card-health-badge"><b class="hp-left">${remaining}</b>${types.map(type=>playmatTypeIcon(type)).join('')}</span>
+        ${damage ? `<b class="hp-damage">−${damage}</b>` : ''}</span>`;
     }
-    const energySymbols = { grass:'♣', fire:'♨', water:'◆', lightning:'ϟ', psychic:'◉', fighting:'✊', darkness:'☽', metal:'⬡', dragon:'▲', colorless:'✦', 'double-dragon':'▲', special:'✧' };
+    const playmatTypeNames = {
+      grass:'Grass', fire:'Fire', water:'Water', lightning:'Lightning', psychic:'Psychic',
+      fighting:'Fighting', darkness:'Darkness', metal:'Metal', dragon:'Dragon', colorless:'Colorless', fairy:'Fairy'
+    };
+    function playmatTypeIcon(type, title = '') {
+      const symbol = Object.hasOwn(playmatTypeNames,type) ? type : type==='double-dragon' ? 'dragon' :
+        type==='psychic-darkness' ? 'psychic' : 'colorless';
+      return `<span class="playmat-type-icon" data-energy-type="${escapeHtml(type)}"${title ? ` title="${escapeHtml(title)}"` : ''}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#lobby-${symbol}"/></svg></span>`;
+    }
+    function attachedEnergyMarkup(card) {
+      const cards = card.energy || [];
+      if (!cards.length) return '';
+      const visible = cards.slice(0,5), rest = cards.slice(5);
+      return `<span class="card-energy-line" role="img" aria-label="Attached Energy: ${escapeHtml(cards.map(energy=>energy.name).join(', '))}">
+        ${visible.map(energy=>playmatTypeIcon(isDoubleDragonEnergyCard(energy) ? 'double-dragon' :
+          energyUnitsForPokemon(energy,card)[0] || 'special',energy.name)).join('')}
+        ${rest.length ? `<span class="energy-overflow" title="${escapeHtml(rest.map(energy=>energy.name).join(', '))}">+${rest.length}</span>` : ''}</span>`;
+    }
     const conditionExpiry = {
       poisoned:'Damage at each Pokémon Checkup until removed.',
       burned:'Recovery coin flip at Pokémon Checkup.',
@@ -19482,14 +19763,6 @@
       if (!card) return `<button class="empty-slot" data-place="${zone}" data-side="${side}">${zone === 'active' ? 'Choose Active' : zone === 'stadium' ? '+ Stadium' : '+ Bench'}</button>`;
       if (openingCardIsHidden(side) && ['active','bench'].includes(zone)) return '<div class="face-down-card" role="img" aria-label="Face-down opponent Pokémon; revealed when the match begins"><span>Face down</span></div>';
       const isSelected = selected?.side === side && selected?.zone === zone && selected?.id === card.id;
-      const energyGroups = new Map();
-      (card.energy || []).forEach(energyCard => {
-        const key = isDoubleDragonEnergyCard(energyCard) ? 'double-dragon' : isBasicEnergy(energyCard.name) ? normalizedEnergyType(energyCard.meta?.energyType || energyCard.name) : normalizedEnergyType(energyCard.meta?.energyType || '') || 'special';
-        const group = energyGroups.get(key) || { count: 0, names: [] };
-        group.count++; group.names.push(energyCard.name); energyGroups.set(key, group);
-      });
-      const energyLabel = { grass: 'Grass', fire: 'Fire', water: 'Water', lightning: 'Lightning', psychic: 'Psychic', fighting: 'Fighting', darkness: 'Dark', metal: 'Metal', dragon: 'Dragon', colorless: 'Colorless', 'double-dragon': 'Double Dragon', special: 'Special' };
-      const energy = energyGroups.size ? `<span class="card-energy-line" aria-label="Attached Energy">${[...energyGroups].map(([type, group]) => `<span class="energy-chip" data-energy-type="${escapeHtml(type)}" title="${escapeHtml(group.names.join(', '))}${type === 'double-dragon' ? ' · provides every type as 2 Energy on Dragon Pokémon' : ''}"><span class="energy-icon" role="img" aria-label="${escapeHtml(energyLabel[type] || 'Special')}">${energySymbols[type] || energySymbols.special}</span><span>×${group.count}</span></span>`).join('')}</span>` : '';
       const statusNames = { paralyzed: 'Paralyzed', burned: 'Burned', poisoned: 'Poisoned', asleep: 'Asleep', confused: 'Confused' };
       const statusSymbols = { paralyzed: 'Ⅱ', burned: '🔥', poisoned: '☠', asleep: '☾', confused: '?' };
       const conditions = card.conditions?.length ? `<span class="card-condition-line">${card.conditions.map(condition => `<span class="condition-chip" data-condition="${escapeHtml(condition.type)}" data-effect-detail="${escapeHtml([statusNames[condition.type] || condition.type, condition.source, conditionExpiry[condition.type]].filter(Boolean).join(' · '))}" title="${escapeHtml(statusNames[condition.type] || condition.type)}">${statusSymbols[condition.type] || '!' } ${escapeHtml(statusNames[condition.type] || condition.type)}</span>`).join('')}</span>` : '';
@@ -19498,7 +19771,7 @@
       const image = imageFor(card);
       const art = image ? `<img class="card-art" src="${escapeHtml(image)}" alt="${escapeHtml(card.name)}" loading="lazy" draggable="false">` : '';
       const bonus = isMulliganBonusCard(side, card);
-      const pokemonButton=`<button class="slot-card${isSelected ? ' selected' : ''}${bonus ? ' mulligan-bonus' : ''}" draggable="${canDragBoardPokemon(card,side)}" data-card="${escapeHtml(card.id)}" data-zone="${zone}" data-side="${side}" title="${escapeHtml(card.name)}">${art}${bonus ? mulliganBonusBadge(true) : ''}${energy}<span class="card-status-badges">${conditions}${effectReminderMarkup(card,side,true)}</span><span class="card-label">${escapeHtml(card.name)}</span>${hpStrip}</button>`;
+      const pokemonButton=`<button class="slot-card${isSelected ? ' selected' : ''}${bonus ? ' mulligan-bonus' : ''}" draggable="${canDragBoardPokemon(card,side)}" data-card="${escapeHtml(card.id)}" data-zone="${zone}" data-side="${side}" title="${escapeHtml(card.name)}">${art}${bonus ? mulliganBonusBadge(true) : ''}${hpStrip}<span class="card-board-footer"><span class="card-status-badges">${conditions}${effectReminderMarkup(card,side,true)}</span>${attachedEnergyMarkup(card)}<span class="card-label">${escapeHtml(card.name)}</span></span></button>`;
       return attachedToolStackMarkup(card,side,zone,pokemonButton);
     }
     function opponentHandMarkup(count) {
@@ -21156,6 +21429,14 @@
       pendingEvolutionId = null;
       $('discardViewer').classList.add('hidden');
       render();
+    });
+    $('cardChoicePicks').addEventListener('click', event => {
+      const remove = event.target.closest('[data-remove-choice]');
+      if (!remove || !activeCardChoice?.selected.delete(remove.dataset.removeChoice)) return;
+      updateCardChoiceSelection(activeCardChoice);
+      const next = $('cardChoicePicks').querySelector('button') ||
+        [...$('cardChoiceGrid').querySelectorAll('[data-choice-card]')].find(button=>button.dataset.choiceCard===remove.dataset.removeChoice);
+      next?.focus({preventScroll:true});
     });
     $('cardChoiceConfirmBtn').addEventListener('click', () => {
       if (!activeCardChoice) return;
