@@ -1213,6 +1213,8 @@
     .slot-card .card-energy-line { top: 3px; }
     .slot-card .energy-chip { min-width: 19px; display: inline-flex; align-items: center; justify-content: center; gap: 2px; padding: 2px 3px; border: 1px solid #ffffff75; border-radius: 5px; color: #fff; background: #12253ae8; box-shadow: 0 1px 3px #0008; font-size: calc(7px * var(--playmat-font-scale) * var(--ui-font-scale)); font-weight: 900; line-height: 1; }
     .slot-card .energy-chip b { color: #fff0a9; }
+    .mobile-energy-icon, .mobile-hp-unit { display: none; }
+    .card-status-badges { display: contents; }
     .slot-card .energy-chip[data-energy-type="grass"] { background: #267a43ed; }
     .slot-card .energy-chip[data-energy-type="fire"] { background: #a7432ded; }
     .slot-card .energy-chip[data-energy-type="water"] { background: #236a9ded; }
@@ -2464,17 +2466,50 @@
   #matchLayout .main-zones { grid-area: bench; min-width: 0; }
   #matchLayout .bench-zone { padding: 0; margin: 0; min-height: 0; }
   #matchLayout .bench-grid {
-    --bench-card-width: var(--phone-bench-width); --bench-card-height: var(--phone-bench-height); --bench-hp-strip-height: 14px;
+    --bench-card-width: var(--phone-bench-width); --bench-card-height: var(--phone-bench-height); --bench-hp-strip-height: 19px;
     justify-content: center; gap: 3px;
   }
   #matchLayout .bench-grid :is(.slot-card,.empty-slot,.face-down-card) { min-height: 0; border-radius: 4px; }
   #matchLayout .bench-grid .empty-slot { font-size: 8px; padding: 0; }
-  #matchLayout .bench-grid .card-hp-summary { grid-template-columns: repeat(3,minmax(0,1fr)); }
-  #matchLayout .bench-grid .hp-damage { grid-column: auto; grid-row: auto; }
-  #matchLayout .bench-grid .card-hp-summary small { display: none; }
-  #matchLayout .bench-grid .card-hp-summary b { font-size: 9px; line-height: 13px; }
   #matchLayout .bench-grid .card-label { font-size: 8px; }
-  #matchLayout .bench-grid .card-reminders { bottom: 26px; }
+  #matchLayout .slot-card .card-hp-summary {
+    display: flex; align-items: center; gap: 3px; padding: 0 2px; min-height: 19px;
+  }
+  #matchLayout .battle-active .slot-card .card-hp-summary { min-height: 24px; }
+  #matchLayout .slot-card .card-hp-summary small,
+  #matchLayout .slot-card .card-hp-summary > :first-child,
+  #matchLayout .slot-card .hp-damage[data-damaged="false"] { display: none; }
+  #matchLayout .slot-card .card-hp-summary .hp-left {
+    order: -1; flex: 1; flex-direction: row; justify-content: center; gap: 2px; color: #b7fce0;
+  }
+  #matchLayout .slot-card .card-hp-summary .hp-left b { font-size: 14px; }
+  #matchLayout .battle-active .slot-card .card-hp-summary .hp-left b { font-size: 18px; }
+  #matchLayout .mobile-hp-unit { display: inline; font-size: 7px; font-weight: 800; }
+  #matchLayout .slot-card .card-hp-summary .hp-damage {
+    flex-direction: row; padding: 2px; border-radius: 4px; background: #862c3c;
+  }
+  #matchLayout .slot-card .hp-damage b { font-size: 9px; line-height: 1; }
+  #matchLayout .slot-card .hp-damage::before { content: "−"; font-size: 8px; }
+  #matchLayout .slot-card .energy-chip { min-width: 0; padding: 1px 2px; font-size: 9px; }
+  #matchLayout .slot-card .energy-chip b { display: none; }
+  #matchLayout .mobile-energy-icon { display: inline; color: #fff; font: 800 10px/1 system-ui; }
+  #matchLayout .slot-card .card-status-badges {
+    position: absolute; bottom: 39px; left: 2px; right: 2px; z-index: 4;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 2px; pointer-events: none;
+  }
+  #matchLayout .bench-grid .card-status-badges { bottom: 32px; }
+  #matchLayout .slot-card :is(.card-condition-line,.card-reminders) {
+    position: static; display: flex; gap: 2px; max-width: 100%;
+  }
+  #matchLayout .slot-card :is(.condition-chip,.effect-badge) {
+    padding: 3px 2px; font-size: 8px; line-height: 1; font-weight: 800;
+    overflow-wrap: anywhere; white-space: normal; pointer-events: auto;
+  }
+  #matchLayout .slot-card .condition-chip[data-condition="poisoned"] { background: #663388; }
+  #matchLayout .slot-card .condition-chip[data-condition="asleep"] { background: #233f85; }
+  #matchLayout .slot-card .effect-badge[data-attack-lock="true"] {
+    background: #7a330e; border-color: #ffc176;
+  }
   #matchLayout .side-piles {
     grid-area: piles; width: auto; display: flex; gap: 3px; align-items: center;
   }
