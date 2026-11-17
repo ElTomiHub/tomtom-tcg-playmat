@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="playmat.css?v=phone-hp1">
+  <link rel="stylesheet" href="playmat.css?v=card-badges1">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -19397,9 +19397,9 @@
         .filter(effect => effect.kind === 'damage' && effect.side === side && effect.cardId === card.id)
         .reduce((sum, effect) => sum + effect.amount, 0) : 0;
       const damage = Math.max(0, Number(card.damage || 0) - pendingDamage), remaining = Math.max(0, hp-damage);
-      return `<span class="card-hp-summary" aria-label="Total HP ${hp}, Damage ${damage}, Remaining HP ${remaining}"><span><small>Total</small><b>${hp}</b></span><span class="hp-damage" data-damaged="${damage > 0}"><small>Damage</small><b>${damage}</b></span><span class="hp-left"><small>Left</small><b>${remaining}</b><span class="mobile-hp-unit" aria-hidden="true">HP</span></span></span>`;
+      return `<span class="card-hp-summary" role="img" aria-label="Total HP ${hp}, Damage ${damage}, Remaining HP ${remaining}"><b class="hp-left">${remaining}</b>${damage ? `<b class="hp-damage">−${damage}</b>` : ''}</span>`;
     }
-    const mobileEnergySymbols = { grass:'♣', fire:'♨', water:'◆', lightning:'ϟ', psychic:'◉', fighting:'✊', darkness:'☽', metal:'⬡', dragon:'▲', colorless:'✦', 'double-dragon':'▲', special:'✧' };
+    const energySymbols = { grass:'♣', fire:'♨', water:'◆', lightning:'ϟ', psychic:'◉', fighting:'✊', darkness:'☽', metal:'⬡', dragon:'▲', colorless:'✦', 'double-dragon':'▲', special:'✧' };
     const conditionExpiry = {
       poisoned:'Damage at each Pokémon Checkup until removed.',
       burned:'Recovery coin flip at Pokémon Checkup.',
@@ -19407,9 +19407,9 @@
       paralyzed:'Clears at the end of its controller’s next turn after it was applied.',
       confused:'Stays until removed. Moving to the Bench clears it.'
     };
-    function showMobileCardEffect(event) {
+    function showCardEffectDetails(event) {
       const badge = event.target.closest('[data-effect-detail]');
-      if (!badge || !mobileMatchLayout() || activeBoardChoiceResolver || activeCardChoiceResolver ||
+      if (!badge || !game || activeBoardChoiceResolver || activeCardChoiceResolver ||
           window.effectResolutionPending || attackResolutionPending || visualTransitionBusy()) return;
       event.stopPropagation();
       showToast(badge.dataset.effectDetail, 4800);
@@ -19425,7 +19425,7 @@
         group.count++; group.names.push(energyCard.name); energyGroups.set(key, group);
       });
       const energyLabel = { grass: 'Grass', fire: 'Fire', water: 'Water', lightning: 'Lightning', psychic: 'Psychic', fighting: 'Fighting', darkness: 'Dark', metal: 'Metal', dragon: 'Dragon', colorless: 'Colorless', 'double-dragon': 'Double Dragon', special: 'Special' };
-      const energy = energyGroups.size ? `<span class="card-energy-line" aria-label="Attached Energy">${[...energyGroups].map(([type, group]) => `<span class="energy-chip" data-energy-type="${escapeHtml(type)}" title="${escapeHtml(group.names.join(', '))}${type === 'double-dragon' ? ' · provides every type as 2 Energy on Dragon Pokémon' : ''}"><b>${escapeHtml(energyLabel[type] || 'Special')}</b><span class="mobile-energy-icon" aria-hidden="true">${mobileEnergySymbols[type] || mobileEnergySymbols.special}</span><span>×${group.count}</span></span>`).join('')}</span>` : '';
+      const energy = energyGroups.size ? `<span class="card-energy-line" aria-label="Attached Energy">${[...energyGroups].map(([type, group]) => `<span class="energy-chip" data-energy-type="${escapeHtml(type)}" title="${escapeHtml(group.names.join(', '))}${type === 'double-dragon' ? ' · provides every type as 2 Energy on Dragon Pokémon' : ''}"><span class="energy-icon" role="img" aria-label="${escapeHtml(energyLabel[type] || 'Special')}">${energySymbols[type] || energySymbols.special}</span><span>×${group.count}</span></span>`).join('')}</span>` : '';
       const statusNames = { paralyzed: 'Paralyzed', burned: 'Burned', poisoned: 'Poisoned', asleep: 'Asleep', confused: 'Confused' };
       const statusSymbols = { paralyzed: 'Ⅱ', burned: '🔥', poisoned: '☠', asleep: '☾', confused: '?' };
       const conditions = card.conditions?.length ? `<span class="card-condition-line">${card.conditions.map(condition => `<span class="condition-chip" data-condition="${escapeHtml(condition.type)}" data-effect-detail="${escapeHtml([statusNames[condition.type] || condition.type, condition.source, conditionExpiry[condition.type]].filter(Boolean).join(' · '))}" title="${escapeHtml(statusNames[condition.type] || condition.type)}">${statusSymbols[condition.type] || '!' } ${escapeHtml(statusNames[condition.type] || condition.type)}</span>`).join('')}</span>` : '';
@@ -21177,7 +21177,7 @@
       const tool = event.target.closest('[data-attached-tool]');
       if (tool) inspectAttachedTool(tool.dataset.side,tool.dataset.toolHost,tool.dataset.attachedTool);
     });
-    for (const id of ['youRow','codexRow','battleCenter']) $(id).addEventListener('click', showMobileCardEffect, true);
+    for (const id of ['youRow','codexRow','battleCenter']) $(id).addEventListener('click', showCardEffectDetails, true);
     $('youRow').addEventListener('click', event => {
       const tool=event.target.closest('[data-attached-tool]');if(tool){inspectAttachedTool(tool.dataset.side,tool.dataset.toolHost,tool.dataset.attachedTool);return;}
       const card = event.target.closest('[data-card]');

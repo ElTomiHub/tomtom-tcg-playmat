@@ -1212,9 +1212,6 @@
     .slot-card .card-energy-line, .slot-card .card-condition-line { position: absolute; z-index: 2; left: 3px; right: 3px; display: flex; flex-wrap: wrap; align-items: center; gap: 2px; pointer-events: none; }
     .slot-card .card-energy-line { top: 3px; }
     .slot-card .energy-chip { min-width: 19px; display: inline-flex; align-items: center; justify-content: center; gap: 2px; padding: 2px 3px; border: 1px solid #ffffff75; border-radius: 5px; color: #fff; background: #12253ae8; box-shadow: 0 1px 3px #0008; font-size: calc(7px * var(--playmat-font-scale) * var(--ui-font-scale)); font-weight: 900; line-height: 1; }
-    .slot-card .energy-chip b { color: #fff0a9; }
-    .mobile-energy-icon, .mobile-hp-unit { display: none; }
-    .card-status-badges { display: contents; }
     .slot-card .energy-chip[data-energy-type="grass"] { background: #267a43ed; }
     .slot-card .energy-chip[data-energy-type="fire"] { background: #a7432ded; }
     .slot-card .energy-chip[data-energy-type="water"] { background: #236a9ded; }
@@ -1782,11 +1779,38 @@
     }
 
     /* Live HP stays readable while Tool artwork peeks out beside its Pokémon. */
-    .card-hp-summary { position:absolute;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#07182bf2;border-top:1px solid #ffffff55;z-index:4;pointer-events:none; }
-    .card-hp-summary>span {display:flex;flex-direction:column;align-items:center;padding:1px 0;color:#fff;line-height:1.1;}
-    .card-hp-summary small {font-size:6px;font-weight:600;text-transform:uppercase;letter-spacing:0;}
-    .card-hp-summary b {font-size:10px;}
-    .slot-card:has(.card-hp-summary) .card-label {bottom:24px;}
+    .slot-card { --card-stats-height: 24px; }
+    .bench-grid .slot-card { --card-stats-height: var(--bench-hp-strip-height); }
+    .card-hp-summary {
+      position: absolute; inset: auto 0 0; z-index: 4; pointer-events: none;
+      min-height: var(--card-stats-height); display: flex; align-items: center; gap: 3px;
+      padding: 0 3px; border-top: 1px solid #ffffff55; background: #07182bf2;
+      font-variant-numeric: tabular-nums;
+    }
+    .card-hp-summary .hp-left { flex: 1; color: #b7fce0; font-size: 18px; line-height: 1; }
+    .bench-grid .card-hp-summary .hp-left { font-size: 15px; }
+    .card-hp-summary .hp-damage {
+      padding: 2px 3px; border-radius: 4px; background: #862c3c;
+      color: #fff; font-size: 10px; line-height: 1;
+    }
+    .slot-card:has(.card-hp-summary) .card-label { bottom: var(--card-stats-height); }
+    .slot-card .energy-chip { min-width: 0; padding: 2px 3px; font-size: 10px; }
+    .energy-icon { color: #fff; font: 800 11px/1 system-ui; }
+    .slot-card .card-status-badges {
+      position: absolute; bottom: calc(var(--card-stats-height) + 15px); left: 2px; right: 2px;
+      z-index: 4; display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+      pointer-events: none;
+    }
+    .slot-card :is(.card-condition-line,.card-reminders) {
+      position: static; display: flex; gap: 2px; max-width: 100%;
+    }
+    .slot-card :is(.condition-chip,.effect-badge) {
+      padding: 3px; font-size: 9px; line-height: 1; font-weight: 800;
+      overflow-wrap: anywhere; white-space: normal; pointer-events: auto; cursor: help;
+    }
+    .slot-card .condition-chip[data-condition="poisoned"] { background: #663388; }
+    .slot-card .condition-chip[data-condition="asleep"] { background: #233f85; }
+    .slot-card .effect-badge[data-attack-lock="true"] { background: #7a330e; border-color: #ffc176; }
     .pokemon-card-stack {--tool-peek:22px;position:relative;flex:0 0 calc(var(--bench-card-width) + var(--tool-peek));width:calc(var(--bench-card-width) + var(--tool-peek));height:var(--bench-card-height);min-width:0;}
     .bench-grid {display:flex;justify-content:center;gap:4px;}
     .bench-grid>.slot-card,.bench-grid>.empty-slot,.bench-grid>.face-down-card {flex:0 1 var(--bench-card-width);min-width:0;}
@@ -1858,15 +1882,7 @@
     .battle-center .battle-active > .pokemon-card-stack { --bench-card-width:var(--active-card-width); --bench-card-height:var(--active-card-height); }
     .bench-grid > .pokemon-card-stack { min-width:0; }
     .bench-grid { --bench-card-height:calc(var(--bench-card-width) * 1.4); --bench-hp-strip-height:26px; }
-    .bench-grid .card-hp-summary {
-      bottom:0; border-top:1px solid #a8b9ca;
-      grid-template-columns:repeat(3,minmax(0,1fr)); font-variant-numeric:tabular-nums;
-    }
-    .bench-grid .card-hp-summary small { font-size:7px; letter-spacing:0; }
-    .bench-grid .card-hp-summary b { font-size:13px; }
-    .card-hp-summary .hp-damage[data-damaged="true"] { background:#9e3034; color:#fff; }
     .bench-grid .slot-card:has(.card-hp-summary) .card-label { bottom:var(--bench-hp-strip-height); }
-    .bench-grid .card-reminders { bottom:calc(var(--bench-hp-strip-height) + 18px); }
     @container playmat-table (min-width:521px) {
       .player-row, .player-row.opponent, .player-row:not(.opponent) {
         display:grid; grid-template-columns:110px minmax(0,1fr) 126px;
@@ -1906,12 +1922,6 @@
     @container playmat-table (521px <= width <= 740px) {
       .player-row:not(.opponent) { grid-template-columns:86px minmax(0,1fr) 100px; }
       .player-row.opponent { grid-template-columns:100px minmax(0,1fr) 86px; }
-    }
-    @container playmat-table (max-width:620px) {
-      .bench-grid { --bench-hp-strip-height:39px; }
-      .bench-grid .card-hp-summary { grid-template-columns:repeat(2,minmax(0,1fr)); }
-      .bench-grid .card-hp-summary b { font-size:11px; }
-      .bench-grid .hp-damage { grid-column:1 / -1; grid-row:1; flex-direction:row; justify-content:center; gap:3px; }
     }
     @container playmat-table (max-width:520px) {
       .field { --active-row-height:162px; }
@@ -2472,44 +2482,10 @@
   #matchLayout .bench-grid :is(.slot-card,.empty-slot,.face-down-card) { min-height: 0; border-radius: 4px; }
   #matchLayout .bench-grid .empty-slot { font-size: 8px; padding: 0; }
   #matchLayout .bench-grid .card-label { font-size: 8px; }
-  #matchLayout .slot-card .card-hp-summary {
-    display: flex; align-items: center; gap: 3px; padding: 0 2px; min-height: 19px;
-  }
-  #matchLayout .battle-active .slot-card .card-hp-summary { min-height: 24px; }
-  #matchLayout .slot-card .card-hp-summary small,
-  #matchLayout .slot-card .card-hp-summary > :first-child,
-  #matchLayout .slot-card .hp-damage[data-damaged="false"] { display: none; }
-  #matchLayout .slot-card .card-hp-summary .hp-left {
-    order: -1; flex: 1; flex-direction: row; justify-content: center; gap: 2px; color: #b7fce0;
-  }
-  #matchLayout .slot-card .card-hp-summary .hp-left b { font-size: 14px; }
-  #matchLayout .battle-active .slot-card .card-hp-summary .hp-left b { font-size: 18px; }
-  #matchLayout .mobile-hp-unit { display: inline; font-size: 7px; font-weight: 800; }
-  #matchLayout .slot-card .card-hp-summary .hp-damage {
-    flex-direction: row; padding: 2px; border-radius: 4px; background: #862c3c;
-  }
-  #matchLayout .slot-card .hp-damage b { font-size: 9px; line-height: 1; }
-  #matchLayout .slot-card .hp-damage::before { content: "−"; font-size: 8px; }
-  #matchLayout .slot-card .energy-chip { min-width: 0; padding: 1px 2px; font-size: 9px; }
-  #matchLayout .slot-card .energy-chip b { display: none; }
-  #matchLayout .mobile-energy-icon { display: inline; color: #fff; font: 800 10px/1 system-ui; }
-  #matchLayout .slot-card .card-status-badges {
-    position: absolute; bottom: 39px; left: 2px; right: 2px; z-index: 4;
-    display: flex; flex-direction: column; align-items: flex-start; gap: 2px; pointer-events: none;
-  }
-  #matchLayout .bench-grid .card-status-badges { bottom: 32px; }
-  #matchLayout .slot-card :is(.card-condition-line,.card-reminders) {
-    position: static; display: flex; gap: 2px; max-width: 100%;
-  }
-  #matchLayout .slot-card :is(.condition-chip,.effect-badge) {
-    padding: 3px 2px; font-size: 8px; line-height: 1; font-weight: 800;
-    overflow-wrap: anywhere; white-space: normal; pointer-events: auto;
-  }
-  #matchLayout .slot-card .condition-chip[data-condition="poisoned"] { background: #663388; }
-  #matchLayout .slot-card .condition-chip[data-condition="asleep"] { background: #233f85; }
-  #matchLayout .slot-card .effect-badge[data-attack-lock="true"] {
-    background: #7a330e; border-color: #ffc176;
-  }
+  #matchLayout .bench-grid .card-hp-summary .hp-left { font-size: 14px; }
+  #matchLayout .slot-card .energy-chip { padding: 1px 2px; font-size: 9px; }
+  #matchLayout .slot-card .energy-icon { font-size: 10px; }
+  #matchLayout .slot-card :is(.condition-chip,.effect-badge) { padding-inline: 2px; font-size: 8px; }
   #matchLayout .side-piles {
     grid-area: piles; width: auto; display: flex; gap: 3px; align-items: center;
   }
@@ -2547,8 +2523,6 @@
   #matchLayout .battle-stadium { grid-area: stadium; justify-self: center; }
   #matchLayout .battle-center .zone-title { font-size: 9px; margin: 0; }
   #matchLayout .battle-stadium .stadium-slot, #matchLayout .battle-stadium .stadium-slot :is(.slot-card,.empty-slot) { width: clamp(38px,13cqw,55px); height: clamp(53px,18.2cqw,77px); min-height: 0; font-size: 8px; }
-  #matchLayout .battle-active .card-hp-summary b { font-size: 10px; }
-  #matchLayout .battle-active .card-hp-summary small { font-size: 6px; }
   #matchLayout .battle-active .card-label { font-size: 9px; }
   #matchLayout .attached-tool-tab span { font-size: 6px; }
   #matchLayout .hand-panel { grid-area: hand; height: 100%; min-width: 0; margin: 0; }
