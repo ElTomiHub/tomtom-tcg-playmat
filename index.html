@@ -12007,7 +12007,8 @@
           list=>list.slice().sort((a,b)=>b.damage-a.damage)[0]);
         if (!damaged.includes(source)) return false;
         const targets = [foe.active,...foe.bench].filter(card=>card && (!tailored || !battleColosseumBlocks(foeSide,card,'',false))), maximum = Math.min(effect.count,Math.floor(source.damage/10));
-        const target = await choosePokemonOnBoard(side,ability.name + ': choose an opposing Pokémon.',targets,
+        const plannedTarget = tailored && targets.find(card=>card.id===targetId);
+        const target = plannedTarget || await choosePokemonOnBoard(side,ability.name + ': choose an opposing Pokémon.',targets,
           list=>tailored ? obstagogoCounterTarget(list,maximum*10) : list.slice().sort((a,b)=>aiCounterTargetValue(b,maximum*10)-aiCounterTargetValue(a,maximum*10))[0]);
         if (!targets.includes(target)) return false;
         const amounts = Array.from({length:maximum},(_,i)=>({id:String(i+1),name:(i+1)+' damage counter'+(i ? 's' : '')}));
@@ -15555,6 +15556,34 @@
       }
       return 0;
     }
+    function aiVisibleReplyDamage(target, includePreparation = false) {
+      const foe = player('you');
+      if (!foe.active) return 0;
+      const attackers = includePreparation ? [foe.active,...foe.bench] : [foe.active];
+      const publicEnergy = includePreparation ? [...new Map([...foe.discard,...attackers.flatMap(card=>card.energy)]
+        .filter(isBasicEnergyCard).map(card=>[normalizedEnergyType(card.name),card])).values()] : [];
+      let damage = 0;
+      for (const attacker of attackers) {
+        for (const attack of attacker.meta?.attacks || []) {
+          const effect = attackEffectRuleFor(attacker,attack)?.effect;
+          if (!effect) continue;
+          if (!canPayAttack(attacker,attack) &&
+              !publicEnergy.some(energy=>canPayAttack({...attacker,energy:[...attacker.energy,energy]},attack))) continue;
+          const hit = effect.type==='active_counters' ? attackEffectProtection('you',attacker,target) ? 0 : effect.count*10 :
+            Math.max(0,...genAiAttackOutcomes(attacker,attack,target,'you').map(outcome=>outcome.damage));
+          damage = Math.max(damage,hit);
+        }
+      }
+      return damage;
+    }
+    function aiRetreatImprovesSurvival(active, target, payment) {
+      const current = effectivePokemonHp(active)-Number(active.damage || 0);
+      const next = effectivePokemonHp(target)-Number(target.damage || 0);
+      if (next<=current+20) return false;
+      if (!payment.length || game.yamiDifficulty==='casual') return true;
+      if (aiVisibleReplyDamage(active)<current) return false;
+      return aiVisibleReplyDamage(target,game.yamiDifficulty==='master')<next;
+    }
     function zooAiSetupAction(profile, prizeLine) {
       const p = player('codex'), foe = player('you'), style = game.yamiStyle || 'balanced';
       const tier = game.yamiDifficulty, board = stageTwoAiBoard();
@@ -15579,6 +15608,9 @@
         aiBestAttackScore(card) * (chargedBench || style==='control' ? .36 : .8);
       const next = p.bench.map(target=>({target,score:role(target)})).sort((a,b)=>b.score-a.score)[0];
       if (next && next.score>role(p.active)+(tier==='master' ? 38 : 58)) {
+        if (profile==='obstagogo' && tier==='master' && zooAiDefenderValue(profile,next.target)>0 &&
+            aiBestAttackScore(p.active)>=75 &&
+            aiVisibleReplyDamage(next.target,true)>=effectivePokemonHp(next.target)-Number(next.target.damage || 0)) return null;
         if (payment && !payment.length) return {type:'retreat',target:next.target};
         if (switchCard) return {type:'trainer',card:switchCard,targetId:next.target.id};
       }
@@ -18153,7 +18185,7 @@
           const risk = remainingHp <= 0 ? 1 : !casual && replyCanKnockOut(remainingHp) ? .45 : 0;
           if (peter && !wins && effect.type === 'discard_top_cards' && p.deck.length <= effect.count) continue;
           const discard = attackEffectChoiceCount(attacker, attack);
-          const payment = gen ? aiAttackDiscardPayment(attacker,discard,attack) :
+          const payment = gen || stageTwo==='obstagogo' ? aiAttackDiscardPayment(attacker,discard,attack) :
             peter && master ? aiAttackDiscardPayment(attacker,discard) : attacker.energy.slice(0,discard);
           const development = effect.type === 'search_attach_basic_energy' && p.bench.length &&
             (!peter || p.deck.some(isBasicEnergyCard)) ? (peter && live.yamiStyle === 'balanced' ? 15 : 2) : 0;
@@ -18187,7 +18219,7 @@
               discard * 4 + development + genBonus - cooldown - followUpCost - unionRisk) - cost;
           if (!best || score > best.score) {
             best = { score, action: first || { type: 'attack', index, name: attack.name,
-              discardEnergyIds: payment.map(card => card.id) } };
+              discardEnergyIds: payment.map(card => card.id), guaranteedKnockout: guaranteed && probability===1 } };
           }
         }
       }
@@ -18298,10 +18330,29 @@
             considerGust(first || { type: 'trainer', card: switchCard, targetId: target.id }, cost + 9));
         }
       }
+      function considerAdrenaBrain(first, cost) {
+        const p = player('codex'), foe = player('you'), board = [p.active,...p.bench];
+        if (!master || stageTwo!=='obstagogo' || !board.some(card=>cleanCardKey(card.name)==='galarian obstagoon' &&
+            card.meta.attacks.some(attack=>attackEffectRuleFor(card,attack)?.effect.type==='defender_counter_damage' && canPayAttack(card,attack)))) return;
+        const source = board.filter(card=>card.damage>=10).sort((a,b)=>b.damage-a.damage)[0];
+        const ready = source && board.flatMap(pokemon=>availablePokemonAbilities(pokemon,'codex').map(ability=>({pokemon,ability})))
+          .find(({pokemon,ability})=>pokemonAbilityEffectType(pokemon,ability)==='move_own_counters_to_opponent');
+        if (!ready) return;
+        const moved = Math.min(Math.floor(source.damage/10),abilityEffectRuleFor(ready.pokemon,ready.ability).effect.count)*10;
+        const target = foe.active, damage = Number(target.damage || 0);
+        if (damage+moved>=effectivePokemonHp(target)) return;
+        const action = {type:'ability',pokemon:ready.pokemon,abilityName:ready.ability.name,targetId:target.id};
+        const sourceDamage = source.damage;
+        source.damage -= moved;
+        target.damage = damage+moved;
+        try { considerRetreat(first || action,cost+6); }
+        finally { source.damage = sourceDamage; target.damage = damage; }
+      }
       try {
         game = projection;
         if (casual && skeleridge) evaluate(null,0);
         else considerRetreat(null, 0);
+        considerAdrenaBrain(null,0);
         const p = player('codex');
         if (casual && skeleridge) {
           if (best?.score>=9500) best.action.matchWinning = true;
@@ -18409,7 +18460,11 @@
               const hand = p.hand;
               target.energy = [...energy, card];
               p.hand = hand.filter(item => item !== card);
-              try { considerRetreat({ type: 'attach', card, target }, 4); }
+              try {
+                const action = {type:'attach',card,target};
+                considerRetreat(action,4);
+                if (stageTwo==='obstagogo' && cleanCardKey(target.name)==='munkidori') considerAdrenaBrain(action,4);
+              }
               finally { target.energy = energy; p.hand = hand; }
             }
           }
@@ -18461,6 +18516,7 @@
       if (!codex.active) return { type: 'end_turn' };
       const skeleridge = typeof hasSkeleridgeStrategy==='function' && hasSkeleridgeStrategy();
       const prizeLine = (game.yamiDifficulty !== 'casual' || skeleridge) && typeof chooseAiPrizeLine === 'function' ? chooseAiPrizeLine() : null;
+      if (game.yamiDifficulty==='master' && prizeLine?.type==='attack' && prizeLine.guaranteedKnockout) return prizeLine;
       if (skeleridge) {
         const setup = skeleridgeSetupAction(prizeLine);
         if (setup) return setup;
@@ -18821,7 +18877,7 @@
           sideAttackOptions('codex').some(option=>option.pokemon!==codex.active)) && canRetreatPokemon(codex.active,'codex')) {
         const current=aiBestAttackScore(codex.active), payment=retreatPaymentCards(codex.active) || [], remaining=effectivePokemonHp(codex.active)-Number(codex.active.damage || 0);
         const candidate=codex.bench.map(target=>({target,score:aiBestAttackScore(target)-payment.length*12})).sort((a,b)=>b.score-a.score)[0];
-        if (candidate && current<1000 && (candidate.score>current+35 || current===0 && remaining<=effectivePokemonHp(codex.active)*.4 && effectivePokemonHp(candidate.target)-Number(candidate.target.damage || 0)>remaining+20)) return {type:'retreat',target:candidate.target};
+        if (candidate && current<1000 && (candidate.score>current+35 || current===0 && remaining<=effectivePokemonHp(codex.active)*.4 && aiRetreatImprovesSurvival(codex.active,candidate.target,payment))) return {type:'retreat',target:candidate.target};
       }
       if (prizeLine?.type === 'attack') return prizeLine;
       const attacks = typeof sideAttackOptions === 'function' ? sideAttackOptions('codex') : playableAttacks('codex');
@@ -18840,7 +18896,8 @@
         if (activeHp && activeRemaining <= activeHp * .4) {
           const healthier = codex.bench.map((target, index) => ({ target, index, remaining: Number(target.meta?.hp || 0) - Number(target.damage || 0) }))
             .filter(item => item.remaining > activeRemaining + 20).sort((a, b) => b.remaining - a.remaining)[0];
-          if (healthier) return { type: 'retreat', target: healthier.target };
+          if (healthier && aiRetreatImprovesSurvival(codex.active,healthier.target,retreatPaymentCards(codex.active) || []))
+            return { type: 'retreat', target: healthier.target };
         }
       }
       return { type: 'end_turn' };
