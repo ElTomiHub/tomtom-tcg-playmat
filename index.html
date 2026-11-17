@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#082d5f">
   <title>Pokémon TCG Playmat</title>
   <link rel="icon" type="image/png" href="logo.png">
-  <link rel="stylesheet" href="playmat.css">
+  <link rel="stylesheet" href="playmat.css?v=phone1">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -23,7 +23,7 @@
           <label class="playmat-volume" for="playmatVolume">Sound volume <output id="playmatVolumeValue" for="playmatVolume">100%</output></label>
           <input id="playmatVolume" type="range" min="0" max="100" step="1" value="100">
         </div>
-      </details><button class="btn small" id="matchLogBtn" hidden aria-controls="matchActivityPanel" aria-expanded="true">History &amp; chat</button><button class="btn small" id="homeBtn" hidden>Main menu</button><button class="btn small primary" id="startGameBtn" hidden>Start a game</button></div>
+      </details><button class="btn small mobile-match-button" id="mobileInspectorBtn" type="button" aria-controls="cardInspectorPanel" aria-expanded="false">Inspect</button><button class="btn small mobile-match-button" id="mobileToolsBtn" type="button" aria-controls="matchBoardToolbar" aria-expanded="false">Match</button><button class="btn small" id="matchLogBtn" hidden aria-controls="matchActivityPanel" aria-expanded="true"><span class="desktop-log-label">History &amp; chat</span><span class="mobile-log-label">Log</span></button><button class="btn small" id="homeBtn" hidden>Main menu</button><button class="btn small primary" id="startGameBtn" hidden>Start a game</button></div>
     </header>
     <section class="main-menu" id="mainMenu">
       <div class="lobby-scenery" aria-hidden="true">
@@ -110,17 +110,18 @@
     <div class="match-layout app-hidden" id="matchLayout">
       <aside id="cardInspectorPanel" class="inspector-panel" aria-label="Card inspector">
         <div class="side-panel-heading"><div><span class="panel-kicker">CARD DETAILS</span><h2>Inspector</h2></div><div class="side-heading-tools"><span id="cardDetailStatus">Select a card</span><div class="font-size-control" role="group" aria-label="Selected card text size"><button class="font-size-button" type="button" data-font-area="card" data-font-step="-1" aria-label="Decrease selected card text size">A−</button><output id="cardFontSize">115%</output><button class="font-size-button" type="button" data-font-area="card" data-font-step="1" aria-label="Increase selected card text size">A+</button></div></div></div>
-        <div class="panel-layout-tools"><span>Drag the dividers to resize</span><button class="btn small" id="resetPanelLayoutBtn" type="button">Reset panels</button></div><div class="card-inspector" id="cardInspector"><div class="inspector-empty">Select a card to see its picture and live stats.</div></div>
+        <div class="panel-layout-tools"><span>Drag the dividers to resize</span><button class="btn small mobile-match-button" id="closeMobileInspectorBtn" type="button">Close</button><button class="btn small" id="resetPanelLayoutBtn" type="button">Reset panels</button></div><div class="card-inspector" id="cardInspector"><div class="inspector-empty">Select a card to see its picture and live stats.</div></div>
       </aside>
 
       <div id="inspectorPanelDivider" class="panel-divider" role="separator" tabindex="0" aria-label="Resize card inspector" aria-orientation="vertical" aria-controls="cardInspectorPanel" title="Drag to resize Inspector. Use arrow keys for small steps, Shift for larger steps; double-click to reset."></div>
       <section id="playmatPanel" class="table-column">
         <div class="match-heading"><span class="autosave-status" id="matchSaveStatus" role="status"></span><h1 class="effect-announcement">Pokémon TCG</h1><div class="playmat-turn-status" id="playmatTurnStatus" role="status" aria-live="polite" aria-atomic="true"><strong>No match started</strong></div></div>
         <section class="board-wrap" aria-label="Pokémon TCG playmat">
-          <div class="board-toolbar">
+          <div class="board-toolbar" id="matchBoardToolbar">
             <div class="match-end-controls" role="group" aria-label="End match">
               <button class="btn small subtle" id="forfeitMatchBtn" type="button" disabled>Forfeit</button>
               <button class="btn small subtle" id="cancelMatchBtn" type="button" disabled>Cancel match</button>
+              <button class="btn small mobile-match-button" id="mobileReportBtn" type="button">Report</button>
             </div>
             <div class="toolbar-left"><span class="toolbar-label">Control</span><button class="btn small primary" id="controlYou">Toma</button><button class="btn small subtle" id="controlCodex">Yami</button></div>
             <div class="font-size-control" role="group" aria-label="Playmat text size"><span>MAT</span><button class="font-size-button" type="button" data-font-area="playmat" data-font-step="-1" aria-label="Decrease playmat text size">A−</button><output id="playmatFontSize">115%</output><button class="font-size-button" type="button" data-font-area="playmat" data-font-step="1" aria-label="Increase playmat text size">A+</button></div>
@@ -222,7 +223,7 @@
       <select id="energyTarget" class="btn small energy-target" aria-label="Energy attachment target" hidden></select>
       <button class="btn small" id="playActiveBtn" hidden>Set as Active</button>
       <button class="btn small" id="playBenchBtn" hidden>Play to Bench</button>
-      <button class="btn small" id="attachBtn" hidden disabled>Attach Energy</button>
+      <button class="btn small" id="attachBtn" hidden disabled>Attach Energy</button><button class="btn small primary" id="mobilePlayTrainerBtn" type="button" hidden>Play card</button>
       <select id="abilitySelect" class="btn small" hidden aria-label="Choose Pokémon Ability"></select>
       <button class="btn small" id="useAbilityBtn" hidden>Use Ability</button>
       <button class="btn small" id="discardOpeningDollBtn" hidden>Discard Snorlax Doll</button>
@@ -6526,7 +6527,7 @@
       layout.dataset.panelMode=widths.mode;layout.classList.toggle('history-hidden',!panelLayoutSettings.historyVisible);
       layout.style.setProperty('--inspector-width',widths.inspector+'px');layout.style.setProperty('--history-width',widths.history+'px');
       $('matchActivityPanel').classList.toggle('log-open',panelLayoutSettings.historyVisible);
-      $('matchLogBtn').setAttribute('aria-expanded',String(panelLayoutSettings.historyVisible));
+      $('matchLogBtn').setAttribute('aria-expanded',String(typeof mobileMatchLayout==='function' && mobileMatchLayout() ? layout.dataset.mobilePanel==='log' : panelLayoutSettings.historyVisible));
       $('matchLogBtn').title=panelLayoutSettings.historyVisible?'Hide History & chat':'Show History & chat';
       for(const [name,id,min] of [['inspector','inspectorPanelDivider',bounds.inspectorMin],['history','historyPanelDivider',bounds.historyMin]]) {
         const handle=$(id),other=name==='inspector'?widths.history:widths.inspector;
@@ -6600,7 +6601,7 @@
         if ($('playmatConfirmDialog').open) positionPlaymatChoice($('playmatConfirmDialog'));
       });
       $('resetPanelLayoutBtn').addEventListener('click',resetPanelLayout);
-      $('hideHistoryPanelBtn').addEventListener('click',()=>setHistoryPanelVisible(false));applyPanelLayout();
+      $('hideHistoryPanelBtn').addEventListener('click',()=>mobileMatchLayout() ? setMobileMatchPanel(null,true) : setHistoryPanelVisible(false));applyPanelLayout();
     }
 
     function loadFontSizeSettings() {
@@ -7661,6 +7662,7 @@
     }
     function setView(view) {
       if (view !== 'match' && typeof clearPlaymatEffects === 'function') clearPlaymatEffects();
+      if (view!=='match' && typeof setMobileMatchPanel==='function') setMobileMatchPanel(null);
       $('matchLogBtn').hidden=view!=='match';
       $('playmatSettings').open = false;
       for (const id of ['homeBtn','startGameBtn']) $(id).hidden = view !== 'match';
@@ -10004,6 +10006,24 @@
       if (selected.zone === 'stadium') return game.stadium?.owner === selected.side && game.stadium.card.id === selected.id ? game.stadium.card : null;
       return null;
     }
+    function mobileMatchLayout() {
+      return window.matchMedia('(max-width: 600px), (orientation: landscape) and (max-height: 570px) and (pointer: coarse)').matches;
+    }
+    function setMobileMatchPanel(panel, returnFocus = false) {
+      const layout = $('matchLayout'), previous = layout.dataset.mobilePanel;
+      if (!panel && !previous) return;
+      const buttons = {log:'matchLogBtn',inspector:'mobileInspectorBtn',tools:'mobileToolsBtn'};
+      layout.dataset.mobilePanel = panel || '';
+      for (const [key,id] of Object.entries(buttons)) $(id).setAttribute('aria-expanded',String(key===panel));
+      if (panel) {
+        closeCardActionMenu();
+        const first = {log:'hideHistoryPanelBtn',inspector:'closeMobileInspectorBtn',tools:'forfeitMatchBtn'};
+        $(first[panel]).focus({preventScroll:true});
+      } else if (returnFocus && buttons[previous]) $(buttons[previous]).focus({preventScroll:true});
+    }
+    function toggleMobileMatchPanel(panel) {
+      setMobileMatchPanel($('matchLayout').dataset.mobilePanel===panel ? null : panel,true);
+    }
     function cardActionKey(selection) {
       return selection ? JSON.stringify([game?.matchHistory?.id, game?.phase, game?.turnNumber,
         selection.side, selection.zone, selection.id]) : null;
@@ -10059,7 +10079,11 @@
         if (openCardActionKey || !menu.hidden) closeCardActionMenu();
         return;
       }
-      const hasActions = ['playActiveBtn','playBenchBtn','attachBtn','useAbilityBtn',
+      const handCard = selected.zone==='hand' ? findSelected() : null;
+      const mobileTrainer = mobileMatchLayout() && canDragHandCard(handCard,selected.side) &&
+        ['trainer','stadium'].includes(handDragKind(handCard));
+      $('mobilePlayTrainerBtn').hidden = !mobileTrainer;
+      const hasActions = ['mobilePlayTrainerBtn','playActiveBtn','playBenchBtn','attachBtn','useAbilityBtn',
         'discardOpeningDollBtn','useStadiumAbilityBtn','evolveBtn','attackPanel','retreatBtn','promoteBtn'].some(id => !$(id).hidden);
       if (!hasActions) { closeCardActionMenu(); return; }
       menu.hidden = false;
@@ -10083,6 +10107,10 @@
       if (controlSide !== viewedSide() || coinPresentationPending || visualTransitionBusy() || activeBoardChoiceResolver) return;
       if (openingCardIsHidden(controlSide)) return;
       selectCardForActions({ side: controlSide, zone: 'hand', id }, keyboard);
+      if (mobileMatchLayout()) {
+        const anchor = cardActionAnchor();
+        if (anchor) showHandTargetPreview({target:anchor});
+      }
     }
     function selectBoard(side, zone, id, keyboard = false) {
       if (coinPresentationPending || visualTransitionBusy()) return;
@@ -10094,6 +10122,10 @@
         if (target) finishBoardChoice(target);
         else showToast('Choose one of the highlighted Pokémon.');
         return;
+      }
+      if (mobileMatchLayout() && selected?.zone==='hand') {
+        const target = boardCardElements(side).find(element=>element.dataset.card===id && element.dataset.zone===zone);
+        if (target && useMobileHandTarget(target)) return;
       }
       selectCardForActions({ side, zone, id }, keyboard);
     }
@@ -14527,6 +14559,7 @@
       pendingCampaignPresentation = null;
       render();
       if (showCampaign) openCampaign();
+      else if (typeof mobileMatchLayout==='function' && mobileMatchLayout()) setMobileMatchPanel('log');
     }
     function finishMatch(winner, reason, { cancelled = false } = {}) {
       if (!game || game.phase === 'finished') return;
@@ -14555,6 +14588,7 @@
       $('localAiStatus').textContent = cancelled ? 'Match cancelled.' : winner === 'codex' ? 'Local opponent won this match.' : winner === 'you' ? 'You won this match.' : 'The match is a draw.';
       if (!cancelled && typeof queuePlaymatEffect === 'function') queuePlaymatEffect({ kind: 'victory', winner, reason });
       render();
+      if (typeof mobileMatchLayout==='function' && mobileMatchLayout() && !campaignFinished && !matchFinishPresentationBusy()) setMobileMatchPanel('log');
       if (campaignFinished) {
         pendingCampaignPresentation = game;
         if (!matchFinishPresentationBusy()) presentFinishedMatch();
@@ -18606,6 +18640,16 @@
       }
       return (kind !== 'basic' || p.bench.length < 5) && !actionUnavailableReason(kind,{card,side});
     }
+    function useMobileHandTarget(target) {
+      const card = findSelected(), side = selected.side, kind = handDragKind(card);
+      if (!['energy','evolve','trainer'].includes(kind) || !canDragHandCard(card,side)) return false;
+      draggedHandCard = {side,card,cardId:card.id,kind,match:game,turn:game.turnNumber,phase:game.phase};
+      const pokemon = handDragPokemonTarget(target.dataset.side,target.dataset.card);
+      if (!pokemon) { draggedHandCard = null; return false; }
+      closeCardActionMenu();
+      void dropHandCard({target,preventDefault(){}});
+      return true;
+    }
     function liveDraggedCard() {
       const drag = draggedHandCard;
       if (!drag || drag.match !== game || drag.turn !== game.turnNumber || drag.phase && drag.phase !== game.phase) return null;
@@ -18721,9 +18765,10 @@
       if (index<0) return false;
       hand.splice(hand.indexOf(card),1);
       hand.splice(index,0,card);
-      const scrollLeft = $('handCards').scrollLeft;
+      const handList = $('handCards'), {scrollLeft,scrollTop} = handList;
       renderHand(side);
-      $('handCards').scrollLeft = scrollLeft;
+      handList.scrollLeft = scrollLeft;
+      handList.scrollTop = scrollTop;
       queueMatchAutosave();
       return true;
     }
@@ -20470,7 +20515,17 @@
     $('yamiStyleSelect').addEventListener('change', () => renderYamiStyle());
     $('yamiDifficultySelect').addEventListener('change', () => renderYamiStyle());
     $('finishSetupBtn').addEventListener('click', finishPokemonSetup);
-    $('matchLogBtn').addEventListener('click',()=>setHistoryPanelVisible(!panelLayoutSettings.historyVisible));
+    $('matchLogBtn').addEventListener('click',()=>mobileMatchLayout() ? toggleMobileMatchPanel('log') : setHistoryPanelVisible(!panelLayoutSettings.historyVisible));
+    $('mobileInspectorBtn').addEventListener('click',()=>toggleMobileMatchPanel('inspector'));
+    $('mobileReportBtn').addEventListener('click',()=>{setMobileMatchPanel(null);openProblemReport();});
+    $('mobileToolsBtn').addEventListener('click',()=>toggleMobileMatchPanel('tools'));
+    $('closeMobileInspectorBtn').addEventListener('click',()=>setMobileMatchPanel(null,true));
+    $('mobilePlayTrainerBtn').addEventListener('click',()=>{
+      const card = selected?.zone==='hand' && findSelected();
+      if (!mobileMatchLayout() || !canDragHandCard(card,controlSide)) return;
+      if (handDragKind(card)==='stadium') void placeSelected('stadium');
+      else if (handDragKind(card)==='trainer') void playTrainerSelected();
+    });
     $('resumeMatchBtn').addEventListener('click', resumeSavedMatch);
     window.addEventListener('pagehide', saveMatchCheckpoint);
     window.addEventListener('beforeunload', saveMatchCheckpoint);
@@ -20823,6 +20878,97 @@
     $('handCards').addEventListener('pointerout',leaveHandTargetPreview);
     $('handCards').addEventListener('focusin',showHandTargetPreview);
     $('handCards').addEventListener('focusout',leaveHandTargetPreview);
+    function installTouchCardDrag() {
+      const mat = $('playmatPanel'), hand = $('handCards');
+      let gesture = null, suppressClickUntil = 0;
+      mat.addEventListener('contextmenu',event=>{
+        if ((event.pointerType==='touch' || window.matchMedia('(any-pointer: coarse)').matches) &&
+            event.target.closest('[data-hand-card], [data-card], [data-attached-tool], [data-revealed-hand-card]')) event.preventDefault();
+      });
+      mat.addEventListener('dragstart',event=>{
+        if (gesture || event.sourceCapabilities?.firesTouchEvents) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      },true);
+      mat.addEventListener('pointerdown',event=>{
+        if (event.pointerType!=='touch' || !event.isPrimary || gesture) return;
+        suppressClickUntil = 0;
+        const candidate = event.target.closest('[data-hand-card], [data-card]');
+        if (!candidate) return;
+        const fromHand = !!candidate.dataset.handCard;
+        if (!fromHand && candidate.draggable!==true) return;
+        const vertical = getComputedStyle(hand).overflowY==='auto';
+        gesture = {id:event.pointerId,source:candidate,fromHand,vertical,x:event.clientX,y:event.clientY,
+          start:event.timeStamp,scroll:vertical ? hand.scrollTop : hand.scrollLeft,mode:null,ghost:null};
+      });
+      document.addEventListener('pointermove',event=>{
+        const g = gesture;
+        if (!g || g.id!==event.pointerId) return;
+        const dx = event.clientX-g.x, dy = event.clientY-g.y;
+        if (!g.mode) {
+          if (Math.hypot(dx,dy)<8) return;
+          const primary = g.vertical ? Math.abs(dy) : Math.abs(dx);
+          const secondary = g.vertical ? Math.abs(dx) : Math.abs(dy);
+          const handSwipe = g.fromHand && (g.source.draggable!==true || primary>secondary && event.timeStamp-g.start<200);
+          if (handSwipe) {
+            g.mode = 'scroll';
+          } else {
+            const start = {target:g.source,preventDefault(){}};
+            if (g.fromHand) beginHandCardDrag(start);
+            else beginBoardPokemonDrag(start);
+            g.mode = draggedHandCard ? 'drag' : 'scroll';
+            if (draggedHandCard) {
+              g.ghost = document.createElement('div');
+              g.ghost.className = 'touch-card-ghost';
+              g.ghost.setAttribute('aria-hidden','true');
+              const art = g.source.querySelector('img.card-art');
+              if (art) g.ghost.appendChild(art.cloneNode());
+              else g.ghost.textContent = draggedHandCard.card.name;
+              document.body.appendChild(g.ghost);
+            }
+          }
+        }
+        if (g.mode==='scroll') {
+          if (g.fromHand && g.vertical) hand.scrollTop = g.scroll-dy;
+          else if (g.fromHand) hand.scrollLeft = g.scroll-dx;
+          return;
+        }
+        event.preventDefault();
+        g.ghost.style.left = event.clientX+'px';
+        g.ghost.style.top = event.clientY+'px';
+        const target = document.elementFromPoint(event.clientX,event.clientY);
+        clearHandReorderTarget();
+        if (target && handReorderTarget(target)) target.closest('[data-hand-card]').classList.add('hand-reorder-target');
+      },{passive:false});
+      function finish(event, cancelled) {
+        const g = gesture;
+        if (!g || g.id!==event.pointerId) return;
+        gesture = null;
+        if (!g.mode) return;
+        suppressClickUntil = Date.now()+400;
+        g.ghost?.remove();
+        if (g.mode!=='drag') return;
+        const target = !cancelled && document.elementFromPoint(event.clientX,event.clientY);
+        const next = target && handReorderTarget(target);
+        if (next) {
+          const {side,card} = draggedHandCard;
+          clearEnergyDrag();
+          reorderHandCard(side,card,next);
+        } else if (target) void dropHandCard({target,preventDefault(){}});
+        else clearEnergyDrag();
+      }
+      document.addEventListener('pointerup',event=>finish(event,false));
+      document.addEventListener('pointercancel',event=>finish(event,true));
+      mat.addEventListener('click',event=>{
+        if (event.detail && Date.now()<suppressClickUntil) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          suppressClickUntil = 0;
+        }
+      },true);
+    }
+    installTouchCardDrag();
     $('handCards').addEventListener('dragstart',beginHandCardDrag);
     for (const id of ['youRow','codexRow','battleCenter']) {
       $(id).addEventListener('dragstart',beginBoardPokemonDrag);
@@ -20863,6 +21009,7 @@
         else if (!$('deckManagerModal').classList.contains('hidden')) $('deckManagerModal').classList.add('hidden');
         else if (!$('campaignModal').classList.contains('hidden')) $('campaignModal').classList.add('hidden');
         else if (openCardActionKey) closeCardActionMenu(true);
+        else if (mobileMatchLayout() && $('matchLayout').dataset.mobilePanel) setMobileMatchPanel(null,true);
         else if (!$('setupModal').classList.contains('hidden')) {
           $('setupModal').classList.add('hidden');
           setView(game ? 'match' : 'menu');

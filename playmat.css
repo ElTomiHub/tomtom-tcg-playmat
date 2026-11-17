@@ -2333,3 +2333,228 @@
 .library-sync-panel input { width: 100%; padding: 8px; border: 1px solid #adc5df66; border-radius: 8px; background: #0a1f38; color: inherit; }
 .library-sync-panel form .btn { justify-self: start; }
 #librarySyncConflict .btn { margin-bottom: 6px; }
+
+/* Phone playmat */
+.mobile-match-button, .mobile-log-label { display: none; }
+#playmatPanel :is([data-hand-card], [data-card], [data-attached-tool], [data-revealed-hand-card]) {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+#playmatPanel :is([data-hand-card], [data-card], [data-attached-tool], [data-revealed-hand-card]) img {
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+@media (any-pointer: coarse) {
+  #playmatPanel :is([data-hand-card], [data-card][draggable="true"]) { touch-action: none; }
+}
+.touch-card-ghost {
+  position: fixed; z-index: 70; width: 61px; aspect-ratio: 5 / 7;
+  transform: translate(-50%, -72%) rotate(-5deg); pointer-events: none;
+  display: grid; place-items: center; overflow: hidden; border-radius: 5px;
+  background: #12365b; border: 1px solid #f6ce70; box-shadow: 0 7px 16px #000a;
+  color: #fff2c5; text-align: center; font-size: 10px;
+}
+.touch-card-ghost img { width: 100%; height: 100%; object-fit: contain; }
+
+@media (max-width: 600px), (orientation: landscape) and (max-height: 570px) and (pointer: coarse) {
+  .app-shell:has(#matchLayout:not(.app-hidden)) {
+    display: grid; height: auto; min-height: 100dvh; grid-template-rows: auto minmax(0,1fr);
+    padding: env(safe-area-inset-top) max(5px, env(safe-area-inset-right)) max(4px, env(safe-area-inset-bottom)) max(5px, env(safe-area-inset-left));
+  }
+  .app-shell:has(#matchLayout:not(.app-hidden)) .topbar {
+    display: flex; height: auto; min-height: 39px; padding: 3px 0; gap: 4px; flex-wrap: nowrap;
+  }
+  .app-shell:has(#matchLayout:not(.app-hidden)) .brand { flex: none; margin: 0; }
+  .app-shell:has(#matchLayout:not(.app-hidden)) .brand-mark { width: 27px; height: 27px; }
+  .app-shell:has(#matchLayout:not(.app-hidden)) .brand > div,
+  .app-shell:has(#matchLayout:not(.app-hidden)) #startGameBtn,
+  body:has(#matchLayout:not(.app-hidden)) #reportProblemBtn { display: none; }
+  .app-shell:has(#matchLayout:not(.app-hidden)) .top-actions { flex: 1 1 auto; justify-content: flex-end; gap: 3px; }
+  .app-shell:has(#matchLayout:not(.app-hidden)) .top-actions > .btn:not(#homeBtn),
+  .app-shell:has(#matchLayout:not(.app-hidden)) #playmatSettingsLabel {
+    min-height: 34px; padding: 3px 6px; font-size: 10px; white-space: nowrap;
+  }
+  .app-shell:has(#matchLayout:not(.app-hidden)) :is(.mobile-match-button,.mobile-log-label) { display: inline-flex; align-items: center; }
+  .app-shell:has(#matchLayout:not(.app-hidden)) .desktop-log-label { display: none; }
+  #matchLayout:not(.app-hidden) { position: relative; display: block; min-width: 0; min-height: 0; padding: 3px 0 0; overflow: visible; }
+  #matchLayout .panel-divider, #matchLayout #cardInspectorPanel, #matchLayout #matchActivityPanel { display: none; }
+  #matchLayout[data-mobile-panel="inspector"] #cardInspectorPanel,
+  #matchLayout[data-mobile-panel="log"] #matchActivityPanel {
+    position: fixed; z-index: 16; display: flex; flex-direction: column; overflow: auto;
+    inset: max(45px,calc(env(safe-area-inset-top) + 42px)) max(6px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom)) auto;
+    width: min(380px,calc(100vw - 12px)); max-height: none; min-height: 0;
+    box-shadow: 0 8px 46px #000b;
+  }
+  #matchLayout #matchActivityPanel .log-list { flex: 1 0 auto; max-height: none; }
+  #matchLayout #cardInspectorPanel .card-inspector { overflow: visible; }
+  #matchLayout #resetPanelLayoutBtn, #matchLayout .panel-layout-tools > span { display: none; }
+  #matchLayout #closeMobileInspectorBtn { margin-left: auto; }
+  #matchLayout #playmatPanel {
+    --phone-hand-height: 98px;
+    --phone-bench-width: clamp(40px, calc((100cqw - 33px) / 5), 65px);
+    --phone-bench-height: calc(var(--phone-bench-width) * 1.29);
+    --phone-active-width: clamp(59px, 10.1dvh, 83px);
+    --phone-active-height: calc(var(--phone-active-width) * 1.36);
+    display: grid; min-height: 0; gap: 4px;
+    grid-template: "heading" auto "board" minmax(0,1fr) "hand" var(--phone-hand-height) "controls" auto / minmax(0,1fr);
+  }
+  #matchLayout #playmatPanel .board-wrap { display: contents; }
+  #matchLayout .match-heading { grid-area: heading; margin: 0; gap: 3px; }
+  #matchLayout .match-heading .autosave-status { display: none; }
+  #matchLayout .playmat-turn-status { min-height: 28px; padding: 2px 7px; }
+  #matchLayout .playmat-turn-status strong { font-size: 11px; }
+  #matchLayout #matchBoardToolbar { display: none; }
+  #matchLayout[data-mobile-panel="tools"] #matchBoardToolbar {
+    position: absolute; top: 0; right: 0; z-index: 12; display: flex;
+    flex-wrap: wrap; gap: 6px; width: min(100%,420px); padding: 7px;
+    border: 1px solid #6684a4; border-radius: 9px; background: #102746; box-shadow: 0 8px 22px #0009;
+  }
+  #matchLayout .field {
+    grid-area: board; gap: 4px; padding: 3px; min-height: 0; overflow: visible;
+    border: 1px solid #d5b45d75; border-radius: 10px;
+    grid-template: auto minmax(0,1fr) auto / minmax(0,1fr);
+  }
+  #matchLayout .player-row {
+    display: grid; padding: 3px; gap: 3px;
+    grid-template: "name piles prizes" auto "bench bench bench" auto / minmax(0,1fr) auto auto;
+  }
+  #matchLayout :is(.row-head,.mat-layout) { display: contents; }
+  #matchLayout :is(.row-stats,.opponent-hand-display,.prize-grid,.prize-total small,.bench-zone > .zone-title,.discard-top-name,.discard-empty-pile) { display: none; }
+  #matchLayout:has(#matchSummaryCard:not([hidden])) .opponent-hand-display:has([data-revealed-hand-card]) {
+    display: flex; grid-area: auto; grid-column: 1 / -1; width: 100%; min-width: 0; margin: 0;
+  }
+  #matchLayout .player-name { grid-area: name; width: 100%; max-width: none; gap: 3px; font-size: 10px; }
+  #matchLayout .player-name .avatar { width: 18px; height: 18px; flex: 0 0 18px; font-size: 9px; }
+  #matchLayout .player-name small { display: inline; margin-left: 4px; font-size: 9px; }
+  #matchLayout .main-zones { grid-area: bench; min-width: 0; }
+  #matchLayout .bench-zone { padding: 0; margin: 0; min-height: 0; }
+  #matchLayout .bench-grid {
+    --bench-card-width: var(--phone-bench-width); --bench-card-height: var(--phone-bench-height); --bench-hp-strip-height: 14px;
+    justify-content: center; gap: 3px;
+  }
+  #matchLayout .bench-grid :is(.slot-card,.empty-slot,.face-down-card) { min-height: 0; border-radius: 4px; }
+  #matchLayout .bench-grid .empty-slot { font-size: 8px; padding: 0; }
+  #matchLayout .bench-grid .card-hp-summary { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  #matchLayout .bench-grid .hp-damage { grid-column: auto; grid-row: auto; }
+  #matchLayout .bench-grid .card-hp-summary small { display: none; }
+  #matchLayout .bench-grid .card-hp-summary b { font-size: 9px; line-height: 13px; }
+  #matchLayout .bench-grid .card-label { font-size: 8px; }
+  #matchLayout .bench-grid .card-reminders { bottom: 26px; }
+  #matchLayout .side-piles {
+    grid-area: piles; width: auto; display: flex; gap: 3px; align-items: center;
+  }
+  #matchLayout .pile-zone, #matchLayout .side-prizes {
+    display: flex; align-items: center; gap: 3px; padding: 0 3px; background: #081a2db0; border-radius: 5px; min-height: 24px;
+  }
+  #matchLayout .side-piles .pile-zone { order: initial; }
+  #matchLayout :is(.pile-zone,.side-prizes) .zone-title { font-size: 7px; padding: 0; margin: 0; }
+  #matchLayout .side-piles .pile-card {
+    width: 25px; min-width: 23px; height: 25px; min-height: 0; border: 0; border-radius: 4px;
+  }
+  #matchLayout .side-piles .pile-card :is(.deck-pile-back,img,.pile-blank) { display: none; }
+  #matchLayout .side-piles .pile-card :is(.pile-count,.discard-count) {
+    position: static; display: inline; padding: 1px 3px; font-size: 10px; color: #f8dfa0; background: transparent;
+  }
+  #matchLayout .side-prizes { grid-area: prizes; width: auto; justify-self: end; }
+  #matchLayout .prize-display { width: auto; min-height: 0; padding: 0; }
+  #matchLayout .prize-total { position: static; min-width: 16px; min-height: 18px; padding: 1px; border: 0; background: none; color: #f8dfa0; box-shadow: none; }
+  #matchLayout .prize-total strong { font-size: 10px; }
+  #matchLayout .battle-center {
+    --active-card-width: var(--phone-active-width); --active-card-height: var(--phone-active-height);
+    grid-template: "stadium rival ." 1fr "stadium home ." 1fr / minmax(0,1fr) minmax(116px,auto) minmax(0,1fr);
+    gap: 3px; padding: 3px 5px; align-items: center; min-height: 0;
+  }
+  #matchLayout #codexActiveZone { grid-area: rival; }
+  #matchLayout #youActiveZone { grid-area: home; }
+  #matchLayout .battle-active { justify-self: center; gap: 2px; padding: 0; }
+  #matchLayout .battle-stadium { grid-area: stadium; justify-self: center; }
+  #matchLayout .battle-center .zone-title { font-size: 8px; margin: 0; }
+  #matchLayout .battle-stadium .stadium-slot, #matchLayout .battle-stadium .stadium-slot :is(.slot-card,.empty-slot) { width: 44px; height: 61px; min-height: 0; font-size: 8px; }
+  #matchLayout .battle-active .card-hp-summary b { font-size: 10px; }
+  #matchLayout .battle-active .card-hp-summary small { font-size: 6px; }
+  #matchLayout .battle-active .card-label { font-size: 9px; }
+  #matchLayout .attached-tool-tab span { font-size: 6px; }
+  #matchLayout .hand-panel { grid-area: hand; height: 100%; min-width: 0; margin: 0; }
+  #matchLayout .hand-head { flex-basis: 25px; min-height: 25px; padding: 1px 5px; gap: 3px; }
+  #matchLayout .hand-title { font-size: 11px; }
+  #matchLayout #toggleHandSizeBtn { font-size: 9px; }
+  #matchLayout .hand-cards { gap: 4px; padding: 3px 4px; }
+  #matchLayout .hand-card {
+    --hand-card-height: 104px; --hand-card-width: 67px;
+    height: 57px; border-radius: 5px;
+  }
+  #matchLayout .hand-card .card-label, #matchLayout .hand-card .card-kind { font-size: 8px; }
+  #matchLayout #playmatPanel[data-hand-expanded="true"] { --phone-hand-height: 145px; }
+  #matchLayout #playmatPanel[data-hand-expanded="true"] .hand-card { height: var(--hand-card-height); }
+  #matchLayout .lower-controls { grid-area: controls; margin: 0; min-height: 35px; padding: 3px; gap: 3px; }
+  #matchLayout .lower-controls .btn { min-height: 35px; padding: 2px 8px; font-size: 11px; }
+  #matchLayout .turn-action-status { font-size: 9px; line-height: 1.2; }
+  #matchLayout .action-buttons { flex-wrap: nowrap; }
+  .action-dock { z-index: 14; padding: 7px; }
+  .action-dock :is(.dock-card-buttons,.attack-options) button { min-height: 34px; }
+  .card-choice-overlay[data-docked="true"] .card-choice-panel {
+    inset: auto max(5px,env(safe-area-inset-right)) max(5px,env(safe-area-inset-bottom)) auto;
+    width: min(390px,calc(100vw - 14px)); max-height: min(60dvh,460px);
+  }
+  #boardTargetPrompt:not([hidden]) {
+    inset: auto max(8px,env(safe-area-inset-right)) max(7px,env(safe-area-inset-bottom)) 8px; transform: none;
+    width: auto; max-width: 440px; margin-left: auto;
+  }
+}
+@media (max-width: 600px) and (orientation: portrait) {
+  .app-shell:has(#matchLayout:not(.app-hidden)) { height: 100dvh; overflow: hidden; }
+  #matchLayout #playmatPanel { height: 100%; }
+  #matchLayout .field {
+    overflow: auto;
+    grid-template-rows: auto minmax(calc(2 * var(--phone-active-height) + 26px),1fr) auto;
+  }
+  #matchLayout .lower-controls { background: #0e2645; border-radius: 8px; }
+  .app-shell:has(#matchLayout:not(.app-hidden)) #homeBtn { font-size: 0; }
+  .app-shell:has(#matchLayout:not(.app-hidden)) #homeBtn::before { content: "Lobby"; font-size: 10px; }
+  body:has(#matchLayout:not(.app-hidden)) .action-dock {
+    inset: auto max(8px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom)) auto;
+    width: min(290px,calc(100vw - 16px)); max-height: 41dvh;
+  }
+}
+@media (max-width: 600px) and (max-height: 715px) and (orientation: portrait) {
+  #matchLayout #playmatPanel {
+    --phone-bench-width: clamp(38px, calc((100cqw - 35px) / 5), 54px);
+    --phone-hand-height: 86px;
+  }
+}
+@media (orientation: landscape) and (max-height: 570px) and (pointer: coarse) {
+  .app-shell:has(#matchLayout:not(.app-hidden)) { height: 100dvh; overflow: hidden; }
+  #matchLayout:not(.app-hidden) { height: 100%; }
+  #matchLayout #playmatPanel, #matchLayout #playmatPanel[data-hand-expanded="true"] {
+    --phone-bench-width: clamp(34px, 12dvh, 61px);
+    --phone-active-width: clamp(46px, 19dvh, 88px);
+    height: 100%;
+    grid-template: "heading heading" auto "board controls" auto "board hand" minmax(0,1fr) / minmax(0,1fr) clamp(108px,24vw,198px);
+  }
+  #matchLayout .field { overflow: auto; grid-template-rows: auto minmax(calc(var(--phone-active-height) + 13px),1fr) auto; }
+  #matchLayout .battle-center {
+    grid-template: "rival stadium home" 1fr / minmax(0,1fr) 52px minmax(0,1fr);
+    padding: 2px 5%;
+  }
+  #matchLayout .player-row { grid-template: "name name name" auto "piles bench prizes" auto / auto minmax(0,1fr) auto; }
+  #matchLayout .player-row .player-name { min-height: 15px; }
+  #matchLayout .player-name .avatar { display: none; }
+  #matchLayout .side-piles { display: grid; gap: 2px; }
+  #matchLayout .turn-action-status { display: none; }
+  #matchLayout .lower-controls { display: flex; justify-content: center; min-width: 0; }
+  #matchLayout .action-buttons { justify-content: space-between; width: 100%; }
+  #matchLayout .lower-controls .btn { padding-inline: 4px; font-size: 10px; }
+  #matchLayout .hand-head { flex-basis: 25px; height: auto; }
+  #matchLayout .hand-cards {
+    display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); align-items: start; align-content: start;
+    overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain;
+  }
+  #matchLayout .hand-card { width: 100%; height: clamp(55px,18dvh,85px); }
+  #matchLayout #playmatPanel[data-hand-expanded="true"] .hand-card { height: auto; aspect-ratio: 5 / 7; }
+  #matchLayout .hand-card .card-art { height: auto; aspect-ratio: 5 / 7; }
+  #matchLayout #matchActivityPanel .chat-card { display: none; }
+}
+@media (orientation: landscape) and (max-width: 640px) and (max-height: 570px) and (pointer: coarse) {
+  #matchLayout .hand-cards { grid-template-columns: minmax(0,1fr); }
+}
