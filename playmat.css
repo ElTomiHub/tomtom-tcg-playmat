@@ -2273,14 +2273,11 @@
     .summary-versus { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); align-items: center; gap: 8px; margin: 8px 0; }
     .summary-versus > div { display: grid; min-width: 0; padding: 7px 9px; background: #0c203a; border-radius: 6px; }
     .summary-versus > div:last-child { text-align: right; }
-    .summary-versus small, .summary-knockouts small { color: #bed1e6; }
+    .summary-versus small { color: #bed1e6; }
     .summary-versus > span { color: #f5d57f; font-size: 10px; font-weight: 900; }
     .summary-record-tables { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,300px),1fr)); gap: 10px; }
     .summary-detail .match-summary-table { margin: 5px 0; font-size: 12px; }
     .summary-detail .match-summary-table th, .summary-detail .match-summary-table td { padding: 5px 4px; }
-    .summary-detail .summary-knockouts { display: grid; gap: 6px; list-style: none; padding: 0; margin: 0; }
-    .summary-knockouts li { display: flex; align-items: start; gap: 8px; padding: 6px; border-radius: 5px; background: #ffffff09; }
-    .summary-knockouts li > span { white-space: nowrap; color: #f4d48b; font-size: 11px; }
     .mulligan-hand-count { margin-left: 7px; color: #83ecd0; font-size: 10px; }
     .hand-card.mulligan-bonus, .slot-card.mulligan-bonus { outline: 2px solid #65e6c4; outline-offset: -2px; }
     .mulligan-badge {
@@ -2809,4 +2806,48 @@
   70% { opacity: 1; transform: translate(0,0); }
   92% { opacity: 1; }
   100% { opacity: 0; transform: translate(var(--travel-x),var(--travel-y)) scale(.65); }
+}
+
+
+.prize-recap { --recap-turn-width: 62px; --toma-lane: #71d3fa; --yami-lane: #ee9ba6; }
+.recap-header, .recap-turns > li {
+  display: grid; grid-template-columns: var(--recap-turn-width) repeat(2,minmax(0,1fr)); gap: 7px;
+}
+.recap-header { align-items: center; margin: 9px 0 5px; }
+.recap-header > small { color: #a8c3d8; font-size: 9px; letter-spacing: .1em; font-weight: 800; }
+.recap-lane {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  min-width: 0; gap: 4px; padding: 5px 7px; color: var(--toma-lane); border-bottom: 1px solid currentColor;
+}
+.recap-lane:last-child { color: var(--yami-lane); }
+.recap-prizes { display: flex; gap: 3px; }
+.recap-prizes span { width: 7px; height: 9px; border: 1px solid currentColor; border-radius: 2px; opacity: .4; }
+.recap-prizes span.taken { background: currentColor; opacity: 1; }
+.recap-turns { list-style: none; margin: 0; padding: 0; }
+.recap-turns > li { padding-bottom: 5px; }
+.recap-turn {
+  color: #adc9de; font-size: 10px; font-weight: 750; align-self: start; margin-top: 8px;
+  font-variant-numeric: tabular-nums;
+}
+.recap-track {
+  min-width: 0; display: grid; align-content: start; gap: 5px; padding: 2px 0 2px 6px;
+  border-left: 2px solid #529bbc51;
+}
+.recap-track[data-side="codex"] { border-color: #a260705e; }
+.recap-marker {
+  display: grid; gap: 2px; min-width: 0; width: 100%; padding: 5px 7px;
+  color: #f2f6fc; background: #19344f; border: 1px solid #7ebada50; border-radius: 6px;
+  text-align: left; overflow-wrap: anywhere;
+}
+button.recap-marker { cursor: pointer; }
+button.recap-marker:hover, button.recap-marker:focus-visible { border-color: #f5cc70; background: #224265; }
+.recap-marker small { color: #f7d578; font-size: 9px; font-weight: 900; }
+.recap-marker strong { font-size: 12px; }
+.recap-marker span { font-size: 9px; color: #bdd1e3; }
+.recap-marker.recap-coach { border-color: #cda85b71; background: #313140; }
+@media (max-width: 480px) {
+  .prize-recap { --recap-turn-width: 39px; }
+  .recap-header, .recap-turns > li { gap: 4px; }
+  .recap-track { padding-left: 4px; }
+  .recap-marker { padding: 5px 4px; }
 }

@@ -105,6 +105,14 @@ test('final-Prize Energy Hurricane saves the final attack, Knockout turn and all
   const turn=g.turnNumber,attached=g.matchHistory.players.you.energyAttached;r.api.setChoices(r.random,q=>q.kind==='cards'?q.candidates.slice(0,3):q.kind==='pokemon-target'?p.active:q.candidates?.[0]);
   assert.equal(await r.api.attack('you',1),true);assert.equal(g.phase,'finished');const summary=r.api.matchSummary();assert.equal(summary.players.you.attacks,1);assert.equal(summary.players.you.energyAttached,attached+3);assert.equal(summary.knockouts[0].name,'Mega Dragonite ex');assert.equal(summary.knockouts[0].turn,turn);assert.equal(summary.players.codex.knockedOut,1);
   const saved=historyFor(r,g.deckIds.you)[0];assert.equal(saved.players.you.energyAttached,summary.players.you.energyAttached);assert.equal(saved.players.you.attacks,1);assert.ok(saved.timeline.some(e=>/wins/.test(e.message)));
+  assert.equal(saved.knockouts[0].prizes,1,'a multi-Prize Pokémon can only award the number left');
+  assert.equal(saved.knockouts[0].creditedTo,'you');
+  const vm = require('node:vm');
+  const run = code=>vm.runInContext(code,r.context);
+  run('captureRecordedStep()');
+  assert.match(run('prizeTimelineMarkup(buildMatchSummary())'),/data-side="you"[\s\S]*\+1 Prize[\s\S]*Mega Dragonite ex/);
+  await run("openCoachReplay({dataset:{coachMatch:game.matchHistory.id,coachDeck:game.deckIds.you,knockoutId:game.matchHistory.knockouts[0].id}})");
+  assert.match(r.document.getElementById('replayStepLabel').textContent,/Match ended/);
 });
 test('a failed attack after a provisional win rolls back counters, Knockouts and both decks’ saved histories',async()=>{
   const {r,g,p}=ready();r.api.prepareAttack('you','ASC','71',['Lightning']);const target=r.api.prepareAttack('codex','ASC','279',[]);g.turn='you';target.meta.hp=1;p.prizes=p.prizes.slice(0,1);const before=JSON.stringify(g.matchHistory),restore=r.api.failNextAttackEffectAfterResolve();r.api.setChoices(r.random,r.choose,()=>true);
@@ -115,7 +123,7 @@ test('a finished match is saved once per deck, with the correct win/loss perspec
   const {r,g,finishEffects}=ready();r.api.finishMatch('you','All Prize cards taken');assert.equal(r.document.getElementById('matchSummaryCard').hidden,true);finishEffects();r.api.finishMatch('you','Again');const human=historyFor(r,g.deckIds.you),opponent=historyFor(r,g.deckIds.codex);assert.equal(human.length,1);assert.equal(opponent.length,1);assert.equal(human[0].perspective,'you');assert.equal(opponent[0].perspective,'codex');assert.equal(human[0].winner,'you');assert.equal(r.api.backup().data.deckStats[g.deckIds.you].completed,1);assert.equal(r.document.getElementById('matchSummaryCard').hidden,false);
 });
 test('current summary and deck history are reviewable through their controls',async()=>{
-  const {r,g}=ready();r.api.finishMatch(null,'Simultaneous final Knockouts');await r.document.getElementById('viewMatchSummaryBtn').click();assert.match(r.document.getElementById('matchHistoryContent').innerHTML,/Draw/);assert.match(r.document.getElementById('matchHistoryContent').innerHTML,/Knockout timeline/);assert.equal(r.document.getElementById('matchHistoryModal').classList.contains('hidden'),false);
+  const {r,g}=ready();r.api.finishMatch(null,'Simultaneous final Knockouts');await r.document.getElementById('viewMatchSummaryBtn').click();assert.match(r.document.getElementById('matchHistoryContent').innerHTML,/Draw/);assert.match(r.document.getElementById('matchHistoryContent').innerHTML,/Prize timeline/);assert.equal(r.document.getElementById('matchHistoryModal').classList.contains('hidden'),false);
   await r.document.getElementById('closeMatchHistoryBtn').click();await r.document.getElementById('deckLibraryGrid').dispatchEvent({type:'click',target:{closest:s=>s==='[data-deck-history]'?{dataset:{deckHistory:g.deckIds.you}}:null}});assert.match(r.document.getElementById('matchHistoryHeading').textContent,/Match history/);assert.match(r.document.getElementById('matchHistoryContent').innerHTML,/Latest 1 saved/);
 });
 test('completed history survives a backup and restore with its Pokémon, Energy and timeline intact',()=>{

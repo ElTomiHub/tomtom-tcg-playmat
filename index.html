@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="playmat.css?v=choice-tray1">
+  <link rel="stylesheet" href="playmat.css?v=recap1">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -7087,7 +7087,7 @@
       const counters = () => ({ pokemonPlayed: 0, evolutions: 0, energyAttached: 0, attacks: 0, knockedOut: 0, pokemon: [], energy: [] });
       return { id: `match-${Date.now()}-${globalThis.crypto?.randomUUID?.() || `${++matchRecordSequence}-${Math.random().toString(36).slice(2)}`}`, startedAt: new Date().toISOString(), endedAt: null, players: { you: counters(), codex: counters() }, knockouts: [], timeline: [], mastery: {} };
     }
-    function recordMatchActivity(kind, side, card, detail = '') {
+    function recordMatchActivity(kind, side, card, detail = '', prizeAward = null) {
       const history = game?.matchHistory, stats = history?.players?.[side];
       if (!stats || !card) return;
       const incrementCard = list => {
@@ -7102,7 +7102,7 @@
       if (kind === 'knockout') {
         stats.knockedOut++;
         const betweenTurns = !!game.pendingCheckup;
-        if (history.knockouts.length < 120) history.knockouts.push({ turn: Math.max(1, Number(game.turnNumber || 1) - Number(betweenTurns)), side, name: card.name, print: `${card.setCode || ''} ${card.cardNumber || ''}`.trim(), detail: detail + (betweenTurns ? ' · between turns' : '') });
+        if (history.knockouts.length < 120) history.knockouts.push({ id:`ko-${Date.now()}-${++matchRecordSequence}`,turn: Math.max(1, Number(game.turnNumber || 1) - Number(betweenTurns)), side, name: card.name, print: `${card.setCode || ''} ${card.cardNumber || ''}`.trim(), detail: detail + (betweenTurns ? ' · between turns' : ''), ...(prizeAward || {}) });
       }
     }
     function buildMatchSummary(perspective = 'you') {
@@ -7135,7 +7135,10 @@
           ['title','detail','alternative'].some(field=>typeof moment[field]!=='string' || moment[field].length>550)))) return false;
       if (record.masteryAwards !== undefined && (!Array.isArray(record.masteryAwards) || record.masteryAwards.length>9 ||
           record.masteryAwards.some(award=>!masteryAwardDetails(award)))) return false;
-      if (!Array.isArray(record.knockouts) || record.knockouts.length > 120 || record.knockouts.some(item => !Number.isSafeInteger(item?.turn) || item.turn < 1 || !['you','codex'].includes(item.side) || typeof item.name !== 'string' || typeof item.print !== 'string' || typeof item.detail !== 'string')) return false;
+      if (!Array.isArray(record.knockouts) || record.knockouts.length > 120 || record.knockouts.some(item => !Number.isSafeInteger(item?.turn) || item.turn < 1 || !['you','codex'].includes(item.side) || typeof item.name !== 'string' || typeof item.print !== 'string' || typeof item.detail !== 'string' ||
+          item.id!==undefined && (typeof item.id!=='string' || !/^ko-\d+-\d+$/.test(item.id)) ||
+          (item.prizes!==undefined || item.creditedTo!==undefined) &&
+          (!Number.isSafeInteger(item.prizes) || item.prizes<0 || item.prizes>6 || !['you','codex'].includes(item.creditedTo)))) return false;
       return Array.isArray(record.timeline) && record.timeline.length <= 300 && record.timeline.every(item => Number.isSafeInteger(item?.turn) && item.turn >= 1 && typeof item.message === 'string');
     }
     function syncFinishedMatchHistory() {
@@ -7190,6 +7193,38 @@
           ${moment.step!==null ? `<button type="button" class="btn small" data-coach-step="${moment.step}" data-coach-match="${escapeHtml(matchId)}" data-coach-deck="${escapeHtml(summary.decks.you.id)}">See board and hand</button>` : ''}</div></li>`).join('')+
         '</ol></section>';
     }
+    function prizeTimelineMarkup(summary) {
+      const turns = new Map(), sides = ['you','codex'];
+      const totalsKnown = summary.knockouts.every(event=>Number.isSafeInteger(event.prizes));
+      const totals = {you:0,codex:0};
+      const add = (turn,side,marker) => {
+        if (!turns.has(turn)) turns.set(turn,{you:[],codex:[]});
+        turns.get(turn)[side].push(marker);
+      };
+      const matchId = summary.id.replace(/:(you|codex)$/,'');
+      const replay = `data-coach-match="${escapeHtml(matchId)}" data-coach-deck="${escapeHtml(summary.decks[summary.perspective].id)}"`;
+      for (const event of summary.knockouts) {
+        const side = event.creditedTo || oppositeSide(event.side);
+        totals[side] += event.prizes || 0;
+        const label = event.prizes===undefined ? 'Knock Out' : event.prizes ? `+${event.prizes} Prize${event.prizes===1 ? '' : 's'}` : '0 Prizes';
+        add(event.turn,side,`<button type="button" class="recap-marker" ${event.id ? `data-knockout-id="${escapeHtml(event.id)}"` : `data-replay-turn="${event.turn}"`} ${replay}>
+          <small>${label}</small><strong>${escapeHtml(event.name)}</strong><span>${escapeHtml(event.detail || 'Knocked Out')}</span></button>`);
+      }
+      for (const note of summary.coach || []) {
+        const copy = `<small>Coach</small><strong>${escapeHtml(note.title)}</strong>`;
+        add(note.turn,'you',note.step===null ? `<div class="recap-marker recap-coach">${copy}</div>` :
+          `<button type="button" class="recap-marker recap-coach" data-coach-step="${note.step}" ${replay}>${copy}</button>`);
+      }
+      const lane = side => `<div class="recap-lane"><strong>${PLAYER_NAMES[side]}</strong>${totalsKnown ?
+        `<div class="recap-prizes" aria-label="${totals[side]} Prizes taken">${Array.from({length:6},(_,i)=>
+          `<span class="${i<totals[side] ? 'taken' : ''}" aria-hidden="true"></span>`).join('')}</div>` : ''}</div>`;
+      return `<section class="summary-detail-section prize-recap" aria-label="Prize timeline"><h4>Prize timeline</h4>
+        ${turns.size ? `<p class="data-tools-note">Tap a moment to open its recording on this device.</p>
+          <div class="recap-header"><small>TURN</small>${sides.map(lane).join('')}</div>
+          <ol class="recap-turns">${[...turns].sort(([a],[b])=>a-b).map(([turn,markers])=>`<li><span class="recap-turn">Turn ${turn}</span>
+            ${sides.map(side=>`<div class="recap-track" data-side="${side}">${markers[side].join('')}</div>`).join('')}</li>`).join('')}</ol>` :
+          '<p class="data-tools-note">No knockouts or coach moments in this match.</p>'}</section>`;
+    }
     function matchSummaryMarkup(summary) {
       const result = summaryResult(summary), style = summaryOpponentStyle(summary);
       const names = PLAYER_NAMES, rows = [['Pokémon cards played','pokemonPlayed'],['Evolutions','evolutions'],['Energy cards attached','energyAttached'],['Attacks used','attacks'],['Pokémon Knocked Out','knockedOut']];
@@ -7202,12 +7237,12 @@
           <p class="summary-meta">${escapeHtml(new Date(summary.endedAt).toLocaleString())} · ${summary.turns} turns${summary.reason ? ' · '+escapeHtml(summary.reason) : ''}${style ? ' · Yami: '+escapeHtml(style) : ''}</p>
         </header>
         ${masteryAwardsMarkup(summary.masteryAwards)}
+        ${prizeTimelineMarkup(summary)}
         ${matchCoachMarkup(summary)}
         <section class="summary-detail-section"><h4>Match activity</h4>
           <table class="match-summary-table"><thead><tr><th scope="col">Activity</th><th scope="col">${names.you}</th><th scope="col">${names.codex}</th></tr></thead><tbody>${rows.map(([label,key])=>`<tr><th scope="row">${label}</th><td>${summary.players.you[key]}</td><td>${summary.players.codex[key]}</td></tr>`).join('')}</tbody></table>
           <p class="data-tools-note">Pokémon counts include opening Pokémon and Evolutions. Energy counts are physical card attachments, including attachments from effects. Moving attached Energy is excluded.</p>
         </section>
-        <section class="summary-detail-section"><h4>Knockout timeline</h4>${summary.knockouts.length ? `<ol class="summary-knockouts">${summary.knockouts.map(item=>`<li><span>Turn ${item.turn}</span><div><strong>${escapeHtml(item.name)}</strong> <small>${escapeHtml(item.print)}</small><div>${names[item.side]}${item.detail ? ' · '+escapeHtml(item.detail) : ''}</div></div></li>`).join('')}</ol>` : '<p>No Pokémon were Knocked Out.</p>'}</section>
         ${matchDeckRecordsMarkup(summary)}
         <div class="match-summary-lists">${['you','codex'].map(side=>`<section class="summary-detail-section"><h4>${names[side]} · Pokémon played</h4><ul>${cardList(side,'pokemon')}</ul><h4>Energy attached</h4><ul>${cardList(side,'energy')}</ul></section>`).join('')}</div>
         <details class="summary-detail-section"><summary>${summary.timelineTrimmed ? 'Reduced move history' : 'Move history'} · ${summary.timeline.length} events</summary><ol>${summary.timeline.map(item=>`<li><b>Turn ${item.turn}</b> · ${escapeHtml(item.message)}</li>`).join('')}</ol></details>
@@ -7248,7 +7283,8 @@
           kind:'pokemon-tcg-match-recording', version:1, id:game.matchHistory.id,
           recordedAt:new Date().toISOString(), decks:{...game.deckIds}, cards:[], steps:[]
         },
-        cardKeys:new Map(), lastState:'', lastLog:'', nextStep:Date.now()*1000
+        cardKeys:new Map(), lastState:'', lastLog:'', nextStep:Date.now()*1000,
+        knockoutIds:new Set(game.matchHistory.knockouts.map(event=>event.id).filter(Boolean))
       };
     }
     function captureRecordedStep() {
@@ -7286,7 +7322,9 @@
         stadium:game.stadium ? cardRef(game.stadium.card) : null,
         players:{you:sideState('you'),codex:sideState('codex')}
       };
-      const stateKey = JSON.stringify(state);
+      const knockoutIds = game.matchHistory.knockouts.map(event=>event.id).filter(Boolean);
+      const newKnockouts = knockoutIds.filter(id=>!draft.knockoutIds.has(id));
+      const stateKey = JSON.stringify([state,knockoutIds]);
       const logKey = entry => entry ? JSON.stringify([entry.time,entry.message]) : '';
       const newest = logKey(game.log[0]);
       if (stateKey !== draft.lastState || newest !== draft.lastLog) {
@@ -7295,7 +7333,9 @@
           ['Recording started'];
         // Preserve the opening and final state if a very long match reaches the limit.
         if (record.steps.length >= 2000) { record.steps.splice(1,1); record.truncated = true; }
-        record.steps.push({...state,messages,sequence:draft.nextStep++});
+        record.steps.push({...state,messages,sequence:draft.nextStep++,
+          ...(newKnockouts.length ? {knockoutIds:newKnockouts} : {})});
+        draft.knockoutIds = new Set(knockoutIds);
         draft.lastState = stateKey;
         draft.lastLog = newest;
       }
@@ -7406,7 +7446,7 @@
       $('replayNext').disabled = index === replayRecord.steps.length-1;
     }
     async function openCoachReplay(button) {
-      const {coachMatch,coachDeck,coachStep} = button.dataset;
+      const {coachMatch,coachDeck,coachStep,knockoutId,replayTurn} = button.dataset;
       let record = [pendingRecording,...visibleRecordings].find(item=>item?.id===coachMatch);
       if (!record && coachDeck && typeof indexedDB!=='undefined') {
         try {
@@ -7415,9 +7455,14 @@
           record = saved?.find(item=>item.id===coachMatch);
         } catch { /* The written coach notes remain available. */ }
       }
-      const index = record?.steps.findIndex(step=>step.sequence===Number(coachStep)) ?? -1;
+      let index = -1;
+      if (record && coachStep!==undefined) index = record.steps.findIndex(step=>step.sequence===Number(coachStep));
+      else if (record && knockoutId) index = record.steps.findIndex(step=>step.knockoutIds?.includes(knockoutId));
+      else if (record) {
+        index = record.steps.findIndex(step=>step.phase==='play' && step.turnNumber===Number(replayTurn));
+      }
       if (index<0) {
-        showToast('This replay moment is unavailable on this device. The coach notes are still saved.');
+        showToast('This moment is unavailable in this device’s recordings.');
         return;
       }
       openMatchReplay(record,index);
@@ -14818,7 +14863,6 @@
         coachReturnKnockout(knockedOut,options.source || attacker.active);
       }
       if (typeof recordKnockoutDeckStats === 'function') recordKnockoutDeckStats(defenderSide, knockedOut, attackerSide, options.source || (fromAttack ? attacker.active : null));
-      if (typeof recordMatchActivity === 'function') recordMatchActivity('knockout', defenderSide, knockedOut, fromAttack ? 'Active · attack damage' : 'Active');
       if (typeof queuePokemonVisualEffect === 'function') queuePokemonVisualEffect('knockout', defenderSide, knockedOut);
       defender.active = null;
       delete knockedOut.cannotAttackUntilTurn;
@@ -14830,6 +14874,8 @@
       for (let i = 0; i < prizes; i++) attacker.hand.push(attacker.prizes.pop());
       if (prizes && typeof queuePrizeMovement === 'function') queuePrizeMovement(attackerSide,prizes,attacker.hand.slice(-prizes));
       if (prizes) logEvent(`${attacker.name} took ${prizes} Prize card${prizes === 1 ? '' : 's'}.`, true, null, null, {prizes, side:attackerSide});
+      if (typeof recordMatchActivity==='function') recordMatchActivity('knockout',defenderSide,knockedOut,
+        fromAttack ? 'Active · attack damage' : 'Active',{prizes,creditedTo:attackerSide});
       if (options.deferCheckupFlow) return;
       if (prizes && !attacker.prizes.length) { finishMatch(attackerSide, 'all Prize cards taken'); return; }
       if (!defender.bench.length) { finishMatch(attackerSide, 'no Pokémon left in play'); return; }
@@ -14852,7 +14898,6 @@
         coachReturnKnockout(knockedOut,options.source || attacker.active);
       }
       if (typeof recordKnockoutDeckStats === 'function') recordKnockoutDeckStats(defenderSide, knockedOut, attackerSide, source || (fromAttack ? attacker.active : null));
-      if (typeof recordMatchActivity === 'function') recordMatchActivity('knockout', defenderSide, knockedOut, 'Bench');
       delete knockedOut.cannotAttackUntilTurn;
       defender.discard.push(typeof isOpeningDoll === 'function' && isOpeningDoll(knockedOut) ? cleanDiscardedDoll(knockedOut) : knockedOut, ...(knockedOut.energy || []), ...(knockedOut.tools || []));
       if (typeof queueCardMovement==='function') for(const card of [...(knockedOut.energy||[]),...(knockedOut.tools||[]),...(knockedOut.evolutionStack||[])])queueCardMovement(defenderSide,card,'discard',null,knockedOut,'Knockout → discard');
@@ -14862,6 +14907,7 @@
       for (let i = 0; i < prizes; i++) attacker.hand.push(attacker.prizes.pop());
       if (prizes && typeof queuePrizeMovement === 'function') queuePrizeMovement(attackerSide,prizes,attacker.hand.slice(-prizes));
       if (prizes) logEvent(`${attacker.name} took ${prizes} Prize card${prizes === 1 ? '' : 's'}.`, true, null, null, {prizes, side:attackerSide});
+      if (typeof recordMatchActivity==='function') recordMatchActivity('knockout',defenderSide,knockedOut,'Bench',{prizes,creditedTo:attackerSide});
       if (options.deferCheckupFlow) return;
       if (prizes && !attacker.prizes.length) { finishMatch(attackerSide, 'all Prize cards taken'); return; }
       if (!defender.active && !defender.bench.length) finishMatch(attackerSide, 'no Pokémon left in play');
@@ -20755,7 +20801,7 @@
     });
     $('reviewMatchCoachBtn').addEventListener('click',()=>openCurrentMatchSummary({coach:true}));
     $('matchHistoryContent').addEventListener('click',event=>{
-      const step = event.target.closest('[data-coach-step]');
+      const step = event.target.closest('[data-coach-step], [data-knockout-id], [data-replay-turn]');
       if (step) void openCoachReplay(step);
     });
     $('matchRecordings').addEventListener('click',event=>{
