@@ -296,3 +296,27 @@ test('the volume slider scales sound cues and zero silences them', async () => {
   r.context.playPlaymatSound('damage');
   assert.equal(peaks.length, 1);
 });
+
+
+test('Yami’s Boss’s Orders previews its Bench target before the switch animations',async()=>{
+  const {r,p,g,timers}=ready(), outgoing=p.active, incoming=bench(p);
+  const slot={getBoundingClientRect:()=>({left:400,top:500,width:100,height:120})};
+  const row=r.document.getElementById('youRow'), query=row.querySelector;
+  row.querySelector=selector=>selector==='.bench-grid'?{children:[slot]}:query(selector);
+  r.document.getElementById('matchField').getBoundingClientRect=()=>({left:0,top:0,right:1000,bottom:800,width:1000,height:800});
+  g.turn='codex';g.turnNumber=4;g.players.codex.turnsTaken=1;
+  const boss={id:'visual-boss',name:"Boss's Orders",setCode:'PAL',cardNumber:'172',language:'en',
+    meta:{category:'Trainer',trainerType:'Supporter',effect:"Switch in 1 of your opponent's Benched Pokémon to the Active Spot.",attacks:[],abilities:[],rules:[]}};
+  g.players.codex.hand.push(boss);
+  r.api.setChoices(r.random,request=>request.candidates.find(card=>card.id===incoming.id),()=>true);
+  await r.api.playCard('codex',boss.id);
+  assert.equal(p.active.id,incoming.id);
+  const cue=r.api.visualState().active;
+  assert.equal(cue.name,boss.name);
+  assert.equal(cue.playedCue.target,incoming.name);
+  assert.match(r.document.getElementById('playmatEffects').innerHTML,/fx-play-target[\s\S]*Active Spot/);
+  assert.ok(r.document.getElementById('youActiveZone').innerHTML.includes(r.context.escapeHtml(outgoing.id)));
+  advance(r,timers);
+  assert.ok(r.document.getElementById('youActiveZone').innerHTML.includes(r.context.escapeHtml(incoming.id)));
+  assert.equal(r.api.visualState().active.destination,'bench');
+});

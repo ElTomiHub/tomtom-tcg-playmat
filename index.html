@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="playmat.css?v=stats-phone2">
+  <link rel="stylesheet" href="playmat.css?v=choice-tray1">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -481,7 +481,7 @@
   <div class="turn-done-banner" id="turnDoneBanner" aria-hidden="true"></div>
   <div class="board-target-prompt" id="boardTargetPrompt" hidden><strong id="boardTargetPromptText" role="status"></strong><div class="board-target-actions"><button class="btn small primary" id="finishBoardTargetBtn" type="button" hidden>Finish selection</button><button class="btn small" id="cancelBoardTargetBtn" type="button">Cancel</button></div></div>
   <div class="card-choice-overlay hidden" id="cardChoiceOverlay" role="dialog" aria-modal="true" aria-labelledby="cardChoiceTitle">
-    <section class="card-choice-panel"><header class="card-choice-head"><div><h2 id="cardChoiceTitle">Choose a card</h2><p id="cardChoiceDescription">Select a card to continue.</p></div><button class="btn small" id="cardChoiceCloseBtn" type="button" aria-label="Cancel selection">✕</button></header><div class="card-choice-grid" id="cardChoiceGrid"></div><footer class="card-choice-foot"><span class="card-choice-count" id="cardChoiceCount"></span><div class="card-choice-actions"><button class="btn small" id="cardChoiceCancelBtn" type="button">Cancel</button><button class="btn small primary" id="cardChoiceConfirmBtn" type="button" disabled>Confirm selection</button></div></footer></section>
+    <section class="card-choice-panel"><header class="card-choice-head"><div><h2 id="cardChoiceTitle">Choose a card</h2><p id="cardChoiceDescription">Select a card to continue.</p></div><button class="btn small" id="cardChoiceCloseBtn" type="button" aria-label="Cancel selection">✕</button></header><div class="card-choice-grid" id="cardChoiceGrid"></div><footer class="card-choice-foot"><span class="card-choice-count" id="cardChoiceCount" aria-live="polite"></span><div class="card-choice-actions"><button class="btn small" id="cardChoiceCancelBtn" type="button">Cancel</button><button class="btn small primary" id="cardChoiceConfirmBtn" type="button" disabled>Confirm selection</button></div></footer></section>
   </div>
   <dialog class="card-choice-panel playmat-confirm-dialog" id="playmatConfirmDialog" aria-labelledby="playmatConfirmTitle" aria-describedby="playmatConfirmMessage">
     <header class="card-choice-head"><div><h2 id="playmatConfirmTitle"></h2><p id="playmatConfirmMessage"></p></div></header>
@@ -10007,6 +10007,16 @@
       prompt.hidden = false;
       return new Promise(resolve => { activeBoardChoiceResolver = resolve; render(); }).then(value=>{if(value===null && (Number(runResolutionTransaction.depth || 0)>0 || attackResolutionPending))throw cancelledCardAction();return value;});
     }
+    function updateCardChoiceSelection(state) {
+      const grid = $('cardChoiceGrid');
+      for (const button of grid.querySelectorAll('[data-choice-card]')) {
+        const checked = state.selected.has(button.dataset.choiceCard);
+        button.classList.toggle('selected',checked);
+        button.setAttribute('aria-pressed',String(checked));
+      }
+      $('cardChoiceCount').textContent = state.min === state.max ? `${state.selected.size} of ${state.max} selected` : `${state.selected.size} selected · up to ${state.max}`;
+      $('cardChoiceConfirmBtn').disabled = state.selected.size < state.min || state.selected.size > state.max;
+    }
     function renderCardChoice() {
       const state = activeCardChoice;
       if (!state) return;
@@ -10016,8 +10026,7 @@
         const ref = card.setCode && card.cardNumber ? `${card.setCode} ${card.cardNumber}` : card.meta?.category || 'Card';
         return `<button type="button" class="choice-card${selectedCard ? ' selected' : ''}" data-choice-card="${escapeHtml(card.id)}" aria-pressed="${selectedCard}"${state.cards.includes(card) ? '' : ' disabled'}>${image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(card.name)}" loading="lazy">` : '<span class="choice-card-art">TCG</span>'}<strong>${escapeHtml(card.name)}</strong><small>${escapeHtml(ref)}</small></button>`;
       }).join('');
-      $('cardChoiceCount').textContent = state.min === state.max ? `${state.selected.size} of ${state.max} selected` : `${state.selected.size} selected · up to ${state.max}`;
-      $('cardChoiceConfirmBtn').disabled = state.selected.size < state.min || state.selected.size > state.max;
+      updateCardChoiceSelection(state);
       grid.querySelectorAll('[data-choice-card]').forEach(button => button.addEventListener('click', () => {
         if (button.disabled) return;
         const id = button.dataset.choiceCard;
@@ -10031,7 +10040,7 @@
         else if (state.max === 1) { state.selected.clear(); state.selected.add(id); }
         else if (state.selected.size < state.max) state.selected.add(id);
         else { showToast(`Choose up to ${state.max} cards.`); return; }
-        renderCardChoice();
+        updateCardChoiceSelection(state);
       }));
     }
     function chooseCardsInApp(side, title, cards, minCount, maxCount, visibleCards = cards, { required = false, onePerCategory = false } = {}) {
@@ -10053,7 +10062,8 @@
       const panel = overlay.querySelector('.card-choice-panel');
       if (panel) positionPlaymatChoice(panel);
       renderCardChoice(); overlay.classList.remove('hidden');
-      const focusTarget = mustFinish ? $('cardChoiceGrid').querySelector('button:not(:disabled)') || $('cardChoiceConfirmBtn') : $('cardChoiceCancelBtn');
+      $('cardChoiceGrid').scrollTop = 0;
+      const focusTarget = $('cardChoiceGrid').querySelector('button:not(:disabled)') || $('cardChoiceConfirmBtn');
       focusTarget.focus?.({ preventScroll: true });
       return new Promise(resolve => {
         activeCardChoiceResolver = resolve;
@@ -12559,6 +12569,7 @@
       return runEffectTransaction(async () => {
         const currentPlayer = player(side), currentIndex = currentPlayer?.bench.findIndex(item => item === target && item.id === target.id) ?? -1;
         if (!currentPlayer || !currentPlayer.hand.some(item => item.id === card.id) || currentPlayer.active !== active || currentIndex < 0) return false;
+        if (typeof targetPlayedCardSwitch==='function') targetPlayedCardSwitch(card,side,active,target,currentIndex);
         if (definition.clearSpecialConditionsWhenBenched) { clearPokemonConditions(active); clearPokemonConditions(target); }
         currentPlayer.bench[currentIndex] = active; currentPlayer.active = target;
         if (!consumeResolvedItem(side, card)) return false;
@@ -12920,6 +12931,7 @@
         : await pickEffectCard(side, `${card.name}: choose an opposing Benched Pokémon to bring Active.`, opponent.bench, list => list.slice().sort((a, b) => effectivePokemonHp(a) - Number(a.damage || 0) - (effectivePokemonHp(b) - Number(b.damage || 0)))[0]);
       if (!target) return false;
       const index = opponent.bench.findIndex(item => item.id === target.id), oldActive = opponent.active;
+      if (typeof targetPlayedCardSwitch==='function') targetPlayedCardSwitch(card,oppositeSide(side),oldActive,target,index);
       clearGrowlForPokemon(oldActive.id); clearGrowlForPokemon(target.id); clearPokemonConditions(oldActive); clearPokemonConditions(target);
       opponent.bench[index] = oldActive; opponent.active = target;
 
@@ -13223,6 +13235,14 @@
       return bounds?.width && bounds.height && Number.isFinite(bounds.left) && Number.isFinite(bounds.top)
         ? {x:bounds.left+bounds.width/2,y:bounds.top+bounds.height/2} : cardMovementPoint(side,'bench');
     }
+    function targetPlayedCardSwitch(card, side, outgoing, incoming, benchIndex) {
+      const cue = playmatEffectBatches.flat().findLast(effect=>effect.cardId===card.id && effect.playedCue);
+      if (!cue) return;
+      const point = benchSlotMovementPoint(side,benchIndex);
+      if (!point) return;
+      cue.detail = `${incoming.name} → Active Spot`;
+      cue.playedCue = {target:incoming.name,point,boardSwitch:{side,outgoing,incoming,benchIndex}};
+    }
     function queuePokemonPositionSwitch(side, outgoing, incoming, incomingBenchIndex) {
       incoming.benchToActiveTurn = game.turnNumber;
       try {
@@ -13237,10 +13257,14 @@
         });
       } catch { /* Position announcements cannot change the switch. */ }
     }
-    function queueCardMovement(side, card, destination, target = null, origin = 'hand', detail = '') {
+    function queueCardMovement(side, card, destination, target = null, origin = 'hand', detail = '', showPlay = false) {
       try {
         if (game?.phase === 'setup' || !card) return;
-        queuePlaymatEffect({kind:'card-move',side,cardId:card.id,name:card.name,image:imageFor(card),detail,from:typeof origin === 'object' ? playmatPointFor(side,origin) : cardMovementPoint(side,origin,card),point:cardMovementPoint(side,destination,target),destination,targetId:target?.id || null});
+        const point = cardMovementPoint(side,destination,target);
+        queuePlaymatEffect({kind:'card-move',side,cardId:card.id,name:card.name,image:imageFor(card),detail,
+          from:typeof origin === 'object' ? playmatPointFor(side,origin) : cardMovementPoint(side,origin,card),
+          point,destination,targetId:target?.id || null,
+          ...(showPlay ? {playedCue:{target:target?.name || '',point:target ? point : null}} : {})});
       } catch { /* A moving card is only a decoration. */ }
     }
     function queueHiddenCardMovement(side, fromZone, toZone, count) {
@@ -13278,7 +13302,7 @@
           if(explicit && !(explicit.destination==='last-played' && dest.zone==='discard'))continue;
           const fromZone=explicit?.destination==='last-played'?'last-played':source.zone;
           const revealed = source.zone === 'deck' && dest.zone === 'hand' && batch.revealedDeckCards?.has(id);
-          const preview = dest.side === 'codex' && (revealed || dest.zone === 'discard')
+          const preview = dest.side === 'codex' && !explicit?.playedCue && (revealed || dest.zone === 'discard')
             ? cardMovementPoint(dest.side, 'last-played') : null;
           const faceDown=dest.zone==='deck' || dest.zone==='prizes' || source.zone==='deck' && dest.zone==='hand' && !revealed;
           if(faceDown){if(existing.some(effect=>effect.kind==='zone-move' && effect.side===dest.side && effect.fromZone===fromZone && effect.toZone===dest.zone))continue;const key=[dest.side,fromZone,dest.zone].join(':');const group=hidden.get(key)||{side:dest.side,fromZone,toZone:dest.zone,count:0};group.count++;hidden.set(key,group);continue;}
@@ -13314,7 +13338,8 @@
         const reference = publicActionReference(side, card);
         game.lastPlayedCards[side] = {card:reference.card,action,targetName:target?.name || '',turn:game.turnNumber};
         logEvent(`${player(side).name} · ${action}: ${card.name}${target ? ' → ' + target.name : ''}.`, false, reference);
-        queueCardMovement(side,card,destination,target,'hand',target ? `${action} · ${target.name}` : action);
+        const showPlay = side==='codex' && ['Trainer','Energy'].includes(card.meta?.category);
+        queueCardMovement(side,card,destination,target,'hand',target ? `${action} · ${target.name}` : action,showPlay);
       } catch { /* Presentation records cannot prevent a legal play. */ }
     }
     function queuePokemonVisualEffect(kind, side, pokemon, amount = 0) {
@@ -13336,7 +13361,7 @@
       } catch { /* Optional decoration. */ }
     }
     function stagedKnockoutsEnabled() { return playmatEffectsEnabled && !document.hidden && (window.__POKEMON_TCG_TEST__!==true || engineTestHooks?.stageKnockouts===true); }
-    function visualTransitionBusy() { return activeVisualTransitions.length > 0 || pendingPrizeEffects().length > 0; }
+    function visualTransitionBusy() { return activeVisualTransitions.length > 0 || pendingPrizeEffects().length > 0 || !!activePlaymatEffect?.playedCue?.boardSwitch; }
     function queueActivePromotion(side,pokemon,benchIndex) {
       pokemon.benchToActiveTurn = game.turnNumber;
       try {
@@ -13358,7 +13383,10 @@
     }
     function activePokemonMarkup(side) {
       const transition=activeVisualTransitions.find(item=>item.side===side && item.zone==='active');
-      if(!transition)return cardMarkup(player(side)?.active || null,side,'active');
+      if (!transition) {
+        const cue = activePlaymatEffect?.playedCue?.boardSwitch;
+        return cardMarkup((cue?.side===side ? cue.outgoing : player(side)?.active) || null,side,'active');
+      }
       if (transition.phase === 'waiting-for-prizes') return '<div class="empty-slot" role="img" aria-label="Active Spot empty while Prizes are collected">Collecting Prizes…</div>';
       if(transition.phase==='promotion')return '<div class="empty-slot" role="img" aria-label="A Pokémon is moving to the Active Spot">Moving to Active…</div>';
       return knockoutPlaceholderMarkup(transition);
@@ -13408,6 +13436,20 @@
         const zones={deck:'Deck',hand:'Hand',discard:'Discard',prizes:'Prizes',active:'Active',bench:'Bench',pokemon:'Pokémon','last-played':'Played card',stadium:'Stadium'};
         const title = prize ? `${effect.count} Prize card${effect.count === 1 ? '' : 's'} taken` : hidden ? `${effect.count} card${effect.count===1?'':'s'}` : effect.name;
         const detail=effect.kind==='zone-move'?`${zones[effect.fromZone]||'Cards'} → ${zones[effect.toZone]||'Cards'}`:prize?'Added to hand':effect.detail;
+        if (effect.playedCue && !hidden) {
+          const target = effect.playedCue.point;
+          const field = $('matchField').getBoundingClientRect();
+          const base = target || effect.point || {x:field.left+field.width/2,y:field.top+field.height*.38};
+          const half = Math.min(112,field.width/2);
+          const preferRight = base.x < field.left+field.width/2;
+          const x = Math.max(field.left+half,Math.min(field.right-half,base.x+(target ? (preferRight ? 150 : -150) : 0)));
+          const y = Math.max(field.top+44,Math.min(field.bottom-44,base.y));
+          const transfer = !reduced && effect.destination!=='last-played' && effect.point && effect.image ?
+            `<div class="fx-moving-card fx-played-transfer" style="${at({x,y})}--travel-x:${effect.point.x-x}px;--travel-y:${effect.point.y-y}px"><img src="${escapeHtml(effect.image)}" alt=""></div>` : '';
+          return `${transfer}${target ? `<div class="fx-play-target" style="${at(target)}"></div>` : ''}
+            <div class="fx-played-cue" style="${at({x,y})}">${effect.image ? `<img src="${escapeHtml(effect.image)}" alt="">` : ''}
+            <div><small>Yami played</small><strong>${escapeHtml(effect.name)}</strong><span>${escapeHtml(detail || effect.playedCue.target || '')}</span></div></div>`;
+        }
         if (effect.preview) {
           const end = effect.point || effect.preview;
           const art = effect.image ? `<img src="${escapeHtml(effect.image)}" alt="">` : "";
@@ -13525,19 +13567,19 @@
           const transition = activeVisualTransitions.find(item => item.id === effect.transitionId);
           if (transition) transition.phase = 'promotion';
           render();
-        } else if (stagedPrizeCards.has(effect) || effect.kind === 'knockout' && effect.transitionId || effect.kind === 'damage' && stagedKnockoutsEnabled()) render();
+        } else if (effect.playedCue?.boardSwitch || stagedPrizeCards.has(effect) || effect.kind === 'knockout' && effect.transitionId || effect.kind === 'damage' && stagedKnockoutsEnabled()) render();
         if (playmatActionAnnouncement(effect)) clearTurnAnnouncement();
         const root = $('playmatEffects'), reduced = prefersReducedPlaymatMotion();
         root.dataset.kind = effect.kind; root.dataset.element = effect.element || '';
         root.classList.toggle('reduced-motion', reduced);
         root.classList.toggle('fast-motion', fastPlaymatEffects);
-        const duration = effect.preview ? (fastPlaymatEffects ? 650 : 1150) : fastPlaymatEffects ? (effect.kind === 'victory' ? 1200 : 380) : reduced ? 850 : ({ coin: 1450, attack: 1200, ability: 950, damage: 650, knockout: 1000, victory: 3100, 'card-move': 720, 'zone-move':620, promotion:720, prize: 900 }[effect.kind] || 900);
+        const duration = effect.playedCue ? (fastPlaymatEffects ? 570 : 1050) : effect.preview ? (fastPlaymatEffects ? 650 : 1150) : fastPlaymatEffects ? (effect.kind === 'victory' ? 1200 : 380) : reduced ? 850 : ({ coin: 1450, attack: 1200, ability: 950, damage: 650, knockout: 1000, victory: 3100, 'card-move': 720, 'zone-move':620, promotion:720, prize: 900 }[effect.kind] || 900);
         root.style.setProperty('--fx-duration', `${duration}ms`);
         root.innerHTML = playmatEffectMarkup(effect, reduced);
         $('playmatEffectAnnouncement').textContent = playmatActionAnnouncement(effect) || (effect.kind === 'coin' ? `Coin flip: ${effect.heads ? 'heads' : 'tails'}.` : effect.kind === 'attack' ? `${effect.name} used ${effect.attack}.` : effect.kind === 'damage' ? `${effect.name} took ${effect.amount} damage.` : effect.kind === 'knockout' ? `${effect.name} was Knocked Out.` : effect.kind === 'card-move' ? `${PLAYER_NAMES[effect.side]} played ${effect.name}. ${effect.detail || ''}` : effect.kind === 'zone-move' ? `${PLAYER_NAMES[effect.side]}: ${effect.faceDown?`${effect.count} cards`:effect.name}, ${effect.fromZone} to ${effect.toZone}.` : effect.kind === 'promotion' ? `${effect.name} moved to the Active Spot.` : effect.kind === 'prize' ? `${effect.side === 'you' ? 'You' : 'Yami'} took ${effect.count} Prize cards.` : effect.winner === 'you' ? 'Victory! You won the match.' : effect.winner ? 'Yami won the match.' : 'The match is a draw.');
         const epoch = playmatEffectEpoch;
         playmatEffectTimer = setTimeout(() => { if (epoch === playmatEffectEpoch) { activePlaymatEffect = null; playmatEffectTimer = null; finishVisualTransition(effect);
-          if (stagedPrizeCards.has(effect)) {
+          if (effect.playedCue?.boardSwitch || stagedPrizeCards.has(effect)) {
             render();
             if (!visualTransitionBusy()) { announceTurnStart(); scheduleLocalAiTurn(3000); }
           }
@@ -19358,6 +19400,8 @@
       const topDiscard = visibleDiscard.at(-1), discardCount = visibleDiscard.length, discardImage = imageFor(topDiscard);
       const discardTop = (topDiscard ? `${discardImage ? `<img src="${escapeHtml(discardImage)}" alt="" loading="lazy">` : ''}<span class="discard-top-name">${escapeHtml(topDiscard.name)}</span>` : '<small class="discard-empty-pile">Empty</small>') + `<span class="discard-count pile-count">${discardCount}</span>`;
       const benchCards = p.bench.slice();
+      const cue = activePlaymatEffect?.playedCue?.boardSwitch;
+      if (cue?.side===side && benchCards[cue.benchIndex]?.id===cue.outgoing.id) benchCards[cue.benchIndex] = cue.incoming;
       const waiting = activeVisualTransitions.find(item => item.side === side && item.phase !== 'promotion' && item.replacement);
       if (waiting) benchCards.splice(waiting.benchIndex, 0, waiting.replacement);
       const departing = activeVisualTransitions.filter(item => item.side === side && item.zone === 'bench').reverse();
@@ -20966,6 +21010,14 @@
     $('undoBtn').addEventListener('click', undoLastAction);
     $('cardChoiceCancelBtn').addEventListener('click', () => finishCardChoice(null));
     $('cardChoiceCloseBtn').addEventListener('click', () => finishCardChoice(null));
+    $('cardChoiceOverlay').addEventListener('keydown',event=>{
+      if (event.key!=='Tab' || !activeCardChoice) return;
+      const buttons = [...$('cardChoiceOverlay').querySelectorAll('button:not(:disabled)')];
+      const edge = event.shiftKey ? buttons.at(0) : buttons.at(-1);
+      if (document.activeElement!==edge) return;
+      event.preventDefault();
+      (event.shiftKey ? buttons.at(-1) : buttons.at(0))?.focus();
+    });
     $('cancelBoardTargetBtn').addEventListener('click', () => finishBoardChoice(null));
     $('finishBoardTargetBtn').addEventListener('click', () => finishBoardChoice('finish-selection'));
     $('discardViewerCloseBtn').addEventListener('click', () => $('discardViewer').classList.add('hidden'));

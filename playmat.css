@@ -2737,3 +2737,76 @@
   .statistics-table .statistics-cover { width: 24px; }
   .statistics-table .statistics-deck-name { gap: 6px; }
 }
+
+/* Card searches and discards keep their footer visible while the cards scroll. */
+#cardChoiceOverlay[data-docked="true"] .card-choice-panel {
+  width: min(calc(var(--choice-width, 260px) + 76px), calc(100vw - 20px));
+  max-height: min(68dvh, 490px);
+}
+#cardChoiceOverlay[data-docked="true"] .card-choice-grid {
+  grid-template-columns: repeat(auto-fill,minmax(88px,1fr));
+  gap: 8px; padding: 9px; overscroll-behavior: contain;
+}
+#cardChoiceOverlay[data-docked="true"] .choice-card { position: relative; gap: 4px; padding: 5px; }
+#cardChoiceOverlay[data-docked="true"] .choice-card :is(img,.choice-card-art) { max-height: 144px; }
+.choice-card[aria-pressed="true"]::after {
+  content: "✓"; position: absolute; top: 7px; right: 7px; display: grid; place-items: center;
+  width: 22px; height: 22px; border-radius: 50%; background: #ffda78; color: #142d47; font-weight: 900;
+}
+.choice-card:focus-visible { outline: 2px solid #a0ddff; outline-offset: -2px; }
+#cardChoiceOverlay .card-choice-head, #cardChoiceOverlay .card-choice-foot { background: #102a47; }
+#cardChoiceOverlay .card-choice-foot { justify-content: space-between; }
+#cardChoiceOverlay #cardChoiceConfirmBtn { min-height: 38px; }
+#cardChoiceOverlay .card-choice-count { margin: 0; font-weight: 700; }
+.target-option { box-shadow: 0 0 0 5px #f8d16d30,0 0 18px #f8d16d47 !important; }
+@media (max-width: 600px) and (orientation: portrait) {
+  #cardChoiceOverlay[data-docked="true"] { background: #03112168; }
+  #cardChoiceOverlay[data-docked="true"] .card-choice-panel {
+    inset: auto 0 0;
+    width: 100%; max-height: min(68dvh, 520px); transform: none;
+    border-radius: 17px 17px 0 0; border-bottom: 0;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  #cardChoiceOverlay[data-docked="true"] .card-choice-grid {
+    grid-template-columns: repeat(3,minmax(0,1fr)); padding: 9px 11px;
+  }
+  #cardChoiceOverlay[data-docked="true"] .choice-card :is(img,.choice-card-art) { max-height: 158px; }
+  #cardChoiceOverlay .card-choice-foot { padding: 8px 11px; }
+  #cardChoiceOverlay #cardChoiceConfirmBtn { min-height: 42px; font-size: 12px; }
+  @media (prefers-reduced-motion: no-preference) {
+    #cardChoiceOverlay[data-docked="true"] .card-choice-panel { animation: choice-tray-rise .22s ease-out both; }
+  }
+}
+@keyframes choice-tray-rise { from { translate: 0 32px; opacity: 0; } to { translate: 0 0; opacity: 1; } }
+
+.fx-played-cue {
+  position: absolute; transform: translate(-50%,-50%); z-index: 2;
+  display: flex; align-items: center; gap: 8px;
+  width: clamp(150px,38vw,218px); min-height: 67px; padding: 7px;
+  border: 1px solid #95d8ff; border-radius: 10px; background: #081b33f5; box-shadow: 0 5px 24px #000b;
+}
+.fx-played-cue img { width: 44px; aspect-ratio: 5 / 7; object-fit: contain; border-radius: 4px; flex: none; }
+.fx-played-cue div { display: grid; min-width: 0; gap: 3px; overflow-wrap: anywhere; }
+.fx-played-cue small { color: #a0dcff; font-size: 9px; font-weight: 800; }
+.fx-played-cue strong { color: #fff0bb; font-size: 12px; line-height: 1.15; }
+.fx-played-cue span { color: #d9e8f5; font-size: 10px; line-height: 1.15; }
+.fx-play-target {
+  position: absolute; transform: translate(-50%,-50%);
+  width: clamp(49px,15vw,94px); aspect-ratio: 5 / 7;
+  border: 3px solid #9ae0ff; border-radius: 9px;
+  box-shadow: 0 0 0 4px #78d7ff42,0 0 21px #6acbff80;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .fx-played-cue { animation: played-cue-in .15s ease-out both; }
+}
+@keyframes played-cue-in { from { opacity: 0; } to { opacity: 1; } }
+.playmat-effects .fx-played-transfer {
+  z-index: 3; width: 44px; height: 62px; margin: -31px -22px;
+  animation: played-cue-transfer var(--fx-duration) ease-in-out both;
+}
+@keyframes played-cue-transfer {
+  0%, 67% { opacity: 0; }
+  70% { opacity: 1; transform: translate(0,0); }
+  92% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--travel-x),var(--travel-y)) scale(.65); }
+}
