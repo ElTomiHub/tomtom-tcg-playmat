@@ -7981,7 +7981,7 @@
         `<div class="statistics-chart-row"><span>${escapeHtml(label)}</span><div class="statistics-chart-bar" aria-hidden="true"><span class="statistics-chart-wins" style="width:${100*wins/max}%"></span><span class="statistics-chart-losses" style="width:${100*losses/max}%"></span></div><strong>${wins} W · ${losses} L</strong></div>`).join("") :
         '<p class="data-tools-note">No results with saved difficulty and archetype yet.</p>');
     }
-    function matchupStatisticsMarkup(deckId, { query = "", levelFilter = "", styleFilter = "", sort = "", played = false } = {}) {
+    function matchupStatisticsMarkup(deckId, { query = "", levelFilter = "", styleFilter = "", sort = "", played = false, compact = false } = {}) {
       const levels = Object.entries(YAMI_DIFFICULTY_LABELS).filter(([level]) => !levelFilter || level === levelFilter);
       const styles = Object.entries(YAMI_STYLE_LABELS).filter(([style]) => !styleFilter || style === styleFilter);
       const difficultyWeights = yamiDifficultyWeights();
@@ -8022,7 +8022,6 @@
       }).filter(entry => !played || entry.games);
       if (sort) entries.sort((a,b) => (sort === 'name' ? 0 : sort === 'least' ? a.games-b.games : b[sort] - a[sort]) || a.deck.name.localeCompare(b.deck.name));
       if (!entries.length) return '<p>No matchups match these filters.</p>';
-      const mobileRows = [];
       const rows = entries.map(({deck: opponent}) => {
         const overall = overallMatchups[opponent.id]?.bySide?.you;
         const matchup = yamiMatchup(opponent.id, deckId);
@@ -8037,20 +8036,21 @@
             return {label:styleLabel,wins:record?.losses,losses:record?.wins,chance};
           })};
         });
-        const deck = `<span class="statistics-deck-name">${statisticsDeckCover(opponent)}<span>${escapeHtml(deckDisplayName(opponent))}</span></span>`;
+        const name = `${statisticsDeckCover(opponent)}<span>${escapeHtml(deckDisplayName(opponent))}</span>`;
         const total = resultText(overall?.wins,overall?.losses,overall?.draws || 0);
-        mobileRows.push(`<details class="statistics-opponent"><summary>${deck}<span class="statistics-overall">${total}</span><span class="statistics-chevron" aria-hidden="true"></span></summary>
+        if (compact) return `<details class="statistics-opponent"><summary><span class="statistics-deck-name">${name}</span><span class="statistics-overall">${total}</span><span class="statistics-chevron" aria-hidden="true"></span></summary>
           <div class="statistics-breakdown">${breakdown.map(({label,styles:group})=>`<section><h3>${escapeHtml(label)}</h3><dl>${group.map(row=>
-            `<div><dt>${escapeHtml(row.label)}</dt><dd>${resultText(row.wins,row.losses,null,row.chance)}</dd></div>`).join('')}</dl></section>`).join('')}</div></details>`);
-        return `<tr><th scope="row">${deck}</th>${cell(overall?.wins,overall?.losses,overall?.draws || 0)}${breakdown.flatMap(({styles:group})=>
+            `<div><dt>${escapeHtml(row.label)}</dt><dd>${resultText(row.wins,row.losses,null,row.chance)}</dd></div>`).join('')}</dl></section>`).join('')}</div></details>`;
+        return `<tr><th scope="row"><div class="statistics-deck-name">${name}</div></th>${cell(overall?.wins,overall?.losses,overall?.draws || 0)}${breakdown.flatMap(({styles:group})=>
           group.map((row,index)=>cell(row.wins,row.losses,null,index===0,row.chance))).join('')}</tr>`;
       });
+      if (compact) return `<section class="statistics-mobile-results" aria-label="Matchup records">
+        <header><h2>Matchup records</h2><span>Overall · W–L–D</span></header>${rows.join('')}</section>`;
       return `<table class="statistics-table" aria-describedby="statisticsNote"><thead><tr>
         <th scope="col" rowspan="2">Yami’s deck</th><th scope="col" rowspan="2">Overall</th>
         ${levels.map(([,label]) => `<th scope="colgroup" colspan="${styles.length}" data-group-start>${escapeHtml(label)}</th>`).join("")}</tr><tr>
         ${levels.flatMap(() => styles.map(([,label], index) => `<th scope="col"${index === 0 ? " data-group-start" : ""}>${escapeHtml(label)}</th>`)).join("")}
-        </tr></thead><tbody>${rows.join("")}</tbody></table><section class="statistics-mobile-results" aria-label="Matchup records">
-          <header><h2>Matchup records</h2><span>Overall · W–L–D</span></header>${mobileRows.join('')}</section>`;
+        </tr></thead><tbody>${rows.join("")}</tbody></table>`;
     }
     function matchupUsageFor(deckId, decks = decksInManagerDisplayOrder()) {
       const records = deckMatchupsFor(deckId);
@@ -8111,14 +8111,14 @@
       $("statisticsResults").innerHTML = deckId ? matchupStatisticsMarkup(deckId, {
         query: $("statsOpponent").value.trim().toLocaleLowerCase(),
         levelFilter: $("statsLevel").value, styleFilter: $("statsStyle").value,
-        sort: $("statsSort").value, played: $("statsPlayed").checked
+        sort: $("statsSort").value, played: $("statsPlayed").checked, compact: mobileMatchLayout()
       }) : "<p>Add a deck to see matchup statistics.</p>";
     }
     function openMatchupStatistics() {
       const select = $("statisticsDeck"), previous = select.value;
       select.innerHTML = decksInManagerDisplayOrder().map(deck => `<option value="${escapeHtml(deck.id)}">${escapeHtml(deckDisplayName(deck))}</option>`).join("");
       if (registeredDecks.some(deck => deck.id === previous)) select.value = previous;
-      const compact = window.matchMedia('(max-width: 600px) and (orientation: portrait)').matches;
+      const compact = mobileMatchLayout();
       if ($('statisticsPage').classList.contains('app-hidden')) {
         $('statisticsFilterPanel').open = !compact;
         $('statisticsNotes').open = !compact;
@@ -20716,6 +20716,9 @@
       openStartGame({suggestedMatchup:{you:toma.id,codex:yami.id,difficulty:button.dataset.statisticsDifficulty}});
     });
     $("statisticsDeck").addEventListener("change", renderMatchupStatistics);
+    window.matchMedia('(max-width: 600px) and (orientation: portrait)').addEventListener?.('change',()=>{
+      if (!$('statisticsPage').classList.contains('app-hidden')) renderStatisticsTable();
+    });
     $("statisticsBack").addEventListener("click", () => { setView("menu"); $("menuStatistics").focus(); });
     $('menuManageDecks').addEventListener('click', openDeckManager);
     $('homeBtn').addEventListener('click', () => {
