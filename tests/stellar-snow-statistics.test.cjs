@@ -41,11 +41,14 @@ test('Master identifies Jet Blow prizes on both opponents and keeps a large hand
 test('Statistics counts the Toma seat once, ranks its opponents and suggests an unplayed pairing',()=>{
   const {runner,run} = setup();
   run(`registeredDecks = ['alpha','beta','gamma'].map(id=>({...registeredDecks[0],id,name:id}));
-       deckStats.alpha = {matchups:{beta:{bySide:{you:{wins:2,losses:3,draws:1},codex:{wins:18}}}}};
+       deckStats.alpha = {matchups:{beta:{bySide:{you:{wins:12,losses:3,draws:1},codex:{wins:18}}}}};
+       deckStats.beta = { matchups:{alpha:{bySide:{codex:{
+         styles:{control:{wins:7,losses:8}}, difficulties:{competitor:{styles:{control:{wins:3,losses:2}}}}
+       }}}} };
        $('statisticsDeck').value='alpha';
        renderMatchupStatistics();`);
-  assert.deepEqual(Array.from(run("matchupUsageFor('alpha')"),pair=>pair.games),[0,6,0]);
-  assert.match(runner.document.getElementById('statisticsUsage').innerHTML,/beta · 6/);
+  assert.deepEqual(Array.from(run("matchupUsageFor('alpha')"),pair=>pair.games),[0,5,0]);
+  assert.match(runner.document.getElementById('statisticsUsage').innerHTML,/beta · 5/);
   assert.match(runner.document.getElementById('statisticsSuggestions').innerHTML,/New matchup[\s\S]*gamma/);
   assert.match(runner.document.getElementById('statisticsSuggestions').innerHTML,/Rematch[\s\S]*2 W · 3 L/);
   assert.match(runner.document.getElementById('statisticsSuggestions').innerHTML,/Try Master[\s\S]*beta[\s\S]*data-statistics-difficulty="master"/);

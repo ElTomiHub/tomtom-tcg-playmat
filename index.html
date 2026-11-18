@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="playmat.css?v=board-icons3">
+  <link rel="stylesheet" href="playmat.css?v=campaign-medals1">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -100,7 +100,7 @@
         <div id="statisticsUsage"></div>
         <div id="statisticsSuggestions"></div>
       </section>
-      <details class="statistics-notes" id="statisticsNotes" open><summary>How to read these results</summary><p class="data-tools-note" id="statisticsNote">Results are from Toma’s perspective. Overall shows wins, losses, and draws. The difficulty columns show wins and losses for matches with saved Yami settings. Older matches, draws, and forfeits may appear only in Overall. A dash means no recorded results. The small percentages show the chance of each combination for that matchup when both settings are on Random.</p></details>
+      <details class="statistics-notes" id="statisticsNotes" open><summary>How to read these results</summary><p class="data-tools-note" id="statisticsNote">Results are from Toma’s perspective. Statistics count wins and losses with both Yami settings recorded. Overall combines all archetypes and difficulties. A dash means no recorded results. The small percentages show the chance of each combination for that matchup when both settings are on Random.</p></details>
       <details class="statistics-filter-panel" id="statisticsFilterPanel" open><summary>Filters &amp; sorting</summary><div class="statistics-controls">
         <label>Opponent <input class="btn" id="statsOpponent" type="search" placeholder="Search deck name"></label>
         <label>Difficulty <select class="btn" id="statsLevel"><option value="">All difficulties</option><option value="casual">Casual</option><option value="competitor">Competitor</option><option value="master">Master</option></select></label>
@@ -6750,16 +6750,21 @@
         overall.matchups ||= deckMatchupsFor(deckId);
         recordDeckMatchup(overall.matchups, game.deckIds[oppositeSide(side)], side, winner);
         if (side === 'codex' && winner && localAiEnabled && game.finishReason !== 'Toma forfeited' &&
-            Object.hasOwn(YAMI_STYLE_LABELS, game.yamiStyle) && game.deckIds.you) {
+            Object.hasOwn(YAMI_STYLE_LABELS, game.yamiStyle) && Object.hasOwn(YAMI_DIFFICULTY_LABELS,game.yamiDifficulty) && game.deckIds.you) {
           const matchup = overall.matchups[game.deckIds.you].bySide.codex;
-          const difficulty = game.yamiDifficulty || 'competitor';
+          const difficulty = game.yamiDifficulty;
           matchup.difficulties ||= {};
           const level = matchup.difficulties[difficulty] ||= {wins:0, losses:0, styles:{}};
-          const styles = difficulty === 'competitor' ? (matchup.styles ||= {}) : level.styles;
+          const styles = level.styles ||= {};
           const result = styles[game.yamiStyle] ||= { wins:0, losses:0 };
           const outcome = winner === 'codex' ? 'wins' : 'losses';
           level[outcome]++;
           result[outcome]++;
+          if (difficulty==='competitor') {
+            const legacyStyles = matchup.styles ||= {};
+            const legacy = legacyStyles[game.yamiStyle] ||= {wins:0,losses:0};
+            legacy[outcome]++;
+          }
         }
         for (const stats of [overall, statsForDeck(deckId, side)]) {
           stats.completed++;
@@ -7690,7 +7695,7 @@
         const pWidth = Math.round(counts.pokemon / denom * 100), tWidth = Math.round(counts.trainer / denom * 100), eWidth = Math.max(0, 100 - pWidth - tWidth);
         const playLabel = readiness.playable ? 'Play deck' : readiness.canStart ? 'Play with warning' : 'Verify card data to play';
         return `<article class="deck-library-card">
-          <div class="deck-library-card-head"><div class="deck-cover-thumb">${deck.coverImage ? `<img src="${escapeHtml(deck.coverImage)}" alt="${escapeHtml(deck.name)} deck cover">` : coverCard?.meta?.image ? `<img src="${escapeHtml(coverCard.meta.image)}" alt="${escapeHtml(coverCard.name)} deck cover">` : `<span>${escapeHtml((coverCard?.name || deck.name).slice(0, 2).toUpperCase())}</span>`}</div><div class="deck-library-title"><h3>${escapeHtml(deckDisplayName(deck))}</h3>${campaignBadge(deck.id) ? campaignChampionBadge() : ''}<small>${parsed.total} cards · ${unique.size} unique${deck.builtIn ? ' · starter deck' : ''}${deck.coverImage ? ' · Custom picture' : coverCard ? ` · Cover: ${escapeHtml(coverCard.name)}` : ''}</small><span class="deck-readiness ${readiness.playable ? 'ready' : readiness.canStart ? 'manual' : 'incomplete'}">${readiness.playable ? 'Playable' : readiness.canStart ? 'Manual effects' : 'Incomplete'}</span>${deckStrategyBadge(deck,parsed)}${deckCategoryPicker(deck)}</div><div class="deck-library-actions"><button class="btn" type="button" data-move-deck="${escapeHtml(deck.id)}" data-direction="-1">↑ Up</button><button class="btn" type="button" data-move-deck="${escapeHtml(deck.id)}" data-direction="1">↓ Down</button><button class="btn primary" data-play-deck="${escapeHtml(deck.id)}" ${readiness.canStart ? '' : 'disabled'} title="${readiness.canStart ? 'Choose this deck and open game setup.' : escapeHtml(readinessText)}">${escapeHtml(playLabel)}</button><button class="btn" data-deck-history="${escapeHtml(deck.id)}">Match history</button><button class="btn" data-cover-deck="${escapeHtml(deck.id)}">Change cover</button><button class="btn" data-edit-deck="${escapeHtml(deck.id)}">Edit deck</button><button class="btn" data-implement-deck="${escapeHtml(deck.id)}" ${readiness.playable ? 'hidden' : ''}>Update card data</button><button class="btn danger" data-delete-deck="${escapeHtml(deck.id)}" title="Delete this deck from the local library">Delete deck</button></div></div>
+          <div class="deck-library-card-head"><div class="deck-cover-thumb">${deck.coverImage ? `<img src="${escapeHtml(deck.coverImage)}" alt="${escapeHtml(deck.name)} deck cover">` : coverCard?.meta?.image ? `<img src="${escapeHtml(coverCard.meta.image)}" alt="${escapeHtml(coverCard.name)} deck cover">` : `<span>${escapeHtml((coverCard?.name || deck.name).slice(0, 2).toUpperCase())}</span>`}</div><div class="deck-library-title"><h3>${escapeHtml(deckDisplayName(deck))}</h3>${campaignDeckBadge(deck.id)}<small>${parsed.total} cards · ${unique.size} unique${deck.builtIn ? ' · starter deck' : ''}${deck.coverImage ? ' · Custom picture' : coverCard ? ` · Cover: ${escapeHtml(coverCard.name)}` : ''}</small><span class="deck-readiness ${readiness.playable ? 'ready' : readiness.canStart ? 'manual' : 'incomplete'}">${readiness.playable ? 'Playable' : readiness.canStart ? 'Manual effects' : 'Incomplete'}</span>${deckStrategyBadge(deck,parsed)}${deckCategoryPicker(deck)}</div><div class="deck-library-actions"><button class="btn" type="button" data-move-deck="${escapeHtml(deck.id)}" data-direction="-1">↑ Up</button><button class="btn" type="button" data-move-deck="${escapeHtml(deck.id)}" data-direction="1">↓ Down</button><button class="btn primary" data-play-deck="${escapeHtml(deck.id)}" ${readiness.canStart ? '' : 'disabled'} title="${readiness.canStart ? 'Choose this deck and open game setup.' : escapeHtml(readinessText)}">${escapeHtml(playLabel)}</button><button class="btn" data-deck-history="${escapeHtml(deck.id)}">Match history</button><button class="btn" data-cover-deck="${escapeHtml(deck.id)}">Change cover</button><button class="btn" data-edit-deck="${escapeHtml(deck.id)}">Edit deck</button><button class="btn" data-implement-deck="${escapeHtml(deck.id)}" ${readiness.playable ? 'hidden' : ''}>Update card data</button><button class="btn danger" data-delete-deck="${escapeHtml(deck.id)}" title="Delete this deck from the local library">Delete deck</button></div></div>
           <details class="deck-library-details" data-deck-details="${escapeHtml(deck.id)}"><summary>Deck details &amp; performance</summary><div class="deck-library-body"><div class="deck-library-overview">
           <div class="deck-preview-grid">${preview}</div>
           <div class="deck-readiness-note">${escapeHtml(readinessText)}</div>
@@ -7816,10 +7821,12 @@
       }
       return true;
     }
-    function campaignBadge(deckId) {
-      const run = loadCampaign();
-      return deckStats[deckId]?.campaignChampion === true ||
-        run?.deckId === deckId && run.results.length === CAMPAIGN_LEVELS.length && run.results.filter(result=>result==='win').length >= 3;
+    function campaignDeckBadge(deckId) {
+      const run = loadCampaign(), stats = deckStats[deckId];
+      const recentWins = run?.deckId === deckId && run.results.length === CAMPAIGN_LEVELS.length ?
+        run.results.filter(result=>result==='win').length : 0;
+      const best = Math.max(stats?.campaign?.bestWins || 0, recentWins);
+      return best >= 3 || stats?.campaignChampion === true ? campaignChampionBadge(best) : '';
     }
     function playableCampaignDecks() {
       return registeredDecks.filter(deck => deckReadiness(deck).playable);
@@ -7843,7 +7850,7 @@
       panel.innerHTML = `<div class="matchup-deck-hero"><div class="matchup-deck-cover">${image ?
         `<img src="${escapeHtml(image)}" alt="">` : escapeHtml(deck.name.slice(0,2))}</div><div>
         <h3 class="matchup-deck-name">${escapeHtml(deckDisplayName(deck))}</h3>
-        ${campaignBadge(deck.id) ? campaignChampionBadge() : ''}</div></div>
+        ${campaignDeckBadge(deck.id)}</div></div>
         <div class="matchup-stat-grid">${stat('Completed runs',runs)}${stat('Victories',clears)}${stat('Best run',best == null ? '—' : best+'/5')}</div>`;
     }
     function newCampaign(deckId, pool) {
@@ -7878,16 +7885,19 @@
       $('campaignProgress').querySelectorAll('[data-campaign-node]').forEach(node=>
         node.setAttribute('aria-pressed',String(Number(node.dataset.campaignNode)===index)));
     }
-    function campaignChampionBadge() {
-      return '<span class="campaign-badge"><span aria-hidden="true">🏆</span> Campaign Champion</span>';
+    function campaignChampionBadge(wins, large = false) {
+      const tier = {3:'Bronze',4:'Silver',5:'Gold'}[wins];
+      const label = tier ? `Campaign Champion · ${tier} · ${wins}/5 wins` : 'Campaign Champion';
+      return `<span class="campaign-badge${large ? ' campaign-badge-large' : ''}" data-tier="${tier?.toLowerCase() || 'legacy'}">
+        <span class="campaign-medal" aria-hidden="true"><b>${tier ? wins : '★'}</b></span><span>${label}</span></span>`;
     }
     function openCampaign({newRun = false, celebrate = false} = {}) {
       const run = loadCampaign(), finished = run?.results.length === CAMPAIGN_LEVELS.length;
       campaignChoosingNewRun = newRun && !!run && !finished;
       const choosingDeck = !run || finished || campaignChoosingNewRun;
-      const won = finished && run.results.filter(result=>result==='win').length >= 3;
       const deckName = id => deckLabel(id,'Unavailable deck');
       const wins = run?.results.filter(result=>result==='win').length || 0;
+      const won = finished && wins >= 3;
       const losses = run?.results.filter(result=>result==='loss').length || 0;
       $('campaignHeading').textContent = won ? '★ Campaign victory!' : finished ? 'Circuit complete' : 'The Road to Master';
       const score = run ? `<strong>${escapeHtml(deckName(run.deckId))}</strong> · ${wins} wins · ${losses} losses · ${run.results.length-wins-losses} draws` :
@@ -7904,8 +7914,7 @@
             ${current ? 'aria-current="step"' : ''} ${result || current ? '' : 'disabled'}>${index+1}</button>
             <small>${result ? {win:'Won',loss:'Lost',draw:'Draw'}[result] : current ? 'Up next' : index===4 ? 'Final' : 'Locked'}</small></li>`;
         }).join('')}</ol>${won ? `<div class="campaign-trophy${celebration ? ' campaign-trophy-reveal' : ''}${celebration && fastPlaymatEffects ? ' campaign-celebration-fast' : ''}">
-          ${cover ? `<img src="${escapeHtml(cover)}" alt="">` : ''}<span class="campaign-trophy-icon" aria-hidden="true">🏆</span>
-          <div>${campaignChampionBadge()}<strong>${escapeHtml(deckName(run.deckId))}</strong></div></div>` : ''}`;
+          ${cover ? `<img src="${escapeHtml(cover)}" alt="">` : ''}<div>${campaignChampionBadge(wins,true)}<strong>${escapeHtml(deckName(run.deckId))}</strong></div></div>` : ''}`;
       renderCampaignArena(run, Math.min(run?.results.length || 0,CAMPAIGN_LEVELS.length-1));
       $('campaignDeckChoice').hidden = !choosingDeck;
       const playable = choosingDeck ? playableCampaignDecks() : [];
@@ -8052,7 +8061,7 @@
         let wins = 0, losses = 0;
         for (const opponent of registeredDecks) {
           const matchup = yamiMatchup(opponent.id, deckId);
-          const styles = level === "competitor" ? matchup?.styles : matchup?.difficulties?.[level]?.styles;
+          const styles = matchup?.difficulties?.[level]?.styles;
           for (const style of Object.keys(YAMI_STYLE_LABELS)) {
             wins += styles?.[style]?.losses || 0;
             losses += styles?.[style]?.wins || 0;
@@ -8083,34 +8092,20 @@
         const border = groupStart ? " data-group-start" : "";
         return `<td${wins || losses || draws ? '' : ' class="no-results"'}${border}>${resultText(wins,losses,draws,chance)}</td>`;
       };
-      const overallMatchups = deckMatchupsFor(deckId);
       const opponents = decksInManagerDisplayOrder().filter(deck => deckDisplayName(deck).toLocaleLowerCase().includes(query));
-      const filtered = levelFilter || styleFilter;
-      function counts(opponent) {
-        if (!filtered) return overallMatchups[opponent.id]?.bySide?.you || {};
-        const matchup = yamiMatchup(opponent.id, deckId);
-        let wins = 0, losses = 0;
-        for (const [level] of levels) {
-          const records = level === 'competitor' ? matchup?.styles : matchup?.difficulties?.[level]?.styles;
-          for (const [style] of styles) {
-            wins += records?.[style]?.losses || 0;
-            losses += records?.[style]?.wins || 0;
-          }
-        }
-        return {wins, losses};
-      }
+
       const entries = opponents.map(deck => {
-        const {wins = 0, losses = 0, draws = 0} = counts(deck);
-        const games = wins + losses + draws;
+        const {wins,losses} = taggedMatchupResults(yamiMatchup(deck.id,deckId),levels,styles);
+        const games = wins + losses;
         return {deck, wins, losses, games, rate: games ? wins / games : -1};
       }).filter(entry => !played || entry.games);
       if (sort) entries.sort((a,b) => (sort === 'name' ? 0 : sort === 'least' ? a.games-b.games : b[sort] - a[sort]) || a.deck.name.localeCompare(b.deck.name));
       if (!entries.length) return '<p>No matchups match these filters.</p>';
       const rows = entries.map(({deck: opponent}) => {
-        const overall = overallMatchups[opponent.id]?.bySide?.you;
         const matchup = yamiMatchup(opponent.id, deckId);
+        const overall = taggedMatchupResults(matchup);
         const breakdown = levels.map(([level,label]) => {
-          const records = level === "competitor" ? matchup?.styles : matchup?.difficulties?.[level]?.styles;
+          const records = matchup?.difficulties?.[level]?.styles;
           const difficultyChance = difficultyWeights[difficultyKeys.indexOf(level)] / difficultyTotal;
           const styleWeights = yamiStyleWeights(opponent.id,deckId,level);
           const styleTotal = styleWeights.reduce((sum,weight)=>sum+weight,0);
@@ -8121,26 +8116,34 @@
           })};
         });
         const name = `${statisticsDeckCover(opponent)}<span>${escapeHtml(deckDisplayName(opponent))}</span>`;
-        const total = resultText(overall?.wins,overall?.losses,overall?.draws || 0);
+        const total = resultText(overall?.wins,overall?.losses);
         if (compact) return `<details class="statistics-opponent"><summary><span class="statistics-deck-name">${name}</span><span class="statistics-overall">${total}</span><span class="statistics-chevron" aria-hidden="true"></span></summary>
           <div class="statistics-breakdown">${breakdown.map(({label,styles:group})=>`<section><h3>${escapeHtml(label)}</h3><dl>${group.map(row=>
             `<div><dt>${escapeHtml(row.label)}</dt><dd>${resultText(row.wins,row.losses,null,row.chance)}</dd></div>`).join('')}</dl></section>`).join('')}</div></details>`;
-        return `<tr><th scope="row"><div class="statistics-deck-name">${name}</div></th>${cell(overall?.wins,overall?.losses,overall?.draws || 0)}${breakdown.flatMap(({styles:group})=>
+        return `<tr><th scope="row"><div class="statistics-deck-name">${name}</div></th>${cell(overall?.wins,overall?.losses)}${breakdown.flatMap(({styles:group})=>
           group.map((row,index)=>cell(row.wins,row.losses,null,index===0,row.chance))).join('')}</tr>`;
       });
       if (compact) return `<section class="statistics-mobile-results" aria-label="Matchup records">
-        <header><h2>Matchup records</h2><span>Overall · W–L–D</span></header>${rows.join('')}</section>`;
+        <header><h2>Matchup records</h2><span>Overall · W–L</span></header>${rows.join('')}</section>`;
       return `<table class="statistics-table" aria-describedby="statisticsNote"><thead><tr>
         <th scope="col" rowspan="2">Yami’s deck</th><th scope="col" rowspan="2">Overall</th>
         ${levels.map(([,label]) => `<th scope="colgroup" colspan="${styles.length}" data-group-start>${escapeHtml(label)}</th>`).join("")}</tr><tr>
         ${levels.flatMap(() => styles.map(([,label], index) => `<th scope="col"${index === 0 ? " data-group-start" : ""}>${escapeHtml(label)}</th>`)).join("")}
         </tr></thead><tbody>${rows.join("")}</tbody></table>`;
     }
+    function taggedMatchupResults(matchup, levels = Object.entries(YAMI_DIFFICULTY_LABELS), styles = Object.entries(YAMI_STYLE_LABELS)) {
+      let wins = 0, losses = 0;
+      for (const [level] of levels) for (const [style] of styles) {
+        const record = matchup?.difficulties?.[level]?.styles?.[style];
+        wins += record?.losses || 0;
+        losses += record?.wins || 0;
+      }
+      return {wins,losses};
+    }
     function matchupUsageFor(deckId, decks = decksInManagerDisplayOrder()) {
-      const records = deckMatchupsFor(deckId);
       return decks.map(deck=>{
-        const result = records[deck.id]?.bySide?.you;
-        return {deck,games:deckCompletedGames(result),wins:result?.wins || 0,losses:result?.losses || 0};
+        const {wins,losses} = taggedMatchupResults(yamiMatchup(deck.id,deckId));
+        return {deck,games:wins+losses,wins,losses};
       });
     }
     function renderStatisticsUsage(decks) {

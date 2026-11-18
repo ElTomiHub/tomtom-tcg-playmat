@@ -144,11 +144,16 @@ test('campaign locks the deck, advances after losses, and awards the winning dec
     if (round<levels.length-1) await el('matchCampaignBtn').click();
   }
   assert.match(el('campaignHeading').textContent,/Campaign victory/);
+  assert.match(el('campaignProgress').innerHTML,/data-tier="bronze"[\s\S]*3\/5 wins/);
   assert.match(el('campaignProgress').innerHTML,/campaign-trophy[^>]*>[\s\S]*Campaign Champion/);
   assert.match(el('campaignDeckPreview').innerHTML,/3\/5/);
   await el('closeCampaignBtn').click();
   await el('menuManageDecks').click();
   assert.match(el('deckLibraryGrid').innerHTML,/Campaign Champion/);
+  assert.match(vm.runInContext('campaignChampionBadge(4)',r.context),/data-tier="silver"[\s\S]*4\/5 wins/);
+  assert.match(vm.runInContext('campaignChampionBadge(5)',r.context),/data-tier="gold"[\s\S]*5\/5 wins/);
+  const best = vm.runInContext('statsForDeck('+JSON.stringify(f.decks.human.id)+').campaign.bestWins=5;campaignDeckBadge('+JSON.stringify(f.decks.human.id)+')',r.context);
+  assert.match(best,/data-tier="gold"/);
   await el('startGameBtn').click();
   assert.equal(el('setupModal').classList.contains('campaign-coin-setup'),false);
   assert.equal(el('youRegisteredDeck').disabled,false);

@@ -321,8 +321,11 @@ test('matchup statistics show Toma’s results by Yami difficulty and archetype'
   game.yamiDifficulty = 'competitor';
   game.yamiStyle = 'aggro';
   runInContext("recordDeckResult('codex')", r.context);
+  game.statsRecorded = false;
+  delete game.yamiDifficulty;
+  runInContext("recordDeckResult('you')", r.context);
   const html = runInContext('matchupStatisticsMarkup(game.deckIds.you)', r.context);
-  const row = html.match(/<tr><th scope="row">.*?<\/th><td>1 W · 1 L · 0 D<\/td>(.*?)<\/tr>/)?.[1];
+  const row = html.match(/<tr><th scope="row">.*?<\/th><td>1 W · 1 L<\/td>(.*?)<\/tr>/)?.[1];
   assert.ok(row);
   assert.deepEqual(Array.from(row.matchAll(/<td[^>]*>([^<]*)<small/g), match => match[1]),
     ['—','—','1 W · 0 L','0 W · 1 L','—','—','—','—','—']);
