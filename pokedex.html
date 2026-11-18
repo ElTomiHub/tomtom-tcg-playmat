@@ -6,9 +6,9 @@
   <meta name="theme-color" content="#0b213b">
   <title>Pokédex · Pokémon TCG Playmat</title>
   <link rel="icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="assets/pokedex.css?v=4">
+  <link rel="stylesheet" href="assets/pokedex.css?v=5">
   <script defer src="assets/starter-library.js"></script>
-  <script defer src="assets/pokedex.js?v=4"></script>
+  <script defer src="assets/pokedex.js?v=5"></script>
 </head>
 <body>
   <main>
@@ -62,6 +62,7 @@
       <h2 id="editorHeading">Add card</h2>
       <label>Name <input name="name" required maxlength="120"></label>
       <label id="speciesField">National Pokédex number <input name="pokemonId" type="number" min="1" max="1025" step="1"></label>
+      <label id="formField" hidden>Pokémon form <select name="pokemonForm"></select></label>
       <div class="inputs">
         <label>Set <input name="set" maxlength="100"></label>
         <label>Card number <input name="number" maxlength="40"></label>

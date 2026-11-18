@@ -1,6 +1,6 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
-const {parseCSV,convertRows,collectionCounts,selectCollection,mergeCollection,previewCounts,inRegion,normalizeSavedVariants}=require('../assets/pokedex.js');
+const {parseCSV,convertRows,collectionCounts,selectCollection,mergeCollection,previewCounts,inRegion,normalizeSavedVariants,binderNumber,catalogEntry,entryInRegion,tomaPokemonNames}=require('../assets/pokedex.js');
 
 test('collection CSV supports semicolons, BOM, escaped quotes and multiline fields',()=>{
   const csv='\uFEFFid;name;notes\r\n1;"Mime; Jr.";"First\r\nSecond ""line"""\r\n';
@@ -46,4 +46,23 @@ test('region filter uses National Pokédex boundaries',()=>{
   assert.equal(inRegion(899,'Hisui'),true);
   assert.equal(inRegion(906,'Hisui'),false);
   assert.equal(inRegion(1025,'Paldea'),true);
+});
+
+test('regional forms own separate prints and keep the original species binder',()=>{
+  const standard=catalogEntry({pokemonId:59,pokemonKey:'59'});
+  const hisuian=catalogEntry({pokemonId:59,pokemonKey:'59-hisuian'});
+  assert.notEqual(standard.key,hisuian.key);
+  assert.equal(hisuian.sprite,10230);
+  assert.equal(binderNumber(hisuian.id),1);
+  assert.equal(entryInRegion(hisuian,'Hisui'),true);
+  assert.equal(entryInRegion(hisuian,'Kanto'),false);
+  assert.equal(entryInRegion(standard,'Kanto'),true);
+  assert.deepEqual([386,387,721,722].map(binderNumber),[1,2,2,3]);
+});
+
+test('the Toma marker uses local deck overrides and excludes deleted and non-Toma decks',()=>{
+  const deck=(id,category,name)=>({id,category,decklist:'Pokémon: 1\n1 '+name+' S9A 020\nTrainer: 1\n1 Arven SVI 166'});
+  const bundled=[deck('one','Toma','Squirtle'),deck('two','Master','Charizard'),deck('three','Toma','Pikachu')];
+  const saved=[deck('one','Toma','Hisuian Arcanine V')];
+  assert.deepEqual([...tomaPokemonNames(bundled,saved,new Set(['three']),[])],['hisuian arcanine']);
 });

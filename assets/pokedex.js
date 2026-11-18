@@ -8,16 +8,128 @@
   const variants = ['normal','holo','reverse-holo','pokeball-reverse-holo','masterball-reverse-holo','energy-reverse-holo','illustration-rare','special'];
   const storageKey = 'tomtom.pokedex.collection.v1';
   const totalSpecies = 1025;
-  const pageSize = 48;
+  const pageSize = 54;
+  // Form keys and sprite IDs follow the Lovable collection format.
+  const forms = [
+    [19, 'Alolan', 10091],
+    [20, 'Alolan', 10092],
+    [26, 'Alolan', 10100],
+    [27, 'Alolan', 10101],
+    [28, 'Alolan', 10102],
+    [37, 'Alolan', 10103],
+    [38, 'Alolan', 10104],
+    [50, 'Alolan', 10105],
+    [51, 'Alolan', 10106],
+    [52, 'Alolan', 10107],
+    [53, 'Alolan', 10108],
+    [74, 'Alolan', 10109],
+    [75, 'Alolan', 10110],
+    [76, 'Alolan', 10111],
+    [88, 'Alolan', 10112],
+    [89, 'Alolan', 10113],
+    [103, 'Alolan', 10114],
+    [105, 'Alolan', 10115],
+    [52, 'Galarian', 10161],
+    [77, 'Galarian', 10162],
+    [78, 'Galarian', 10163],
+    [79, 'Galarian', 10164],
+    [80, 'Galarian', 10165],
+    [83, 'Galarian', 10166],
+    [110, 'Galarian', 10167],
+    [122, 'Galarian', 10168],
+    [144, 'Galarian', 10169],
+    [145, 'Galarian', 10170],
+    [146, 'Galarian', 10171],
+    [199, 'Galarian', 10172],
+    [222, 'Galarian', 10173],
+    [263, 'Galarian', 10174],
+    [264, 'Galarian', 10175],
+    [554, 'Galarian', 10176],
+    [555, 'Galarian', 10177],
+    [562, 'Galarian', 10178],
+    [618, 'Galarian', 10179],
+    [58, 'Hisuian', 10229],
+    [59, 'Hisuian', 10230],
+    [100, 'Hisuian', 10231],
+    [101, 'Hisuian', 10232],
+    [157, 'Hisuian', 10233],
+    [211, 'Hisuian', 10234],
+    [215, 'Hisuian', 10235],
+    [503, 'Hisuian', 10236],
+    [549, 'Hisuian', 10237],
+    [570, 'Hisuian', 10238],
+    [571, 'Hisuian', 10239],
+    [628, 'Hisuian', 10240],
+    [705, 'Hisuian', 10241],
+    [706, 'Hisuian', 10242],
+    [713, 'Hisuian', 10243],
+    [724, 'Hisuian', 10244],
+    [128, 'Paldean Combat', 10250],
+    [128, 'Paldean Blaze', 10251],
+    [128, 'Paldean Aqua', 10252],
+    [194, 'Paldean', 10253],
+    [351, 'Sunny', 10013],
+    [351, 'Rainy', 10014],
+    [351, 'Snowy', 10015],
+    [479, 'Heat', 10008],
+    [479, 'Wash', 10009],
+    [479, 'Frost', 10010],
+    [479, 'Fan', 10011],
+    [479, 'Mow', 10012],
+    [1017, 'Wellspring Mask', 10273],
+    [1017, 'Hearthflame Mask', 10274],
+    [1017, 'Cornerstone Mask', 10275],
+  ];
   const regions = [
     ['Kanto',1,151], ['Johto',152,251], ['Hoenn',252,386], ['Sinnoh',387,493],
     ['Unova',494,649], ['Kalos',650,721], ['Alola',722,809], ['Galar',810,898],
     ['Hisui',899,905], ['Paldea',906,totalSpecies]
   ];
+  const regionIcons = {Kanto:'◉', Johto:'❧', Hoenn:'≈', Sinnoh:'▲', Unova:'◆', Kalos:'✧', Alola:'☀', Galar:'♜', Hisui:'❄', Paldea:'✦'};
   function inRegion(id, region) {
     if (!region) return true;
     const range = regions.find(([name]) => name === region);
     return !!range && id >= range[1] && id <= range[2];
+  }
+  const formRegions = {Alolan:'Alola', Galarian:'Galar', Hisuian:'Hisui', Paldean:'Paldea'};
+  const national = Array.from({length:totalSpecies}, (_,i)=>({id:i+1,key:String(i+1),sprite:i+1}));
+  const formEntries = forms.map(([id,label,sprite])=>({
+    id,label,sprite,key:id+'-'+label.toLowerCase().replaceAll(' ','-'),region:formRegions[label.split(' ')[0]]
+  }));
+  const catalog = [...national,...formEntries].sort((a,b)=>a.id-b.id);
+  const entriesByKey = new Map(catalog.map(entry=>[entry.key,entry]));
+  const catalogEntry = card => entriesByKey.get(card.pokemonKey) ||
+    {id:card.pokemonId,key:card.pokemonKey || String(card.pokemonId),sprite:card.pokemonId};
+  const binderNumber = id => id<=386 ? 1 : id<=721 ? 2 : 3;
+  function entryInRegion(entry, region) {
+    return entry.region && region ? entry.region===region : inRegion(entry.id,region);
+  }
+  function deckPokemonName(value) {
+    return value.normalize('NFKD').toLowerCase().replace(/[\u0300-\u036f]/g,'')
+      .replace(/^[^']*['’]s\s+/,'').replace(/^(mega|radiant|shining)\s+/,'')
+      .replace(/\s+(ex|gx|vmax|vstar|v|lv\.x|break|prime)(\s+[xy])?$/,'')
+      .replace(/[^a-z0-9]+/g,' ').trim();
+  }
+  function tomaPokemonNames(bundled, saved, deleted, prints) {
+    const decks = new Map(bundled.map(deck=>[deck.id,deck]));
+    for (const deck of saved) if (deck?.id && typeof deck.decklist==='string') decks.set(deck.id,deck);
+    const registeredPokemon = new Set(prints.filter(card=>card.category==='Pokemon' || card.meta?.category==='Pokemon')
+      .map(card=>deckPokemonName(card.name)));
+    const included = new Set();
+    for (const deck of decks.values()) {
+      if (deck.category!=='Toma' || deleted.has(deck.id) || typeof deck.decklist!=='string') continue;
+      let section = '';
+      for (const line of deck.decklist.split(/\r?\n/)) {
+        const header = line.trim().match(/^(pok[eé]mon|trainers?|energy)\s*:/i);
+        if (header) { section = header[1].toLowerCase(); continue; }
+        if (section && !/^pok/.test(section)) continue;
+        const raw = line.trim().match(/^\d+\s*[x×]?\s+(.+)$/i)?.[1] || line.trim().match(/^(.+?)\s*[x×]\s*\d+$/i)?.[1];
+        if (!raw) continue;
+        const name = deckPokemonName(raw.replace(/\s+(?:[A-Z0-9]{2,5}|PR-SV)\s+[A-Z]*\d+[A-Z0-9-]*(?:\/\d+)?$/i,''));
+        if (name && (section || registeredPokemon.has(name))) included.add(name);
+      }
+    }
+    return included;
   }
   function normalizeVariant(value) {
     return /^normal[\s_-]+silver$/i.test(value) ? 'normal' : value;
@@ -146,7 +258,7 @@
   }
 
   if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {parseCSV,convertRows,collectionCounts,selectCollection,mergeCollection,previewCounts,inRegion,normalizeSavedVariants};
+    module.exports = {parseCSV,convertRows,collectionCounts,selectCollection,mergeCollection,previewCounts,inRegion,normalizeSavedVariants,binderNumber,catalogEntry,entryInRegion,tomaPokemonNames};
     return;
   }
 
@@ -189,7 +301,8 @@
   }
 
   function speciesName(id) { return names.get(id) || 'Pokémon #' + id; }
-  function title(card) { return card.name || speciesName(card.pokemonId); }
+  function entryName(entry) { return [entry.label,speciesName(entry.id)].filter(Boolean).join(' '); }
+  function title(card) { return card.name || entryName(catalogEntry(card)); }
   function validSpecies(id) { return id >= 1 && id <= totalSpecies; }
   const variantIcons = {
     normal:'●', holo:'✦', 'reverse-holo':'◈', 'pokeball-reverse-holo':'◉', 'masterball-reverse-holo':'✪',
@@ -233,20 +346,21 @@
     return article;
   }
 
-  function speciesTile(id, copies = []) {
+  function speciesTile(entry, copies = [], deckNames = new Set(), variantCount = 0) {
+    const {id,sprite} = entry;
     const owned = copies.length > 0;
-    const name = speciesName(id);
+    const name = entryName(entry);
     const article = node('article',null,'card species-card');
     article.dataset.owned = String(owned);
     const sprites = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
-    const artwork = sprites + 'other/official-artwork/' + id + '.png';
+    const artwork = sprites + 'other/official-artwork/' + sprite + '.png';
     const featured = copies.find(card => /^(true|t)$/i.test(card.featured) && card.image);
     const cover = featured || copies.find(card => card.image) || copies[0];
-    const image = owned ? cover?.image || artwork : sprites + id + '.png';
+    const image = owned ? cover?.image || artwork : sprites + sprite + '.png';
     const open = button(null, () => {
-      if (!owned) { openEditor(null,id); return; }
+      if (!owned) { openEditor(null,entry); return; }
       speciesReturn = {search:el('search').value, variant:el('variantFilter').value, limit, scroll:window.scrollY};
-      speciesFilter = id;
+      speciesFilter = entry;
       el('search').value = '';
       el('variantFilter').value = '';
       limit = pageSize;
@@ -261,12 +375,31 @@
       open.querySelector('.fallback')?.replaceWith(photo(artwork,'No image'));
     }, {once:true});
     open.append(picture);
+    const mark = (position, symbol, explanation) => {
+      const badge = node('span',symbol,'tile-marker '+position);
+      badge.title = explanation;
+      badge.setAttribute('aria-label',explanation);
+      open.append(badge);
+    };
+    if (cover) mark('variant-marker',variantIcons[cover.variant] || '◇',displayVariant(cover.variant));
+    const deckAlias = entry.label?.startsWith('Paldean ') ? 'Paldean '+speciesName(id) : name;
+    if (deckNames.has(deckPokemonName(name)) || deckNames.has(deckPokemonName(deckAlias)))
+      mark('deck-marker','▤','Used in a Toma deck');
+    mark('binder-marker','B'+binderNumber(id),'Binder '+binderNumber(id));
+    if (variantCount) mark('count-marker','×'+variantCount,variantCount+' distinct variants');
     const heading = node('h3',null,'species-name');
-    if (owned) heading.append(photo(sprites + id + '.png',''));
+    if (owned) heading.append(photo(sprites + sprite + '.png',''));
     heading.append(node('span',name));
     const details = node('div',null,'species-meta');
     details.append(node('small','#' + String(id).padStart(4,'0')));
-    if (cover) details.append(variantBadge(cover.variant));
+    const regionName = entry.region || regions.find(([name])=>inRegion(id,name))?.[0];
+    if (regionName) {
+      const region = node('span',regionIcons[regionName],'region-marker');
+      region.setAttribute('role','img');
+      region.title = regionName;
+      region.setAttribute('aria-label',regionName);
+      details.append(region);
+    }
     article.append(open,heading,details);
     return article;
   }
@@ -289,6 +422,12 @@
     el('results').append(grid);
   }
 
+  function readLocalList(key) {
+    try {
+      const value = JSON.parse(localStorage.getItem(key) || '[]');
+      return Array.isArray(value) ? value : [];
+    } catch { return []; }
+  }
   function render() {
     const owned = ownedSpecies();
     el('summary').replaceChildren(...[
@@ -299,7 +438,7 @@
       return item;
     }));
     const heading = {cards: 'Pokédex', binder: 'Binder', missing: 'Missing Pokémon', progress: 'Progress'};
-    el('viewHeading').textContent = speciesFilter ? speciesName(speciesFilter) : heading[view];
+    el('viewHeading').textContent = speciesFilter ? entryName(speciesFilter) : heading[view];
     el('addCard').hidden = view === 'progress';
     el('filters').hidden = view === 'progress';
     el('variantField').hidden = view === 'missing';
@@ -313,18 +452,25 @@
     const region = el('regionFilter').value;
     const matches = (...values) => !search || values.some(value => String(value ?? '').toLowerCase().includes(search));
     let rows, tile;
+    const copiesByEntry = new Map();
+    for (const card of data.cards) {
+      const entry = catalogEntry(card);
+      const group = copiesByEntry.get(entry.key) || {entry,cards:[]};
+      group.cards.push(card);
+      copiesByEntry.set(entry.key,group);
+    }
     if (view === 'missing') {
-      rows = Array.from({length: totalSpecies}, (_,i) => i+1).filter(id => !owned.has(id) && inRegion(id,region) && matches(id,speciesName(id)));
-      tile = id => speciesTile(id);
+      rows = catalog.filter(entry => !copiesByEntry.has(entry.key) && entryInRegion(entry,region) && matches(entry.id,entryName(entry)));
+      tile = entry => speciesTile(entry);
     } else {
       rows = data[view].filter(card => (!variant || card.variant === variant) &&
         matches(title(card),card.set,card.number,card.pokemonId,card.japaneseName,card.frenchName));
       tile = cardTile;
       if (speciesFilter) {
-        rows = rows.filter(card => card.pokemonId === speciesFilter);
+        rows = rows.filter(card => catalogEntry(card).key === speciesFilter.key);
         el('results').append(button('← All Pokémon', () => {
           const previous = speciesReturn;
-          const name = speciesName(speciesFilter);
+          const name = entryName(speciesFilter);
           speciesFilter = null;
           speciesReturn = null;
           limit = previous?.limit || pageSize;
@@ -338,14 +484,20 @@
       } else if (view === 'cards') {
         const groups = new Map();
         for (const card of rows) {
-          const group = groups.get(card.pokemonId) || [];
+          const key = catalogEntry(card).key;
+          const group = groups.get(key) || [];
           group.push(card);
-          groups.set(card.pokemonId,group);
+          groups.set(key,group);
         }
-        const ids = Array.from({length: totalSpecies}, (_, i) => i+1);
-        for (const id of groups.keys()) if (!validSpecies(id)) ids.push(id);
-        rows = ids.filter(id => inRegion(id,region) && (groups.has(id) || !variant && matches(id,speciesName(id))));
-        tile = id => speciesTile(id,groups.get(id));
+        const extra = [...copiesByEntry.values()].filter(({entry})=>!entriesByKey.has(entry.key)).map(({entry})=>entry);
+        rows = [...catalog,...extra].filter(entry => entryInRegion(entry,region) &&
+          (groups.has(entry.key) || !variant && matches(entry.id,entryName(entry))));
+        const library = globalThis.PLAYMAT_STARTER_LIBRARY;
+        const deckNames = tomaPokemonNames(library?.decks || [],readLocalList('codexPokemonPlaymat.decks.v1'),
+          new Set(readLocalList('codexPokemonPlaymat.deletedDecks.v1')),
+          [...(library?.cards || []),...readLocalList('codexPokemonPlaymat.cards.v1')].filter(card=>typeof card?.name==='string'));
+        tile = entry => speciesTile(entry,groups.get(entry.key),deckNames,
+          new Set((copiesByEntry.get(entry.key)?.cards || []).map(card=>card.variant).filter(Boolean)).size);
       }
     }
     el('resultCount').textContent = rows.length + (rows.length === 1 ? ' result' : ' results');
@@ -422,14 +574,36 @@
     } catch (error) { el('notice').textContent = 'Could not save the import. ' + error.message; }
   });
 
-  function openEditor(card, pokemonId = speciesFilter) {
+  function updateFormChoices(preferred = '') {
+    const form = el('editorForm');
+    const id = Number(form.elements.namedItem('pokemonId').value);
+    const select = form.elements.namedItem('pokemonForm');
+    const options = formEntries.filter(entry=>entry.id===id);
+    select.replaceChildren(node('option','Original'));
+    select.firstElementChild.value = String(id);
+    for (const entry of options) {
+      const option = node('option',entry.label);
+      option.value = entry.key;
+      select.append(option);
+    }
+    if (preferred && ![...select.options].some(option=>option.value===preferred)) {
+      const option = node('option','Imported form');
+      option.value = preferred;
+      select.append(option);
+    }
+    select.value = preferred || String(id);
+    el('formField').hidden = editing?.type==='binder' || select.options.length<=1;
+  }
+  el('editorForm').elements.namedItem('pokemonId').addEventListener('input',()=>updateFormChoices());
+  function openEditor(card, entry = speciesFilter) {
     editing = {card, type: view === 'binder' ? 'binder' : 'cards'};
     const form = el('editorForm');
     form.reset();
     for (const key of ['name','set','number','variant','image','notes']) form.elements.namedItem(key).value = card?.[key] || '';
     const number = form.elements.namedItem('pokemonId');
     number.required = editing.type === 'cards';
-    number.value = card?.pokemonId ?? pokemonId ?? '';
+    number.value = card?.pokemonId ?? entry?.id ?? '';
+    updateFormChoices(card?.pokemonKey || entry?.key);
     el('speciesField').hidden = !number.required;
     form.elements.namedItem('name').required = editing.type === 'binder';
     el('editorHeading').textContent = card ? 'Edit card' : 'Add card';
@@ -445,7 +619,7 @@
     if (read('image') && !image) { el('editorStatus').textContent = 'Enter an HTTPS photo URL.'; return; }
     const pokemonId = type === 'cards' ? Number(read('pokemonId')) : null;
     const entry = {...card, id:card?.id || 'manual:' + crypto.randomUUID(), pokemonId,
-      pokemonKey: card?.pokemonId === pokemonId ? card.pokemonKey : String(pokemonId ?? ''),
+      pokemonKey: type === 'cards' ? read('pokemonForm') || String(pokemonId) : '',
       name:read('name'), set:read('set'), number:read('number'), variant:normalizeVariant(read('variant')) || 'normal',
       image, notes:read('notes'), createdAt:card?.createdAt || new Date().toISOString()};
     const updated = card ? data[type].map(item => item.id === card.id ? entry : item) : [...data[type],entry];
@@ -466,7 +640,7 @@
   for (const id of ['search','variantFilter','regionFilter']) el(id).addEventListener('input', () => {limit = pageSize; render();});
   el('more').addEventListener('click', () => {limit += pageSize; render();});
   for (const [region] of regions) {
-    const option = node('option',region);
+    const option = node('option',regionIcons[region] + ' ' + region);
     option.value = region;
     el('regionFilter').append(option);
   }
