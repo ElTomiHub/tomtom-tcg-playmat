@@ -270,7 +270,7 @@ The playmat still runs locally when the sync connection is unconfigured or unava
 
 1. In a Supabase project, enable email/password sign-in, disable new user signups, and create and confirm your account from Authentication → Users.
 2. In the SQL editor, run `library-sync.sql`. Then run the final commented insert separately with your account’s User UID. The private table and both API functions allow exactly that authenticated account. If changing the owner later, explicitly delete the previous library first.
-3. In `index.html`, fill in `data-project-url` and `data-publishable-key` on the `librarySyncScript` tag. Use the project’s `https://<project-ref>.supabase.co` URL and its publishable key beginning with `sb_publishable_`. Keep service keys, database credentials and your password out of the website files.
+3. In `assets/library-sync.js`, set `projectUrl` and `publishableKey` in `playmatSyncConfig`. Use the project’s `https://<project-ref>.supabase.co` URL and its publishable key beginning with `sb_publishable_`. Keep service keys, database credentials and your password out of the website files.
 4. Deploy the updated site. Sign in first on the PC under Settings → Backup & restore → Private library sync, then sign in on the phone. If those browsers contain different changes, choose the copy you want to keep. You can use Sync now or leave the app to sync on its own when idle.
 
 The remembered session stays in the current browser. Signing out of this browser keeps the local library. Follow the [Supabase API key guide](https://supabase.com/docs/guides/getting-started/api-keys) to locate the publishable key.
@@ -280,3 +280,11 @@ The remembered session stays in the current browser. Signing out of this browser
 Run `progress-sync.sql` once in the same Supabase SQL Editor. It reuses the existing private library owner and keeps its own revision. On the device with the results you want to carry forward, open **Settings → Backup & restore** and click **Sync now** to initialize online progress. Other signed-in devices pick up the online results the next time they sync. If a device already has a different set of older totals, download a full backup before choosing **Use online progress**. Older lifetime totals cannot be merged reliably because only the most recent match summaries were kept. New completed results merge by match ID, including games played offline after the update. If two devices finish the same campaign round with different outcomes, the campaign keeps the first synced outcome for that round. Both games still count in match statistics.
 
 Saved recordings and unfinished games stay on the device where they were played.
+
+### Syncing the Pokédex collection
+
+Run `collection-sync.sql` once in the same Supabase SQL Editor. Open **Pokédex → Collection sync** on the device with your existing collection. If you are already signed in to Playmat on that browser, the Pokédex shares its session. Otherwise use the same email and password. Wait for **Synced**, then open the Pokédex on your other device and sign in there.
+
+Pokédex cards, Binder entries, and imported preferences sync without changing the Playmat library. Additions merge by record ID so multiple copies stay distinct and repeated CSV imports reuse the original records. An older local record with the same ID as an online record uses the online version on first sync. If two devices edit the same card, the last synced edit takes precedence. Photo links sync with the cards.
+
+Changes save in the browser first and sync automatically while signed in. Use **Sync now** to refresh immediately. Signing out keeps the collection on that device.

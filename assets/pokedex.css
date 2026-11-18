@@ -29,6 +29,7 @@ small, .panel p, #resultCount { color: #c5d5e6; }
 .panel { margin-bottom: 8px; }
 .panel p { margin: 8px 0; }
 summary { cursor: pointer; font-weight: 750; }
+#collectionSyncBadge { margin-inline-start: 8px; color: #f2c65f; font-size: 12px; }
 button, .button, input, select, textarea { min-height: 38px; border-radius: 7px; border: 1px solid #65829e; padding: 6px 10px; background: #102944; color: #fff6e2; font: inherit; }
 button, .button { cursor: pointer; text-decoration: none; font-weight: 650; }
 button[aria-pressed="true"], .primary { background: #f5c75c; border-color: #f5c75c; color: #112238; }

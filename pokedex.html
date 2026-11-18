@@ -6,10 +6,12 @@
   <meta name="theme-color" content="#0b213b">
   <title>Pokédex · Pokémon TCG Playmat</title>
   <link rel="icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="assets/pokedex.css?v=6">
+  <link rel="stylesheet" href="assets/pokedex.css?v=7">
   <script defer src="assets/starter-library.js"></script>
   <script defer src="assets/pokedex-species-names.js?v=1"></script>
-  <script defer src="assets/pokedex.js?v=6"></script>
+  <script defer src="assets/library-sync.js?v=4"></script>
+  <script defer src="assets/pokedex-sync.js?v=1"></script>
+  <script defer src="assets/pokedex.js?v=7"></script>
 </head>
 <body>
   <main>
@@ -40,6 +42,21 @@
       </div>
     </div>
     <section class="summary" id="summary" aria-label="Collection totals"></section>
+    <details class="panel" id="collectionSync">
+      <summary>Collection sync <small id="collectionSyncBadge"></small></summary>
+      <p id="collectionSyncStatus" role="status" aria-live="polite"></p>
+      <form id="collectionSyncForm" hidden>
+        <div class="inputs">
+          <label>Email <input type="email" id="collectionSyncEmail" autocomplete="username" required></label>
+          <label>Password <input type="password" id="collectionSyncPassword" autocomplete="current-password" required></label>
+        </div>
+        <button type="submit" class="primary" id="collectionSignIn">Sign in</button>
+      </form>
+      <div id="collectionSyncControls" hidden>
+        <button type="button" id="collectionSyncNow">Sync now</button>
+        <button type="button" id="collectionSyncSignOut">Sign out</button>
+      </div>
+    </details>
     <details class="panel" id="importPanel">
       <summary>Import Lovable collection</summary>
       <p>Choose the CSV exports for your collection. The preview runs locally. Saved cards are stored in this browser.</p>

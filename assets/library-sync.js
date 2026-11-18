@@ -1,5 +1,10 @@
 'use strict';
 
+const playmatSyncConfig = Object.freeze({
+  projectUrl:'https://wkoahwwmtpdzjiwsrpwm.supabase.co',
+  publishableKey:'sb_publishable_AxjAliDTreGdaVGovenCUA_j0bOeepR'
+});
+
 function librarySyncDecision({local, remote, empty, baseline}) {
   if (!remote) return 'upload';
   if (local === remote.hash) return 'matched';
@@ -84,7 +89,7 @@ function createLibrarySyncClient({projectUrl,publishableKey,storage,fetcher,cloc
     return request('/rest/v1/rpc/'+name,{body,token:session.access_token});
   }
   return {
-    getSession,
+    getSession, sessionKey,
     baselineKey: userId=>'codexPokemonPlaymat.syncBaseline.v1.'+url.hostname+'.'+userId,
     async signIn(email,password) {
       await getToken('password',{email,password});
@@ -98,6 +103,8 @@ function createLibrarySyncClient({projectUrl,publishableKey,storage,fetcher,cloc
       finally { resetSession(); }
     },
     read:()=>rpc('playmat_library_read',{}),
+    readCollection:()=>rpc('playmat_collection_read',{}),
+    writeCollection:(expected_revision,collection_data)=>rpc('playmat_collection_write',{expected_revision,collection_data}),
     readProgress:()=>rpc('playmat_progress_read',{}),
     writeProgress:(expected_revision,progress_data)=>rpc('playmat_progress_write',{expected_revision,progress_data}),
     write:(expected_revision,library_data)=>rpc('playmat_library_write',{expected_revision,library_data})
@@ -116,11 +123,12 @@ function mountPlaymatLibrarySync({projectUrl,publishableKey,snapshot,apply,valid
   try { client = createLibrarySyncClient({projectUrl,publishableKey,storage:localStorage,fetcher:window.fetch.bind(window)}); }
   catch (error) { status.textContent = error.message; return null; }
   const progressSync = progress && mountPlaymatProgressSync(client,progress);
-  let running = false, conflict = null, timer;
+  let running = false, conflict = null, timer, sessionUser;
   const syncButton = byId('librarySyncNow'), signOut = byId('librarySyncSignOut');
   const syncButtons = [syncButton,signOut,byId('librarySyncUseCloud'),byId('librarySyncKeepLocal'),byId('librarySyncSignIn')];
   function refreshUi() {
-    const signedIn = !!client.getSession();
+    sessionUser = client.getSession()?.userId;
+    const signedIn = !!sessionUser;
     form.hidden = signedIn;
     controls.hidden = !signedIn;
     choices.hidden = !signedIn || !conflict;
@@ -253,6 +261,20 @@ function mountPlaymatLibrarySync({projectUrl,publishableKey,snapshot,apply,valid
   window.addEventListener('focus',()=>void sync());
   window.addEventListener('online',()=>void sync());
   document.addEventListener('visibilitychange',()=>{ if (!document.hidden) void sync(); });
+  window.addEventListener('storage',event=>{
+    if (event.key!==client.sessionKey || sessionUser===client.getSession()?.userId) return;
+    conflict = null;
+    refreshUi();
+    if (sessionUser) {
+      status.textContent = 'Signed in. Checking your library…';
+      progressSync?.changed();
+      schedule(0);
+    } else {
+      status.textContent = 'Signed out on this device. Your local library is still available.';
+      clearTimeout(timer);
+      progressSync?.signedOut();
+    }
+  });
   refreshUi();
   if (client.getSession()) { status.textContent = 'Checking your private library…'; schedule(400); }
   else status.textContent = 'Sign in with your private library account.';

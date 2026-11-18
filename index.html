@@ -502,7 +502,7 @@
   <div class="toast" id="toast" role="status"></div>
 
   <script src="assets/starter-library.js"></script>
-  <script id="librarySyncScript" src="assets/library-sync.js?v=3" data-project-url="https://wkoahwwmtpdzjiwsrpwm.supabase.co" data-publishable-key="sb_publishable_AxjAliDTreGdaVGovenCUA_j0bOeepR"></script>
+  <script src="assets/library-sync.js?v=4"></script>
   <script>
     const $ = (id) => document.getElementById(id);
     const deckInputs = { you: $('youDeck'), codex: $('codexDeck') };
@@ -21145,9 +21145,8 @@
       }
     }
     if (typeof mountPlaymatLibrarySync === 'function') {
-      const config = $('librarySyncScript').dataset;
       librarySync = mountPlaymatLibrarySync({
-        projectUrl:config.projectUrl,publishableKey:config.publishableKey,
+        ...playmatSyncConfig,
         snapshot:librarySyncSnapshot,apply:applySyncedLibrary,validate:validateSyncedLibrary,canSync:canApplyLibrarySync,
         progress:{
           snapshot:progressSnapshot,apply:applySyncedProgress,validate:validateSyncedProgress,canSync:canApplyProgressSync,

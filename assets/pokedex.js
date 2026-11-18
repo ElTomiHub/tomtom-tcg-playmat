@@ -285,26 +285,31 @@
   const collectionButtons = [...document.querySelectorAll('[data-collection]')];
   let collection = 'all';
   let data = empty(), pending, view = 'cards', speciesFilter = null, speciesReturn, limit = pageSize, editing, damagedStorage = false;
-  try {
-    const saved = localStorage.getItem(storageKey);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (!Object.keys(fields).every(type => Array.isArray(parsed?.[type]) &&
-          parsed[type].every(entry => entry && typeof entry.id === 'string'))) throw new Error('Invalid saved collection');
-      data = normalizeSavedVariants(parsed);
-      if (data !== parsed) {
-        try { localStorage.setItem(storageKey, JSON.stringify(data)); } catch { /* Keep the normalized view if storage is full. */ }
-      }
+  const collectionStore = createPokedexStore(localStorage,storageKey);
+  let collectionRaw, collectionSync;
+
+  function refreshCollection() {
+    try {
+      if (localStorage.getItem(storageKey) === collectionRaw) return false;
+      const current = collectionStore.read();
+      collectionRaw = current.raw;
+      data = normalizeSavedVariants(current.collection);
+      if (damagedStorage) el('notice').textContent = '';
+      damagedStorage = false;
+      return true;
+    } catch {
+      damagedStorage = true;
+      el('notice').textContent = 'Saved collection could not be read. This page is in read-only mode.';
+      return false;
     }
-  } catch {
-    damagedStorage = true;
-    el('notice').textContent = 'Saved collection could not be read. This page is in read-only mode.';
   }
+  refreshCollection();
 
   function save(next) {
     if (damagedStorage) throw new Error('Saved collection could not be read. Changes are disabled.');
-    localStorage.setItem(storageKey, JSON.stringify(next));
-    data = next;
+    data = normalizeSavedVariants(collectionStore.save(data,next));
+    collectionRaw = localStorage.getItem(storageKey);
+    collectionSync?.changed();
   }
 
   function speciesName(id) { return names[id-1]?.[0] || 'Pokémon #' + id; }
@@ -672,4 +677,7 @@
     const option = node('option',(variantIcons[value] || '◇') + ' ' + displayVariant(value)); option.value = value; el('variantFilter').append(option);
   }
   render();
+  collectionSync = mountPokedexSync({store:collectionStore,storageKey,refresh:() => {
+    if (refreshCollection()) render();
+  }});
 })();
