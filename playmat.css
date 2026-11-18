@@ -552,8 +552,9 @@
     .menu-intro { margin: 0 auto 25px; text-align: center; }
     .menu-intro h1 { margin: 10px 0 8px; color: #f8f3e6; font-size: calc(clamp(28px, 3vw, 38px) * var(--ui-font-scale)); letter-spacing: -.04em; }
     .menu-intro p { margin: 0; color: #afbed1; font-size: calc(12px * var(--ui-font-scale)); }
-    .menu-options { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); grid-template-areas: "play campaign" "play decks" "statistics library"; gap: 12px; }
+    .menu-options { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); grid-template-areas: "play campaign" "play decks" "statistics library" "pokedex pokedex"; gap: 12px; }
     .menu-option { min-height: 104px; position: relative; display: flex; align-items: center; gap: 16px; border: 1px solid #d7b65d78; border-radius: 14px; padding: 18px; color: #f7f3e8; background: linear-gradient(145deg, #11345d, #0b2341); text-align: left; cursor: pointer; transition: .18s ease; box-shadow: 0 12px 30px #00122735; }
+    #menuPokedex { grid-area: pokedex; text-decoration: none; }
     .menu-option:hover { transform: translateY(-3px); border-color: #f2d47d; background: linear-gradient(145deg, #194777, #0e2c50); }
     .menu-options .menu-start {
       grid-area: play; min-height: 280px; flex-direction: column; align-items: flex-start;
@@ -841,7 +842,7 @@
     .card-detail-drawer .library-context .deck-usage-list { color: #263c56; }
     .library-dashboard .manager-empty { grid-column: 1 / -1; border: 1px dashed #cad5e2; border-radius: 5px; color: #63768e; background: #fff; }
     @media (max-width: 800px) {
-      .menu-options { grid-template-columns: 1fr; grid-template-areas: "play" "statistics" "campaign" "decks" "library"; }
+      .menu-options { grid-template-columns: 1fr; grid-template-areas: "play" "statistics" "campaign" "decks" "library" "pokedex"; }
       .menu-options .menu-start { min-height: 230px; }
       .menu-option { min-height: 112px; flex-direction: row; align-items: center; }
       .menu-option-copy { flex: 1; }

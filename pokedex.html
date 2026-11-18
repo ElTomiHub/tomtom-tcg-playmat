@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b213b">
+  <title>Pokédex · Pokémon TCG Playmat</title>
+  <link rel="icon" href="assets/playmat-icon-192.png">
+  <link rel="stylesheet" href="assets/pokedex.css?v=1">
+  <script defer src="assets/starter-library.js"></script>
+  <script defer src="assets/pokedex.js?v=1"></script>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <div class="heading"><img src="logo.png" alt="" width="48" height="48"><div><p>Pokémon TCG</p><h1>Pokédex Tracker</h1></div></div>
+      <a class="button" href="./">← Battle Lobby</a>
+    </header>
+    <nav aria-label="Collection views">
+      <button type="button" data-view="cards" aria-pressed="true">Pokédex</button>
+      <button type="button" data-view="binder" aria-pressed="false">Binder</button>
+      <button type="button" data-view="missing" aria-pressed="false">Missing Pokémon</button>
+      <button type="button" data-view="progress" aria-pressed="false">Progress</button>
+    </nav>
+    <section class="summary" id="summary" aria-label="Collection totals"></section>
+    <details class="panel" id="importPanel">
+      <summary>Import Lovable collection</summary>
+      <p>Choose the CSV exports for your collection. The preview runs locally. Saved cards are stored in this browser.</p>
+      <form id="importForm">
+        <div class="inputs">
+          <label>Pokédex CSV <input type="file" name="cards" accept=".csv,text/csv"></label>
+          <label>Binder CSV <input type="file" name="binder" accept=".csv,text/csv"></label>
+          <label>Pokémon preferences CSV <input type="file" name="preferences" accept=".csv,text/csv"></label>
+        </div>
+        <button type="submit">Preview import</button>
+      </form>
+      <section id="preview" hidden>
+        <label>Collection <select id="collectionSelect"></select></label>
+        <div id="previewCounts"></div>
+        <button class="primary" type="button" id="saveImport">Import this collection</button>
+      </section>
+    </details>
+    <p id="notice" role="status" aria-live="polite"></p>
+    <section aria-labelledby="viewHeading">
+      <div class="toolbar">
+        <h2 id="viewHeading">Pokédex</h2>
+        <button class="primary" type="button" id="addCard">Add card</button>
+      </div>
+      <div class="inputs" id="filters">
+        <label>Search <input id="search" type="search" placeholder="Name, set, or card number"></label>
+        <label id="variantField">Variant <select id="variantFilter"><option value="">All variants</option></select></label>
+      </div>
+      <p id="resultCount" aria-live="polite"></p>
+      <div id="results"></div>
+      <button type="button" id="more" hidden>Show more</button>
+    </section>
+  </main>
+  <dialog id="editor">
+    <form id="editorForm">
+      <h2 id="editorHeading">Add card</h2>
+      <label>Name <input name="name" required maxlength="120"></label>
+      <label id="speciesField">National Pokédex number <input name="pokemonId" type="number" min="1" max="1025" step="1"></label>
+      <div class="inputs">
+        <label>Set <input name="set" maxlength="100"></label>
+        <label>Card number <input name="number" maxlength="40"></label>
+        <label>Variant <input name="variant" list="variants" maxlength="60"></label>
+      </div>
+      <label>Photo URL <input name="image" type="url" maxlength="2048"></label>
+      <label>Notes <textarea name="notes" rows="2" maxlength="1000"></textarea></label>
+      <p id="editorStatus" role="status"></p>
+      <footer><button type="button" id="cancelEdit">Cancel</button><button type="submit" class="primary">Save card</button></footer>
+    </form>
+  </dialog>
+  <datalist id="variants"></datalist>
+</body>
+</html>
