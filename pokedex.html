@@ -6,21 +6,28 @@
   <meta name="theme-color" content="#0b213b">
   <title>Pokédex · Pokémon TCG Playmat</title>
   <link rel="icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="assets/pokedex.css?v=3">
+  <link rel="stylesheet" href="assets/pokedex.css?v=4">
   <script defer src="assets/starter-library.js"></script>
-  <script defer src="assets/pokedex.js?v=3"></script>
+  <script defer src="assets/pokedex.js?v=4"></script>
 </head>
 <body>
   <main>
-    <header class="hero">
-      <div class="heading"><a class="lobby-logo" href="./" aria-label="Return to Battle Lobby"><img src="logo.png" alt="" width="48" height="48"></a><div><p>Pokémon TCG</p><h1>Pokédex Tracker</h1></div></div>
-    </header>
-    <nav aria-label="Collection views">
-      <button type="button" data-view="cards" aria-pressed="true">Pokédex</button>
-      <button type="button" data-view="binder" aria-pressed="false">Binder</button>
-      <button type="button" data-view="missing" aria-pressed="false">Missing Pokémon</button>
-      <button type="button" data-view="progress" aria-pressed="false">Progress</button>
-    </nav>
+    <div class="sticky-top">
+      <header class="hero">
+        <div class="heading"><a class="lobby-logo" href="./" aria-label="Return to Battle Lobby"><img src="logo.png" alt="" width="48" height="48"></a><div><p>Pokémon TCG</p><h1>Pokédex Tracker</h1></div></div>
+      </header>
+      <nav aria-label="Collection views">
+        <button type="button" data-view="cards" aria-pressed="true">Pokédex</button>
+        <button type="button" data-view="binder" aria-pressed="false">Binder</button>
+        <button type="button" data-view="missing" aria-pressed="false">Missing Pokémon</button>
+        <button type="button" data-view="progress" aria-pressed="false">Progress</button>
+      </nav>
+      <div class="inputs" id="filters">
+        <label>Search <input id="search" type="search" placeholder="Name, set, or card number"></label>
+        <label id="regionField">Region <select id="regionFilter"><option value="">All regions</option></select></label>
+        <label id="variantField">Variant <select id="variantFilter"><option value="">All variants</option></select></label>
+      </div>
+    </div>
     <section class="summary" id="summary" aria-label="Collection totals"></section>
     <details class="panel" id="importPanel">
       <summary>Import Lovable collection</summary>
@@ -43,11 +50,6 @@
     <section aria-labelledby="viewHeading">
       <div class="toolbar">
         <h2 id="viewHeading" tabindex="-1">Pokédex</h2>
-      </div>
-      <div class="inputs" id="filters">
-        <label>Search <input id="search" type="search" placeholder="Name, set, or card number"></label>
-        <label id="regionField">Region <select id="regionFilter"><option value="">All regions</option></select></label>
-        <label id="variantField">Variant <select id="variantFilter"><option value="">All variants</option></select></label>
       </div>
       <p id="resultCount" aria-live="polite"></p>
       <div id="results"></div>

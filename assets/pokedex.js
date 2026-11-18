@@ -191,7 +191,22 @@
   function speciesName(id) { return names.get(id) || 'Pokémon #' + id; }
   function title(card) { return card.name || speciesName(card.pokemonId); }
   function validSpecies(id) { return id >= 1 && id <= totalSpecies; }
-  function displayVariant(value) { return (value || 'Unknown variant').replaceAll('-', ' '); }
+  const variantIcons = {
+    normal:'●', holo:'✦', 'reverse-holo':'◈', 'pokeball-reverse-holo':'◉', 'masterball-reverse-holo':'✪',
+    'energy-reverse-holo':'ϟ', 'illustration-rare':'▧', special:'★'
+  };
+  function displayVariant(value) {
+    return (value || 'unknown variant').toLowerCase().replace('pokeball','poké-ball')
+      .replace('masterball','master-ball').replaceAll('-',' ').replace(/\S+/g,word=>word[0].toUpperCase()+word.slice(1));
+  }
+  function variantBadge(value) {
+    const badge = node('span',null,'variant-badge');
+    badge.dataset.variant = value || '';
+    const icon = node('span',variantIcons[value] || '◇');
+    icon.setAttribute('aria-hidden','true');
+    badge.append(icon,node('span',displayVariant(value)));
+    return badge;
+  }
   function ownedSpecies() { return new Set(data.cards.map(card => card.pokemonId).filter(validSpecies)); }
   function formatProgress(owned, total) { return owned + ' / ' + total; }
 
@@ -210,7 +225,7 @@
   function cardTile(card) {
     const article = node('article',null,'card');
     article.append(photo(card.image,'Photo unavailable'), node('h3',title(card)),
-      node('small',[card.set,card.number,displayVariant(card.variant)].filter(Boolean).join(' · ')));
+      node('small',[card.set,card.number].filter(Boolean).join(' · ')), variantBadge(card.variant));
     if (card.notes) article.append(node('small',card.notes));
     if (data.preferences.some(preference => preference.normalOnly && preference.pokemonKey === card.pokemonKey))
       article.append(node('small','Normal only'));
@@ -226,7 +241,8 @@
     const sprites = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
     const artwork = sprites + 'other/official-artwork/' + id + '.png';
     const featured = copies.find(card => /^(true|t)$/i.test(card.featured) && card.image);
-    const image = featured?.image || copies.find(card => card.image)?.image || artwork;
+    const cover = featured || copies.find(card => card.image) || copies[0];
+    const image = owned ? cover?.image || artwork : sprites + id + '.png';
     const open = button(null, () => {
       if (!owned) { openEditor(null,id); return; }
       speciesReturn = {search:el('search').value, variant:el('variantFilter').value, limit, scroll:window.scrollY};
@@ -236,19 +252,22 @@
       limit = pageSize;
       render();
       el('viewHeading').focus();
-      el('viewHeading').scrollIntoView({block:'start'});
+      window.scrollTo(0,0);
     });
     open.className = 'species-open';
     open.setAttribute('aria-label', (owned ? 'View registered cards for ' : 'Add a card for ') + name);
     const picture = photo(image,'No image');
-    if (image !== artwork) picture.addEventListener('error', () => {
+    if (owned && image !== artwork) picture.addEventListener('error', () => {
       open.querySelector('.fallback')?.replaceWith(photo(artwork,'No image'));
     }, {once:true});
     open.append(picture);
     const heading = node('h3',null,'species-name');
     if (owned) heading.append(photo(sprites + id + '.png',''));
     heading.append(node('span',name));
-    article.append(open,heading,node('small','#' + String(id).padStart(4,'0')));
+    const details = node('div',null,'species-meta');
+    details.append(node('small','#' + String(id).padStart(4,'0')));
+    if (cover) details.append(variantBadge(cover.variant));
+    article.append(open,heading,details);
     return article;
   }
 
@@ -453,7 +472,7 @@
   }
   for (const value of variants) {
     const input = node('option'); input.value = value; el('variants').append(input);
-    const option = node('option',displayVariant(value)); option.value = value; el('variantFilter').append(option);
+    const option = node('option',(variantIcons[value] || '◇') + ' ' + displayVariant(value)); option.value = value; el('variantFilter').append(option);
   }
   render();
   fetch('https://pokeapi.co/api/v2/pokemon-species/?limit=' + totalSpecies).then(response => {
