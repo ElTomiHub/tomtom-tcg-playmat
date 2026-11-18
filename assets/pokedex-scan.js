@@ -7,7 +7,8 @@
   const cardNumber = value => String(value || '').normalize('NFKC').trim().split('/')[0].trim().toUpperCase()
     .replace(/^([A-Z-]*)0+(?=\d)/,'$1');
   const referencePattern = /^[A-Z0-9]{1,16}(?:[-.][A-Z0-9]{1,12})?$/i;
-  const variantKey = value => String(value || '').trim().toLowerCase().replace(/[ _]+/g,'-').replace(/^normal-silver$/,'normal');
+  const variantKey = value => String(value || '').normalize('NFKD').replace(/[\u0300-\u036f]/g,'')
+    .trim().toLowerCase().replace(/[ _]+/g,'-').replace(/^(poke|master)-ball-/,'$1ball-').replace(/^normal-silver$/,'normal');
   const printSet = (card, fallback) => card.set?.abbreviation?.official || fallback || card.set?.id || '';
   const jpText = /[\u3040-\u30ff\u3400-\u9fff]/;
   const numericOcr = value => value.toUpperCase().replace(/[OQ]/g,'0').replace(/[IL]/g,'1')
@@ -293,8 +294,32 @@
     return matches.filter(match=>normalize(match.card.name).includes(query));
   }
 
+  const energyColors = {
+    Grass:'#81d65c', Fire:'#ff8258', Water:'#64c9ff', Lightning:'#ffe158', Psychic:'#deabfb',
+    Fighting:'#e9a469', Darkness:'#74acc7', Metal:'#c9dbe2', Fairy:'#faaed0', Dragon:'#edc36e', Colorless:'#def0ff'
+  };
+  const energyLetters = {G:'Grass',R:'Fire',W:'Water',L:'Lightning',P:'Psychic',F:'Fighting',
+    D:'Darkness',M:'Metal',Y:'Fairy',N:'Dragon',C:'Colorless'};
+
+  function parseLimitlessAttack(label,symbols) {
+    const normalized = label.trim().replace(/\s+/g,' ');
+    const damage = normalized.match(/\s+(\d+(?:\s*[+×x−-])?)$/i);
+    return {name:damage ? normalized.slice(0,damage.index) : normalized,
+      cost:[...symbols.toUpperCase()].map(letter=>energyLetters[letter]).filter(Boolean),
+      damage:damage?.[1]?.replace(/\s/g,'') || ''};
+  }
+
+  function ownedVariantCounts(rows) {
+    const totals = new Map();
+    for (const row of rows) {
+      const variant = variantKey(row.variant) || '';
+      totals.set(variant,(totals.get(variant) || 0)+1);
+    }
+    return [...totals];
+  }
+
   if (typeof module === 'object' && module.exports) {
-    module.exports = {printIdentity,checkCollection,availableVariants,readPrintedClues,cardNumber,makeCatalog,limitlessLink,cameraCrop,resolveScannerPrints,variantArtwork,variantClue,selectVisualVariant};
+    module.exports = {printIdentity,checkCollection,availableVariants,readPrintedClues,cardNumber,makeCatalog,limitlessLink,cameraCrop,resolveScannerPrints,variantArtwork,variantClue,selectVisualVariant,parseLimitlessAttack,ownedVariantCounts};
     return;
   }
 
@@ -437,6 +462,37 @@
     return selectVisualVariant([0,.035,.065].map(inset=>photoPixels(photo,inset)),references,references.length===variants.length);
   }
 
+  function attackHeading(skill) {
+    const heading = element('div',null,'scan-attack-heading');
+    const costs = Array.isArray(skill.cost) ? skill.cost : [];
+    const types = costs.map(cost=>Object.keys(energyColors).find(type=>type.toLowerCase()===String(cost).toLowerCase()) ||
+      energyLetters[String(cost).toUpperCase()]).filter(Boolean);
+    if (types.length) {
+      const group = element('span',null,'scan-attack-cost');
+      group.setAttribute('role','img');
+      group.setAttribute('aria-label','Attack cost: '+types.join(', '));
+      for (const type of types) {
+        const badge = element('span',null,'scan-energy');
+        badge.dataset.energyType = type.toLowerCase();
+        badge.title = type+' Energy';
+        badge.style.backgroundColor = energyColors[type];
+        const ns = 'http://www.w3.org/2000/svg';
+        const svg = document.createElementNS(ns,'svg');
+        svg.setAttribute('viewBox','0 0 24 24');
+        svg.setAttribute('aria-hidden','true');
+        const glyph = document.createElementNS(ns,'use');
+        glyph.setAttribute('href','assets/pokedex-energy.svg#lobby-'+type.toLowerCase());
+        svg.append(glyph);
+        badge.append(svg);
+        group.append(badge);
+      }
+      heading.append(group);
+    }
+    heading.append(element('strong',skill.name));
+    if (skill.damage != null && skill.damage !== '') heading.append(element('span',skill.damage,'scan-attack-damage'));
+    return heading;
+  }
+
   function translationFromHtml(html, url) {
     if (!html || !url) return null;
     const template = element('template');
@@ -446,17 +502,22 @@
     const expected = new URL(url);
     const actual = new URL(title.getAttribute('href'),expected.origin);
     if (actual.origin !== expected.origin || actual.pathname.toLowerCase() !== expected.pathname.toLowerCase() || jpText.test(title.textContent)) return null;
-    const skills = kind => [...template.content.querySelectorAll('.card-text-'+kind)].map(section => ({
-      name:section.querySelector('.card-text-'+kind+'-info')?.textContent.trim().replace(/\s+/g,' '),
-      effect:section.querySelector('.card-text-'+kind+'-effect')?.textContent.trim()
-    }));
+    const skills = kind => [...template.content.querySelectorAll('.card-text-'+kind)].map(section => {
+      const info = section.querySelector('.card-text-'+kind+'-info');
+      const effect = section.querySelector('.card-text-'+kind+'-effect')?.textContent.trim();
+      if (kind !== 'attack') return {name:info?.textContent.trim().replace(/\s+/g,' '),effect};
+      const symbols = [...(info?.querySelectorAll('.ptcg-symbol') || [])];
+      const cost = symbols.map(symbol=>symbol.textContent).join('');
+      symbols.forEach(symbol=>symbol.remove());
+      return {...parseLimitlessAttack(info?.textContent || '',cost),effect};
+    });
     const attacks = skills('attack'), abilities = skills('ability');
     const effect = [...template.content.querySelectorAll('.card-text-section > p:not([class])')]
       .map(paragraph=>paragraph.textContent.trim()).filter(Boolean).join('\n');
     return {name:title.textContent.trim(),attacks,abilities,effect};
   }
 
-  function mountPokedexScanner({cards, savedPrints, speciesNames, displayVariant, variants, openAdd}) {
+  function mountPokedexScanner({cards, savedPrints, speciesNames, displayVariant, variantOptionLabel, variantBadge, variants, openAdd}) {
     const el = id => document.getElementById(id);
     const dialog = el('scanner');
     const form = el('scannerLookup');
@@ -477,7 +538,7 @@
       empty.value = '';
       variant.replaceChildren(empty);
       for (const value of new Set([...finishes,...variants])) {
-        const option = element('option',displayVariant(value));
+        const option = element('option',variantOptionLabel(value));
         option.value = value;
         variant.append(option);
       }
@@ -486,6 +547,7 @@
     manual.hidden = !mobile;
     take.hidden = !mobile;
     el('scannerPasteHint').hidden = mobile;
+    el('scannerPaste').hidden = mobile;
     variantOptions();
     try {
       client = createLibrarySyncClient({...playmatSyncConfig,storage:localStorage,
@@ -912,12 +974,14 @@
         }
         return exact;
       };
-      let art = '';
-      function refreshArt() {
-        const selected = variant.value;
+      const artworkForVariant = selected => {
         const exact = artByFinish(selected);
         const label = selected ? 'Catalog artwork · '+displayVariant(selected)+' image unavailable' : 'Catalog artwork';
-        const previews = [...exact,...baseUrls.filter(url=>!exact.some(item=>item.url===url)).map(url=>({url,label}))];
+        return [...exact,...baseUrls.filter(url=>!exact.some(item=>item.url===url)).map(url=>({url,label}))];
+      };
+      let art = '';
+      function refreshArt() {
+        const previews = artworkForVariant(variant.value);
         const showArt = index => {
           if (!previews[index]) {
             art = '';
@@ -941,21 +1005,33 @@
       const variantStatus = element('p',variant.value && structurallyKnown ?
         'Variant identified from the catalog.' : variant.value && variant.value === scannedVariant ?
           'Variant suggested from the scan. You can correct it above.' : '','note');
-      const collection = element('p',null,'scan-ownership');
+      const collection = element('div',null,'scan-ownership');
       collection.setAttribute('aria-live','polite');
       const add = action(context.destination === 'binder' ? 'Add to Binder' : 'Add to Pokédex',()=>{
         dialog.close();
-        openAdd({name:name.textContent,language,set:code,number:identity.printedNumber,variant:variant.value,image:art,
+        openAdd({name:name.textContent,language,set:code,number:identity.printedNumber,variant:variant.value,image:art,artworkForVariant,
           pokemonId:identity.speciesId,pokemonKey:identity.pokemonKey,destination:context.destination});
       },'primary');
       const refreshOwnership = () => {
         const found = checkCollection(cards(),identity,variant.value,[card.set?.id]);
-        collection.textContent = !identity.pokemonKey ? 'No Pokédex species is linked to this print.' :
+        const ownership = !identity.pokemonKey ? 'No Pokédex species is linked to this print.' :
           found.exact.length ? 'In your Pokédex · '+found.exact.length+' exact '+(found.exact.length===1?'copy':'copies') :
           found.unknownLanguage ? 'Matching set, number and finish in your Pokédex. The saved card has no language recorded.' :
           found.samePrint.length && !variant.value ? 'This print is in your Pokédex. Confirm the finish to check exact ownership.' :
           found.samePrint.length ? 'You own this print in another finish.' :
           found.sameSpecies.length ? 'You own a different print of this Pokémon.' : 'This Pokémon is missing from your Pokédex.';
+        collection.replaceChildren(element('p',ownership));
+        const counts = ownedVariantCounts(found.samePrint);
+        if (counts.length) {
+          const list = element('div',null,'owned-variants');
+          list.append(element('small','Owned variants'));
+          for (const [key,count] of counts) {
+            const badge = variantBadge(key);
+            if (count>1) badge.append(element('span','×'+count));
+            list.append(badge);
+          }
+          collection.append(list);
+        }
         add.disabled = !variant.value || (!identity.speciesId && context.destination !== 'binder');
       };
       updateVariant = ()=>{
@@ -1027,7 +1103,7 @@
         translation.append(element('h5',section));
         for (const skill of items) {
           const row = element('div',null,'scan-skill');
-          row.append(element('strong',[skill.name,skill.damage].filter(Boolean).join(' · ')));
+          row.append(section === 'Attacks' ? attackHeading(skill) : element('strong',skill.name));
           if (skill.effect) row.append(element('p',skill.effect));
           translation.append(row);
         }

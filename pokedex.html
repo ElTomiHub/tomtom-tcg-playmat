@@ -6,13 +6,13 @@
   <meta name="theme-color" content="#0b213b">
   <title>Pokédex · Pokémon TCG Playmat</title>
   <link rel="icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="assets/pokedex.css?v=13">
+  <link rel="stylesheet" href="assets/pokedex.css?v=14">
   <script defer src="assets/starter-library.js"></script>
   <script defer src="assets/pokedex-species-names.js?v=1"></script>
   <script defer src="assets/library-sync.js?v=5"></script>
   <script defer src="assets/pokedex-sync.js?v=3"></script>
-  <script defer src="assets/pokedex-scan.js?v=4"></script>
-  <script defer src="assets/pokedex.js?v=11"></script>
+  <script defer src="assets/pokedex-scan.js?v=5"></script>
+  <script defer src="assets/pokedex.js?v=12"></script>
 </head>
 <body>
   <main>
@@ -58,28 +58,14 @@
             <button type="button" data-collection="collected" aria-pressed="false">Collected</button>
             <button type="button" data-collection="missing" aria-pressed="false">Missing</button>
           </div>
+          <div class="collection-progress" id="collectionProgress">
+            <span id="collectionProgressLabel"></span>
+            <progress id="collectionProgressBar" aria-label="Pokédex species collected"></progress>
+          </div>
           <button type="button" id="resetFilters">Reset filters</button>
         </div>
       </div>
     </div>
-    <section class="summary" id="summary" aria-label="Collection totals"></section>
-    <details class="panel" id="importPanel">
-      <summary>Import Lovable collection</summary>
-      <p>Choose the CSV exports for your collection. The preview runs locally. Saved cards are stored in this browser.</p>
-      <form id="importForm">
-        <div class="inputs">
-          <label>Pokédex CSV <input type="file" name="cards" accept=".csv,text/csv"></label>
-          <label>Binder CSV <input type="file" name="binder" accept=".csv,text/csv"></label>
-          <label>Pokémon preferences CSV <input type="file" name="preferences" accept=".csv,text/csv"></label>
-        </div>
-        <button type="submit">Preview import</button>
-      </form>
-      <section id="preview" hidden>
-        <label>Collection <select id="collectionSelect"></select></label>
-        <div id="previewCounts"></div>
-        <button class="primary" type="button" id="saveImport">Import this collection</button>
-      </section>
-    </details>
     <p id="notice" role="status" aria-live="polite"></p>
     <section aria-labelledby="viewHeading">
       <div class="toolbar">
@@ -137,19 +123,27 @@
     <div id="scannerCandidates" class="scanner-actions"></div>
     <div id="scannerResult"></div>
   </dialog>
-  <dialog id="editor">
+  <dialog id="editor" aria-labelledby="editorHeading">
     <form id="editorForm">
       <h2 id="editorHeading">Add card</h2>
-      <label>Name <input name="name" required maxlength="120"></label>
-      <label id="speciesField">National Pokédex number <input name="pokemonId" type="number" min="1" max="1025" step="1"></label>
-      <label id="formField" hidden>Pokémon form <select name="pokemonForm"></select></label>
-      <div class="inputs">
-        <label>Set <input name="set" maxlength="100"></label>
-        <label>Card number <input name="number" maxlength="40"></label>
-        <label>Variant <input name="variant" list="variants" maxlength="60"></label>
+      <div class="editor-layout">
+        <div class="editor-fields">
+          <div class="editor-pokemon">
+            <label><span id="editorNameLabel">Pokémon</span>
+              <span class="editor-name-field"><span id="editorSprite" hidden></span><input name="name" maxlength="120" autocomplete="off"></span>
+            </label>
+            <label id="speciesField">Pokédex no. <input name="pokemonId" type="number" min="1" max="1025" step="1"></label>
+          </div>
+          <label id="formField" hidden>Pokémon form <select name="pokemonForm"></select></label>
+          <div id="editorOrganization" aria-live="polite" hidden></div>
+          <div class="inputs">
+            <label>Set <input name="set" maxlength="100"></label>
+            <label>Card number <input name="number" maxlength="40"></label>
+          </div>
+          <label>Variant <select name="variant"></select></label>
+        </div>
+        <figure id="editorArtwork" class="editor-artwork"></figure>
       </div>
-      <label>Photo URL <input name="image" type="url" maxlength="2048"></label>
-      <label>Notes <textarea name="notes" rows="2" maxlength="1000"></textarea></label>
       <p id="editorStatus" role="status"></p>
       <div id="deleteCardConfirm" hidden>
         <p>Delete this copy from your collection?</p>
@@ -165,6 +159,6 @@
       </footer>
     </form>
   </dialog>
-  <datalist id="variants"></datalist>
+  <datalist id="editorPokemonNames"></datalist>
 </body>
 </html>

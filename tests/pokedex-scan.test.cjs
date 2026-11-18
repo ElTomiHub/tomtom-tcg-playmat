@@ -1,7 +1,22 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
-const {printIdentity,checkCollection,availableVariants,readPrintedClues,makeCatalog,limitlessLink,cameraCrop,resolveScannerPrints,variantArtwork,variantClue,selectVisualVariant}=require('../assets/pokedex-scan.js');
+const {printIdentity,checkCollection,availableVariants,readPrintedClues,makeCatalog,limitlessLink,cameraCrop,resolveScannerPrints,variantArtwork,variantClue,selectVisualVariant,parseLimitlessAttack,ownedVariantCounts}=require('../assets/pokedex-scan.js');
 const names=[['Bulbasaur','Bulbizarre','フシギダネ'],['Pikachu','Pikachu','ピカチュウ']];
+
+test('Limitless attack costs preserve Energy order while separating the name and damage',()=>{
+  assert.deepEqual(parseLimitlessAttack('Speed Wing 60','CC'),
+    {name:'Speed Wing',cost:['Colorless','Colorless'],damage:'60'});
+  assert.deepEqual(parseLimitlessAttack('Dragon Burst 60 ×','RW'),
+    {name:'Dragon Burst',cost:['Fire','Water'],damage:'60×'});
+  assert.deepEqual(parseLimitlessAttack('Charge','L'),
+    {name:'Charge',cost:['Lightning'],damage:''});
+});
+
+test('owned variants combine copies and legacy spelling for the matched print',()=>{
+  assert.deepEqual(ownedVariantCounts([{variant:'normal'},{variant:'Normal Silver'},
+    {variant:'Poké Ball Reverse Holo'},{variant:'masterball-reverse-holo'}]),
+  [['normal',2],['pokeball-reverse-holo',1],['masterball-reverse-holo',1]]);
+});
 
 test('the portrait framing guide maps to the camera sensor and clamps the padded crop',()=>{
   const crop=cameraCrop(1600,900,{left:10,top:20,width:300,height:450},{left:35,top:45,right:285,bottom:445,width:250});
