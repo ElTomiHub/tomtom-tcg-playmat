@@ -5,10 +5,32 @@
     binder: ['id','collection_id','name','set_name','card_number','variant','image_url'],
     preferences: ['id','collection_id','pokemon_unique_id','normal_only']
   };
-  const variants = ['normal','holo','reverse-holo','pokeball-reverse-holo','masterball-reverse-holo','energy-reverse-holo','illustration-rare','normal-silver','special'];
+  const variants = ['normal','holo','reverse-holo','pokeball-reverse-holo','masterball-reverse-holo','energy-reverse-holo','illustration-rare','special'];
   const storageKey = 'tomtom.pokedex.collection.v1';
   const totalSpecies = 1025;
   const pageSize = 48;
+  const regions = [
+    ['Kanto',1,151], ['Johto',152,251], ['Hoenn',252,386], ['Sinnoh',387,493],
+    ['Unova',494,649], ['Kalos',650,721], ['Alola',722,809], ['Galar',810,898],
+    ['Hisui',899,905], ['Paldea',906,totalSpecies]
+  ];
+  function inRegion(id, region) {
+    if (!region) return true;
+    const range = regions.find(([name]) => name === region);
+    return !!range && id >= range[1] && id <= range[2];
+  }
+  function normalizeVariant(value) {
+    return /^normal[\s_-]+silver$/i.test(value) ? 'normal' : value;
+  }
+  function normalizeSavedVariants(data) {
+    let next = data;
+    for (const type of ['cards','binder']) {
+      if (!data[type].some(card => card.variant !== normalizeVariant(card.variant))) continue;
+      if (next === data) next = {...data};
+      next[type] = data[type].map(card => ({...card, variant:normalizeVariant(card.variant)}));
+    }
+    return next;
+  }
 
   function parseCSV(source) {
     const input = source.replace(/^\uFEFF/, '');
@@ -69,7 +91,7 @@
         throw new Error('Invalid Pokémon number or form in row ' + (index + 2) + '.');
       return {
         ...identity, name: read('name'), pokemonId: type === 'cards' ? pokemonId : null, pokemonKey: read('pokemon_unique_id'),
-        set: read('set_name'), number: read('card_number'), variant: read('variant'), image: safeImage(read('image_url')),
+        set: read('set_name'), number: read('card_number'), variant: normalizeVariant(read('variant')), image: safeImage(read('image_url')),
         notes: read('notes'), category: read('category'), tags: read('tags'), featured: read('is_featured'),
         createdAt: read('created_at'), japaneseName: read('japanese_name'), frenchName: read('french_name'),
         value: read('value'), currency: read('currency'), valueUpdatedAt: read('value_updated_at'), priceSource: read('price_source')
@@ -124,7 +146,7 @@
   }
 
   if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {parseCSV,convertRows,collectionCounts,selectCollection,mergeCollection,previewCounts};
+    module.exports = {parseCSV,convertRows,collectionCounts,selectCollection,mergeCollection,previewCounts,inRegion,normalizeSavedVariants};
     return;
   }
 
@@ -150,7 +172,10 @@
       const parsed = JSON.parse(saved);
       if (!Object.keys(fields).every(type => Array.isArray(parsed?.[type]) &&
           parsed[type].every(entry => entry && typeof entry.id === 'string'))) throw new Error('Invalid saved collection');
-      data = parsed;
+      data = normalizeSavedVariants(parsed);
+      if (data !== parsed) {
+        try { localStorage.setItem(storageKey, JSON.stringify(data)); } catch { /* Keep the normalized view if storage is full. */ }
+      }
     }
   } catch {
     damagedStorage = true;
@@ -256,19 +281,21 @@
     }));
     const heading = {cards: 'Pokédex', binder: 'Binder', missing: 'Missing Pokémon', progress: 'Progress'};
     el('viewHeading').textContent = speciesFilter ? speciesName(speciesFilter) : heading[view];
-    el('addCard').hidden = !['cards','binder'].includes(view);
+    el('addCard').hidden = view === 'progress';
     el('filters').hidden = view === 'progress';
     el('variantField').hidden = view === 'missing';
+    el('regionField').hidden = view === 'binder' || !!speciesFilter;
     el('results').replaceChildren();
     el('resultCount').textContent = '';
     el('more').hidden = true;
     if (view === 'progress') { renderProgress(owned); return; }
 
     const search = el('search').value.trim().toLowerCase(), variant = el('variantFilter').value;
+    const region = el('regionFilter').value;
     const matches = (...values) => !search || values.some(value => String(value ?? '').toLowerCase().includes(search));
     let rows, tile;
     if (view === 'missing') {
-      rows = Array.from({length: totalSpecies}, (_,i) => i+1).filter(id => !owned.has(id) && matches(id,speciesName(id)));
+      rows = Array.from({length: totalSpecies}, (_,i) => i+1).filter(id => !owned.has(id) && inRegion(id,region) && matches(id,speciesName(id)));
       tile = id => speciesTile(id);
     } else {
       rows = data[view].filter(card => (!variant || card.variant === variant) &&
@@ -298,7 +325,7 @@
         }
         const ids = Array.from({length: totalSpecies}, (_, i) => i+1);
         for (const id of groups.keys()) if (!validSpecies(id)) ids.push(id);
-        rows = ids.filter(id => groups.has(id) || !variant && matches(id,speciesName(id)));
+        rows = ids.filter(id => inRegion(id,region) && (groups.has(id) || !variant && matches(id,speciesName(id))));
         tile = id => speciesTile(id,groups.get(id));
       }
     }
@@ -400,7 +427,7 @@
     const pokemonId = type === 'cards' ? Number(read('pokemonId')) : null;
     const entry = {...card, id:card?.id || 'manual:' + crypto.randomUUID(), pokemonId,
       pokemonKey: card?.pokemonId === pokemonId ? card.pokemonKey : String(pokemonId ?? ''),
-      name:read('name'), set:read('set'), number:read('number'), variant:read('variant') || 'normal',
+      name:read('name'), set:read('set'), number:read('number'), variant:normalizeVariant(read('variant')) || 'normal',
       image, notes:read('notes'), createdAt:card?.createdAt || new Date().toISOString()};
     const updated = card ? data[type].map(item => item.id === card.id ? entry : item) : [...data[type],entry];
     try {
@@ -417,8 +444,13 @@
     for (const other of document.querySelectorAll('[data-view]')) other.setAttribute('aria-pressed',String(other === item));
     el('search').value = ''; el('variantFilter').value = ''; render();
   });
-  for (const id of ['search','variantFilter']) el(id).addEventListener('input', () => {limit = pageSize; render();});
+  for (const id of ['search','variantFilter','regionFilter']) el(id).addEventListener('input', () => {limit = pageSize; render();});
   el('more').addEventListener('click', () => {limit += pageSize; render();});
+  for (const [region] of regions) {
+    const option = node('option',region);
+    option.value = region;
+    el('regionFilter').append(option);
+  }
   for (const value of variants) {
     const input = node('option'); input.value = value; el('variants').append(input);
     const option = node('option',displayVariant(value)); option.value = value; el('variantFilter').append(option);

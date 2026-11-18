@@ -1,6 +1,6 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
-const {parseCSV,convertRows,collectionCounts,selectCollection,mergeCollection,previewCounts}=require('../assets/pokedex.js');
+const {parseCSV,convertRows,collectionCounts,selectCollection,mergeCollection,previewCounts,inRegion,normalizeSavedVariants}=require('../assets/pokedex.js');
 
 test('collection CSV supports semicolons, BOM, escaped quotes and multiline fields',()=>{
   const csv='\uFEFFid;name;notes\r\n1;"Mime; Jr.";"First\r\nSecond ""line"""\r\n';
@@ -27,4 +27,23 @@ test('preview scopes the import to a chosen collection and repeated imports pres
   saved.cards[0].notes='changed locally';
   assert.deepEqual(mergeCollection(saved,chosen),saved);
   assert.equal(previewCounts(selectCollection(data,'other')).missingPhoto,1);
+});
+
+test('legacy silver variants become normal without collapsing physical copies',()=>{
+  const saved={cards:[{id:'1',variant:'normal-silver'},{id:'2',variant:'normal'}],
+    binder:[{id:'3',variant:'Normal Silver'}],preferences:[]};
+  const migrated=normalizeSavedVariants(saved);
+  assert.deepEqual(migrated.cards.map(({id,variant})=>[id,variant]),[['1','normal'],['2','normal']]);
+  assert.equal(migrated.binder[0].variant,'normal');
+  assert.equal(saved.cards[0].variant,'normal-silver');
+  assert.equal(normalizeSavedVariants(migrated),migrated);
+});
+
+test('region filter uses National Pokédex boundaries',()=>{
+  assert.equal(inRegion(151,'Kanto'),true);
+  assert.equal(inRegion(152,'Kanto'),false);
+  assert.equal(inRegion(898,'Galar'),true);
+  assert.equal(inRegion(899,'Hisui'),true);
+  assert.equal(inRegion(906,'Hisui'),false);
+  assert.equal(inRegion(1025,'Paldea'),true);
 });

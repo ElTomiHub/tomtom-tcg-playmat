@@ -6,15 +6,14 @@
   <meta name="theme-color" content="#0b213b">
   <title>Pokédex · Pokémon TCG Playmat</title>
   <link rel="icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="assets/pokedex.css?v=2">
+  <link rel="stylesheet" href="assets/pokedex.css?v=3">
   <script defer src="assets/starter-library.js"></script>
-  <script defer src="assets/pokedex.js?v=2"></script>
+  <script defer src="assets/pokedex.js?v=3"></script>
 </head>
 <body>
   <main>
     <header class="hero">
-      <div class="heading"><img src="logo.png" alt="" width="48" height="48"><div><p>Pokémon TCG</p><h1>Pokédex Tracker</h1></div></div>
-      <a class="button" href="./">← Battle Lobby</a>
+      <div class="heading"><a class="lobby-logo" href="./" aria-label="Return to Battle Lobby"><img src="logo.png" alt="" width="48" height="48"></a><div><p>Pokémon TCG</p><h1>Pokédex Tracker</h1></div></div>
     </header>
     <nav aria-label="Collection views">
       <button type="button" data-view="cards" aria-pressed="true">Pokédex</button>
@@ -44,10 +43,10 @@
     <section aria-labelledby="viewHeading">
       <div class="toolbar">
         <h2 id="viewHeading" tabindex="-1">Pokédex</h2>
-        <button class="primary" type="button" id="addCard">Add card</button>
       </div>
       <div class="inputs" id="filters">
         <label>Search <input id="search" type="search" placeholder="Name, set, or card number"></label>
+        <label id="regionField">Region <select id="regionFilter"><option value="">All regions</option></select></label>
         <label id="variantField">Variant <select id="variantFilter"><option value="">All variants</option></select></label>
       </div>
       <p id="resultCount" aria-live="polite"></p>
@@ -55,6 +54,7 @@
       <button type="button" id="more" hidden>Show more</button>
     </section>
   </main>
+  <button class="primary floating-add" type="button" id="addCard">＋ Add card</button>
   <dialog id="editor">
     <form id="editorForm">
       <h2 id="editorHeading">Add card</h2>

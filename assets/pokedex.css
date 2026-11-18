@@ -1,13 +1,15 @@
 * { box-sizing: border-box; }
 :root { color-scheme: dark; color: #fff6e2; background: #0b1d33; font: 16px/1.45 system-ui, sans-serif; }
 body { margin: 0; background: radial-gradient(ellipse at top, #1a4264, transparent 50vh); }
-main { width: min(1100px, 100%); min-height: 100vh; padding: 24px clamp(12px, 4vw, 28px) 40px; margin: auto; }
+main { width: min(1100px, 100%); min-height: 100vh; padding: 24px clamp(12px, 4vw, 28px) 100px; margin: auto; }
 h1, h2, h3, p { margin: 0; }
 h1 { font-size: clamp(21px, 4vw, 32px); }
 h2 { font-size: 20px; }
 h3 { font-size: 15px; }
 .hero, .heading, .toolbar, footer { display: flex; gap: 12px; align-items: center; }
 .hero, .toolbar { justify-content: space-between; margin-bottom: 14px; }
+.lobby-logo { display: grid; place-items: center; border-radius: 50%; }
+.lobby-logo img { display: block; }
 .heading p { color: #f2c65f; font-size: 12px; font-weight: 700; }
 nav, .inputs, .summary { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
 .summary > div, .panel, .card { background: #112944; border: 1px solid #52708c; border-radius: 10px; padding: 12px; }
@@ -32,13 +34,16 @@ input, select, textarea { width: 100%; min-width: 0; }
 .card img { height: 140px; width: 100%; object-fit: contain; }
 .species-card { padding: 8px; }
 .species-open {
-  display: grid; place-items: center; width: 100%; height: clamp(126px, 21vw, 175px);
+  display: grid; grid-template: minmax(0,1fr) / minmax(0,1fr); place-items: center; overflow: hidden; width: 100%; height: clamp(126px, 21vw, 175px);
   padding: 5px; background: #0b2239; border: 1px solid #52708c;
 }
 .species-open:hover { border-color: #f5c75c; }
-.species-card[data-owned="false"] .species-open { background: radial-gradient(ellipse, #254967, #0b2239 80%); }
-.species-card[data-owned="false"] .species-open img { max-width: 86%; height: 100%; }
-.species-open img { display: block; height: 100%; }
+.species-card[data-owned="false"] { color: #152b45; background: #fbfcff; border-color: #d7dfe9; }
+.species-card[data-owned="false"] small, .species-card[data-owned="false"] .fallback { color: #425874; }
+.species-card[data-owned="false"] .species-open { background: #fff; border-color: #e0e6ee; }
+.species-card[data-owned="false"] .species-open:hover { border-color: #65829e; }
+.species-card[data-owned="false"] .species-open img { max-width: 75%; max-height: 80%; filter: grayscale(1); opacity: .65; }
+.species-open img { display: block; min-height: 0; min-width: 0; width: 100%; height: 100%; object-fit: contain; }
 .species-name { display: flex; align-items: center; gap: 5px; min-height: 26px; }
 .species-name img { width: 26px; height: 26px; flex: none; object-fit: contain; }
 .species-name .fallback { display: none; }
@@ -48,6 +53,12 @@ input, select, textarea { width: 100%; min-width: 0; }
 .card button { min-height: 32px; font-size: 13px; }
 .note { color: #c5d5e6; }
 #more { margin-top: 12px; }
+.floating-add {
+  position: fixed; right: max(16px, calc((100vw - 1050px) / 2));
+  bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 5;
+  min-height: 44px; padding: 8px 16px; border-radius: 999px;
+  box-shadow: 0 3px 16px #001225a0;
+}
 dialog { width: min(550px, calc(100vw - 24px)); background: #102944; color: #fff6e2; border: 1px solid #e4bd67; border-radius: 12px; padding: 16px; }
 dialog::backdrop { background: #020b17bb; }
 dialog form { display: grid; gap: 10px; }
@@ -56,7 +67,6 @@ footer { justify-content: flex-end; }
 [hidden] { display: none !important; }
 @media (max-width: 550px) {
   main { padding-top: 12px; }
-  .hero .button { font-size: 13px; }
   nav button { flex: 1 1 calc(50% - 8px); }
   .grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
