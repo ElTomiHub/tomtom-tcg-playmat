@@ -6,13 +6,13 @@
   <meta name="theme-color" content="#0b213b">
   <title>Pokédex · Pokémon TCG Playmat</title>
   <link rel="icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="assets/pokedex.css?v=16">
+  <link rel="stylesheet" href="assets/pokedex.css?v=17">
   <script defer src="assets/starter-library.js"></script>
   <script defer src="assets/pokedex-species-names.js?v=1"></script>
   <script defer src="assets/library-sync.js?v=5"></script>
   <script defer src="assets/pokedex-sync.js?v=3"></script>
   <script defer src="assets/pokedex-scan.js?v=5"></script>
-  <script defer src="assets/pokedex.js?v=14"></script>
+  <script defer src="assets/pokedex.js?v=15"></script>
 </head>
 <body>
   <main>
@@ -53,6 +53,7 @@
         <div class="inputs filter-fields">
           <label>Search <input id="search" type="search" placeholder="Name (EN, FR, JP), set, or number"></label>
           <label id="regionField">Region <select id="regionFilter"><option value="">All regions</option></select></label>
+          <label id="specialTagField" hidden>Tag <select id="specialTagFilter"></select></label>
           <label id="variantField">Variant <select id="variantFilter"><option value="">All variants</option></select></label>
         </div>
         <div class="filter-actions">
@@ -65,6 +66,7 @@
             <span id="collectionProgressLabel"></span>
             <progress id="collectionProgressBar" aria-label="Pokédex species collected"></progress>
           </div>
+          <button type="button" id="reorderSpecial" aria-pressed="false" hidden>Reorder</button>
           <button type="button" id="resetFilters">Reset filters</button>
         </div>
       </div>
@@ -78,7 +80,7 @@
         <button type="button" data-binder-view="1" aria-pressed="true">Binder 1 <small>Gen I–III</small></button>
         <button type="button" data-binder-view="2" aria-pressed="false">Binder 2 <small>Gen IV–VI</small></button>
         <button type="button" data-binder-view="3" aria-pressed="false">Binder 3 <small>Gen VII–IX</small></button>
-        <button type="button" data-binder-view="other" aria-pressed="false">Other cards</button>
+        <button type="button" data-binder-view="other" aria-pressed="false">Special Collection</button>
       </div>
       <p id="resultCount" aria-live="polite"></p>
       <div id="results"></div>
@@ -110,12 +112,12 @@
     </div>
     <p class="note" id="scannerPasteHint" hidden>Paste a card image here with Ctrl+V or ⌘V, or enter the set and number below.</p>
     <img id="scannerPhoto" alt="Your card photo" hidden>
-    <form id="scannerLookup" hidden>
+    <form id="scannerLookup" autocomplete="off" hidden>
       <div class="inputs">
-        <label>Set code <input name="set" maxlength="24" placeholder="SV2a"></label>
-        <label>Collector number <input name="number" maxlength="24" placeholder="025/165"></label>
+        <label>Set code <input name="set" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="24" placeholder="SV2a"></label>
+        <label>Collector number <input name="number" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="24" placeholder="025/165"></label>
         <label>Variant <select name="variant" id="scanVariant"></select></label>
-        <label>Printed name <input name="name" maxlength="100" placeholder="Optional if set is known"></label>
+        <label>Printed name <input name="name" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="100" placeholder="Optional if set is known"></label>
       </div>
       <div class="scanner-form-actions">
         <button type="submit" class="primary">Look up print</button>
@@ -144,6 +146,7 @@
             <label>Card number <input name="number" maxlength="40"></label>
           </div>
           <label>Variant <select name="variant"></select></label>
+          <label id="editorTags" hidden>Tags <input name="tags" placeholder="Separate tags with commas"></label>
         </div>
         <figure id="editorArtwork" class="editor-artwork"></figure>
       </div>

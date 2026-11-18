@@ -73,6 +73,13 @@ input, select, textarea { width: 100%; min-width: 0; }
 .card { display: grid; align-content: start; gap: 5px; overflow-wrap: anywhere; }
 .card img { height: 140px; width: 100%; object-fit: contain; }
 .species-card { padding: 8px; }
+.special-card-title { font-size: 14px; }
+.special-order-actions { display: grid; gap: 4px; }
+.special-order-actions button { font-size: 12px; }
+.special-card[draggable="true"] { cursor: grab; }
+@media (min-width: 1050px) {
+  .grid.special-grid:has(> .species-card) { grid-template-columns: repeat(7,minmax(0,1fr)); }
+}
 .species-open {
   position: relative;
   display: grid; grid-template: minmax(0,1fr) / minmax(0,1fr); place-items: center; overflow: hidden; width: 100%; height: clamp(126px, 21vw, 175px);

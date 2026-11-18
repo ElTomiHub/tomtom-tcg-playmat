@@ -442,12 +442,85 @@
       if (entry) print.append(node('small',dexLabel(entry.id)+' '+entryName(entry)));
       const metadata = node('span',null,'recent-print');
       metadata.append(node('small',[card.set,card.number].filter(Boolean).join(' · ')),variantBadge(card.variant));
-      const location = node('small',entry ? generationLabel(entry.id)+' · Binder '+binderNumber(entry.id) : 'Other cards');
+      const location = node('small',entry ? generationLabel(entry.id)+' · Binder '+binderNumber(entry.id) : 'Special Collection');
       item.append(date,photo(card.image,'No image'),print,metadata,location);
       list.append(item);
     }
     el('results').append(list);
     el('more').hidden = limit >= rows.length;
+  }
+
+  const specialOrderId = 'binder:special-order';
+  let reorderingSpecial = false, draggedSpecial = '';
+  const specialTagKey = tag => tag.toLowerCase();
+
+  function normalizeSpecialTags(value) {
+    let list = value;
+    if (typeof list === 'string' && list.trim().startsWith('[')) {
+      try { list = JSON.parse(list); } catch { /* Treat legacy text as a delimited list. */ }
+    }
+    const tags = Array.isArray(list) ? list : String(list || '').replace(/^\{|\}$/g,'').split(/[,;\n|]/);
+    return [...new Map(tags.filter(tag=>typeof tag==='string').map(tag=>tag.trim().replace(/^"|"$/g,'').trim())
+      .filter(Boolean).map(tag=>[specialTagKey(tag),tag])).values()];
+  }
+
+  function orderedSpecialCards() {
+    const saved = data.preferences.find(row=>row.id===specialOrderId)?.order;
+    const ranks = new Map((Array.isArray(saved) ? saved : []).map((id,index)=>[id,index]));
+    return [...data.binder].sort((a,b)=>(ranks.get(a.id) ?? Infinity)-(ranks.get(b.id) ?? Infinity) || 0);
+  }
+
+  function moveSpecialCard(id,target) {
+    if (!reorderingSpecial || id===target) return;
+    const order = orderedSpecialCards().map(card=>card.id);
+    const from = order.indexOf(id), to = order.indexOf(target);
+    if (from<0 || to<0) return;
+    order.splice(from,1);
+    order.splice(to,0,id);
+    try {
+      save({...data,preferences:[...data.preferences.filter(row=>row.id!==specialOrderId),{id:specialOrderId,order}]});
+      render();
+      [...el('results').querySelectorAll('.special-card')].find(card=>card.dataset.cardId===id)?.querySelector('button')?.focus({preventScroll:true});
+    } catch (error) { el('notice').textContent = error.message; }
+  }
+
+  function specialTile(card,index,rows) {
+    const tile = node('article',null,'card species-card special-card');
+    tile.dataset.cardId = card.id;
+    const open = button(null,()=>openEditor(card,null,{destination:'binder'}));
+    open.className = 'species-open';
+    open.setAttribute('aria-label','Open '+title(card));
+    const badge = node('span',variantIcons[card.variant] || '◇','tile-marker variant-marker');
+    badge.title = displayVariant(card.variant);
+    open.append(photo(card.image,'No image'),badge);
+    tile.append(open,node('h3',title(card),'special-card-title'),
+      node('small',[card.set,card.number].filter(Boolean).join(' · ')));
+    const tags = normalizeSpecialTags(card.tags);
+    if (tags.length) tile.append(node('small',tags.join(' · ')));
+    if (reorderingSpecial) {
+      const actions = node('div',null,'special-order-actions');
+      for (const [offset,label] of [[-1,'Move earlier'],[1,'Move later']]) {
+        const target = rows[index+offset];
+        const control = button(label,()=>moveSpecialCard(card.id,target?.id));
+        control.disabled = !target;
+        actions.append(control);
+      }
+      tile.append(actions);
+      tile.draggable = true;
+      tile.addEventListener('dragstart',event=>{
+        draggedSpecial = card.id;
+        event.dataTransfer.setData('text/plain',card.id);
+      });
+      tile.addEventListener('dragend',()=>{draggedSpecial='';});
+      tile.addEventListener('dragover',event=>{if (draggedSpecial) event.preventDefault();});
+      tile.addEventListener('drop',event=>{
+        event.preventDefault();
+        const id = draggedSpecial;
+        draggedSpecial = '';
+        moveSpecialCard(id,card.id);
+      });
+    }
+    return tile;
   }
 
   function render() {
@@ -464,7 +537,10 @@
     document.querySelector('.species-back')?.remove();
     el('viewHeading').textContent = speciesFilter ? entryName(speciesFilter) : heading[view];
     const showingDetails = Boolean(speciesFilter);
-    const numberedBinder = view === 'binder' && binderView !== 'other';
+    const special = view === 'binder' && binderView === 'other';
+    const numberedBinder = view === 'binder' && !special;
+    if (special) el('viewHeading').textContent = 'Special Collection';
+    else reorderingSpecial = false;
     el('collectionProgress').hidden = showingDetails || (view !== 'cards' && view !== 'missing');
     el('binderViews').hidden = view !== 'binder' || showingDetails;
     el('addCard').hidden = view === 'progress' || showingDetails;
@@ -472,7 +548,11 @@
     const showCollection = view === 'cards' && !showingDetails;
     el('collectionFilter').hidden = !showCollection;
     for (const button of collectionButtons) button.setAttribute('aria-pressed',String(button.dataset.collection === collection));
-    el('variantField').hidden = view === 'missing';
+    el('variantField').hidden = view === 'missing' || special;
+    el('specialTagField').hidden = !special;
+    el('reorderSpecial').hidden = !special;
+    el('reorderSpecial').textContent = reorderingSpecial ? 'Done' : 'Reorder';
+    el('reorderSpecial').setAttribute('aria-pressed',String(reorderingSpecial));
     el('variantFilter').disabled = showCollection && collection === 'missing';
     el('regionField').hidden = view === 'binder' || !!speciesFilter;
     el('results').replaceChildren();
@@ -481,9 +561,32 @@
     if (view === 'progress') { renderProgress(owned); return; }
     if (view === 'recent') { renderRecent(); return; }
 
-    const search = normalizeSearch(el('search').value), variant = el('variantFilter').value;
+    const search = reorderingSpecial ? '' : normalizeSearch(el('search').value);
+    const variant = special ? '' : el('variantFilter').value;
+    const tagFilter = el('specialTagFilter');
+    const previousTag = tagFilter.value;
+    if (special) {
+      const counts = new Map();
+      for (const card of data.binder) for (const tag of normalizeSpecialTags(card.tags)) {
+        const key = specialTagKey(tag);
+        const row = counts.get(key) || {label:tag,count:0};
+        row.count++;
+        counts.set(key,row);
+      }
+      const all = node('option','All tags ('+data.binder.length+')');
+      all.value = '';
+      tagFilter.replaceChildren(all,...[...counts].sort((a,b)=>a[1].label.localeCompare(b[1].label)).map(([key,row])=>{
+        const option = node('option',row.label+' ('+row.count+')');
+        option.value = key;
+        return option;
+      }));
+      tagFilter.value = counts.has(previousTag) ? previousTag : '';
+    }
+    const tag = special && !reorderingSpecial ? tagFilter.value : '';
+    tagFilter.disabled = reorderingSpecial;
+    el('search').disabled = reorderingSpecial;
     const region = el('regionFilter').value;
-    const filtered = Boolean(search || (!el('variantField').hidden && variant) || (!el('regionField').hidden && region) ||
+    const filtered = Boolean(search || tag || (!el('variantField').hidden && variant) || (!el('regionField').hidden && region) ||
       (showCollection && collection !== 'all'));
     el('resetFilters').disabled = !filtered;
     const matches = (...values) => !search || values.some(value => normalizeSearch(value).includes(search));
@@ -509,9 +612,9 @@
     if (view === 'missing') {
       rows = catalog.filter(entry => !copiesByEntry.has(entry.key) && entryInRegion(entry,region) && matchesSpecies(entry));
       tile = entry => speciesTile(entry);
-    } else if (view === 'binder' && !numberedBinder) {
-      rows = data.binder.filter(matchesCard);
-      tile = card => cardTile(card);
+    } else if (special) {
+      rows = orderedSpecialCards().filter(card=>matchesCard(card) && (!tag || normalizeSpecialTags(card.tags).some(label=>specialTagKey(label)===tag)));
+      tile = (card,index) => specialTile(card,index,rows);
     } else {
       const groups = new Map();
       for (const [key, {cards}] of copiesByEntry) {
@@ -538,10 +641,10 @@
       el('results').append(node('p', 'No results match these filters.', 'note'));
       return;
     }
-    const grid = node('div',null,'grid');
-    grid.append(...rows.slice(0,limit).map(tile));
+    const grid = node('div',null,special ? 'grid special-grid' : 'grid');
+    grid.append(...rows.slice(0,reorderingSpecial ? rows.length : limit).map(tile));
     el('results').append(grid);
-    el('more').hidden = limit >= rows.length;
+    el('more').hidden = reorderingSpecial || limit >= rows.length;
   }
 
   function updateFormChoices(preferred = '') {
@@ -659,6 +762,8 @@
     el('speciesField').hidden = type !== 'cards';
     el('editorNameLabel').textContent = type === 'cards' ? 'Pokémon' : 'Card name';
     editorFields.name.required = type === 'binder';
+    el('editorTags').hidden = type !== 'binder';
+    editorFields.tags.value = normalizeSpecialTags(values?.tags).join(', ');
     editorFields.name.placeholder = type === 'cards' ? 'Search Pokémon' : '';
     if (type === 'cards') editorFields.name.setAttribute('list','editorPokemonNames');
     else editorFields.name.removeAttribute('list');
@@ -682,6 +787,7 @@
       pokemonKey: type === 'cards' ? read('pokemonForm') || String(pokemonId) : '',
       name:read('name'), set:read('set'), number:read('number'), variant:normalizeVariant(read('variant')) || 'normal',
       image, createdAt:card?.createdAt || new Date().toISOString()};
+    if (type === 'binder') entry.tags = normalizeSpecialTags(read('tags'));
     const updated = card ? data[type].map(item => item.id === card.id ? entry : item) : [...data[type],entry];
     try {
       save({...data,[type]:updated});
@@ -734,7 +840,10 @@
     limit = pageSize;
     render();
   });
+  el('specialTagFilter').addEventListener('change',()=>{limit=pageSize; render();});
+  el('reorderSpecial').addEventListener('click',()=>{reorderingSpecial=!reorderingSpecial; render();});
   el('resetFilters').addEventListener('click', () => {
+    if (!el('specialTagField').hidden) el('specialTagFilter').value = '';
     el('search').value = '';
     el('variantFilter').value = '';
     if (!el('regionField').hidden) el('regionFilter').value = '';
