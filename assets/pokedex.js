@@ -82,6 +82,12 @@
     ['Hisui',899,905], ['Paldea',906,totalSpecies]
   ];
   const regionIcons = {Kanto:'◉', Johto:'❧', Hoenn:'≈', Sinnoh:'▲', Unova:'◆', Kalos:'✧', Alola:'☀', Galar:'♜', Hisui:'❄', Paldea:'✦'};
+  function validSpecies(id) { return Number.isInteger(id) && id >= 1 && id <= totalSpecies; }
+  function collectedSpecies(cards) {
+    return new Set(cards.map(card => typeof card.pokemonId === 'string' && /^\d+$/.test(card.pokemonId.trim()) ?
+      Number(card.pokemonId) : card.pokemonId).filter(validSpecies));
+  }
+
   function inRegion(id, region) {
     if (!region) return true;
     const range = regions.find(([name]) => name === region);
@@ -169,7 +175,7 @@
   }
 
   if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {inRegion,normalizeSavedVariants,binderNumber,catalogEntry,entryInRegion,tomaPokemonNames,normalizeSearch,featuredCard,chooseFeaturedCard};
+    module.exports = {inRegion,normalizeSavedVariants,binderNumber,catalogEntry,entryInRegion,tomaPokemonNames,normalizeSearch,featuredCard,chooseFeaturedCard,collectedSpecies};
     return;
   }
 
@@ -221,7 +227,6 @@
   function speciesName(id) { return names[id-1]?.[0] || 'Pokémon #' + id; }
   function entryName(entry) { return [entry.label,speciesName(entry.id)].filter(Boolean).join(' '); }
   function title(card) { return card.name || entryName(catalogEntry(card)); }
-  function validSpecies(id) { return id >= 1 && id <= totalSpecies; }
   const variantIcons = {
     normal:'●', holo:'✦', 'reverse-holo':'◈', 'pokeball-reverse-holo':'◉', 'masterball-reverse-holo':'✪',
     'energy-reverse-holo':'ϟ', 'illustration-rare':'▧', special:'★'
@@ -239,7 +244,7 @@
     badge.append(icon,node('span',displayVariant(value)));
     return badge;
   }
-  function ownedSpecies() { return new Set(data.cards.map(card => card.pokemonId).filter(validSpecies)); }
+  function ownedSpecies() { return collectedSpecies(data.cards); }
   function formatProgress(owned, total) { return owned + ' / ' + total; }
 
   const pokemonSprites = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
@@ -438,7 +443,7 @@
       item.className = 'recent-card';
       const date = node('time',additionDate.format(time));
       date.dateTime = new Date(time).toISOString();
-      const entry = destination==='cards' && validSpecies(card.pokemonId) ? catalogEntry(card) : null;
+      const entry = destination==='cards' && validSpecies(Number(card.pokemonId)) ? catalogEntry(card) : null;
       const print = node('span',null,'recent-print');
       print.append(node('strong',title(card)));
       if (entry) print.append(node('small',dexLabel(entry.id)+' '+entryName(entry)));
@@ -854,6 +859,52 @@
   collectionSync = mountPokedexSync({store:collectionStore,storageKey,refresh:() => {
     if (refreshCollection()) render();
   }});
+  const backupDialog = el('collectionBackup');
+  const backupStatus = el('collectionBackupStatus');
+  const backupFile = el('collectionBackupFile');
+  const restoreButton = el('collectionBackupRestore');
+  el('collectionBackupOpen').addEventListener('click', () => {
+    backupStatus.textContent = '';
+    backupFile.value = '';
+    backupDialog.showModal();
+  });
+  el('collectionBackupDownload').addEventListener('click', () => {
+    try {
+      const backup = collectionStore.exportBackup();
+      const url = URL.createObjectURL(new Blob([backup],{type:'application/json'}));
+      const link = node('a');
+      link.href = url;
+      link.download = 'pokedex-backup-' + new Date().toISOString().replace(/[:.]/g,'-') + '.json';
+      document.body.append(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url),1000);
+      backupStatus.textContent = 'Collection backup downloaded.';
+    } catch {
+      backupStatus.textContent = 'Could not read the saved collection to create a backup.';
+    }
+  });
+  el('collectionRestoreForm').addEventListener('submit',async event => {
+    event.preventDefault();
+    const file = backupFile.files[0];
+    if (!file || restoreButton.disabled) return;
+    restoreButton.disabled = true;
+    backupStatus.textContent = '';
+    try {
+      const backup = parsePokedexBackup(await file.text());
+      collectionStore.restoreBackup(backup);
+      if (refreshCollection()) render();
+      collectionSync.changed();
+      backupFile.value = '';
+      backupStatus.textContent = 'Collection recovered in this browser.';
+    } catch (error) {
+      backupStatus.textContent = error.name === 'QuotaExceededError' ?
+        'There is not enough browser storage to restore this backup. Your saved collection is unchanged.' :
+        'Could not restore this file. Choose a Pokédex backup downloaded from this menu.';
+    } finally {
+      restoreButton.disabled = false;
+    }
+  });
   const openCardCapture = mountPokedexScanner({
     cards:()=>data.cards,
     savedPrints:()=>[...(globalThis.PLAYMAT_STARTER_LIBRARY?.cards || []),...readLocalList('codexPokemonPlaymat.cards.v1')],

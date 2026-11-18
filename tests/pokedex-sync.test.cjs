@@ -1,6 +1,6 @@
 const {test} = require('node:test');
 const assert = require('node:assert/strict');
-const {createPokedexStore,deletePokedexCard} = require('../assets/pokedex-sync.js');
+const {createPokedexStore,deletePokedexCard,parsePokedexBackup} = require('../assets/pokedex-sync.js');
 
 const empty = () => ({cards:[],binder:[],preferences:[]});
 const withCard = (id, note = '') => ({...empty(),cards:[{id,note}]});
@@ -24,6 +24,69 @@ function server() {
     }
   };
 }
+
+test('backup recovers card photos, variants, tags, featured prints, and binder order offline',()=>{
+  const collection = {
+    cards:[{id:'a',pokemonId:25,variant:'holo',image:'data:image/jpeg;base64,AA=='}],
+    binder:[{id:'b',tags:['Favorites']},{id:'c'}],
+    preferences:[{id:'featured:25',cardId:'a'},{id:'binder:special-order',order:['c','b']}]
+  };
+  const backup = parsePokedexBackup(device(collection).exportBackup());
+  const fresh = device();
+  assert.deepEqual(fresh.restoreBackup(backup),collection);
+  assert.deepEqual(fresh.restoreBackup(backup),collection);
+  assert.deepEqual(fresh.read().recovering,{cards:['a'],binder:['b','c'],preferences:['featured:25','binder:special-order']});
+  assert.throws(()=>parsePokedexBackup(JSON.stringify(collection)),/Invalid Pokédex backup/);
+  assert.throws(()=>parsePokedexBackup(device(withCard('a')).exportBackup().replace('"id":"a"','"id":"a","variant":1')),/Invalid card/);
+});
+
+test('recovery from a fresh device preserves newer cloud edits and recovers cloud-only deletions',async()=>{
+  const cloud = server();
+  const initial = {...withCard('deleted','original'),binder:[{id:'favorite',note:'old'}]};
+  const source = device(initial);
+  const backup = parsePokedexBackup(source.exportBackup());
+  await source.sync(cloud,session);
+  source.save(initial,{...deletePokedexCard(initial,'cards','deleted'),binder:[{id:'favorite',note:'new'}]});
+  await source.sync(cloud,session);
+  const fresh = device();
+  fresh.restoreBackup(backup);
+  await fresh.sync(cloud,session);
+  assert.deepEqual(fresh.read().collection.cards,[{id:'recovered:1:deleted',note:'original'}]);
+  assert.deepEqual(fresh.read().collection.binder,[{id:'favorite',note:'new'}]);
+  assert.deepEqual(fresh.read().recovering,empty());
+});
+
+test('recovery keeps newer cards and restores a deleted card without reviving its old ID on sync',async()=>{
+  const cloud = server();
+  const initial = {...withCard('a','original'),preferences:[{id:'featured:25',cardId:'a'}]};
+  const local = device(initial);
+  await local.sync(cloud,session);
+  const backup = parsePokedexBackup(local.exportBackup());
+  local.save(initial,deletePokedexCard(initial,'cards','a'));
+  const before = local.read().collection;
+  local.save(before,{...before,cards:[{id:'newer'}]});
+  local.restoreBackup(backup);
+  local.restoreBackup(backup);
+  await local.sync(cloud,session);
+  const second = device();
+  await second.sync(cloud,session);
+  assert.deepEqual(second.read().collection.cards,[{id:'newer'},{id:'recovered:1:a',note:'original'}]);
+  assert.deepEqual(second.read().collection.preferences.find(row=>row.id==='featured:25'),{id:'featured:25',cardId:'recovered:1:a'});
+});
+
+test('valid backup can recover from unreadable local data and a failed write leaves saved data intact',()=>{
+  let raw = '{truncated';
+  let fail = true;
+  const local = createPokedexStore({getItem:()=>raw,setItem:(_,next)=>{
+    if (fail) throw new Error('Storage full');
+    raw = next;
+  }},'collection');
+  const backup = parsePokedexBackup(device(withCard('a')).exportBackup());
+  assert.throws(()=>local.restoreBackup(backup),/Storage full/);
+  assert.equal(raw,'{truncated');
+  fail = false;
+  assert.deepEqual(local.restoreBackup(backup),backup);
+});
 
 test('first sync uploads the existing import and brings it to an empty device',async()=>{
   const cloud = server();

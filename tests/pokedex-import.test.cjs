@@ -1,7 +1,12 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
-const {inRegion,normalizeSavedVariants,binderNumber,catalogEntry,entryInRegion,tomaPokemonNames,normalizeSearch,featuredCard,chooseFeaturedCard}=require('../assets/pokedex.js');
+const {inRegion,normalizeSavedVariants,binderNumber,catalogEntry,entryInRegion,tomaPokemonNames,normalizeSearch,featuredCard,chooseFeaturedCard,collectedSpecies}=require('../assets/pokedex.js');
 require('../assets/pokedex-species-names.js');
+
+test('species progress counts a Pokédex number once and ignores invalid saved numbers',()=>{
+  const cards=[25,'025',25.5,'25.1','01025',1026,null,164].map(pokemonId=>({pokemonId}));
+  assert.deepEqual([...collectedSpecies(cards)],[25,1025,164]);
+});
 
 test('Pokédex search has English, French and Japanese names for all 1025 species',()=>{
   const names=globalThis.POKEDEX_SPECIES_NAMES;

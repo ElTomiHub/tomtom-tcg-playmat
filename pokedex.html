@@ -10,9 +10,9 @@
   <script defer src="assets/starter-library.js"></script>
   <script defer src="assets/pokedex-species-names.js?v=1"></script>
   <script defer src="assets/library-sync.js?v=5"></script>
-  <script defer src="assets/pokedex-sync.js?v=3"></script>
+  <script defer src="assets/pokedex-sync.js?v=4"></script>
   <script defer src="assets/pokedex-scan.js?v=6"></script>
-  <script defer src="assets/pokedex.js?v=17"></script>
+  <script defer src="assets/pokedex.js?v=19"></script>
 </head>
 <body>
   <main>
@@ -46,6 +46,7 @@
             <button type="button" id="collectionSyncNow">Sync now</button>
             <button type="button" id="collectionSyncSignOut">Sign out</button>
           </div>
+          <button type="button" id="collectionBackupOpen">Backup &amp; restore</button>
         </div>
       </details>
       </div>
@@ -84,6 +85,20 @@
   <div class="collection-actions">
     <button class="primary" type="button" id="addCard">＋ Add card</button>
   </div>
+  <dialog id="collectionBackup" aria-labelledby="collectionBackupHeading">
+    <div class="scanner-heading">
+      <h2 id="collectionBackupHeading">Collection backup</h2>
+      <form method="dialog"><button aria-label="Close collection backup">×</button></form>
+    </div>
+    <p>Download a copy of your Pokédex and Special Collection, including photos uploaded with cards.</p>
+    <button type="button" id="collectionBackupDownload">Download backup</button>
+    <form id="collectionRestoreForm">
+      <p>Restore missing cards and preferences from a backup. Existing cards and preferences take priority.</p>
+      <label>Pokédex backup file <input type="file" id="collectionBackupFile" accept=".json,application/json" required></label>
+      <div><button type="submit" class="primary" id="collectionBackupRestore">Restore collection</button></div>
+    </form>
+    <p id="collectionBackupStatus" role="status"></p>
+  </dialog>
   <dialog id="scanner" aria-labelledby="scannerHeading">
     <div class="scanner-heading">
       <h2 id="scannerHeading">Add card</h2>
