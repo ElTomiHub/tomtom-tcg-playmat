@@ -160,6 +160,8 @@
   }
 
   function safeImage(value) {
+    if (typeof value === 'string' && value.length <= 150000 && /^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(value))
+      return value;
     try {
       const url = new URL(value);
       return url.protocol === 'https:' && !url.username && !url.password ? url.href : '';
@@ -190,7 +192,7 @@
   let collection = 'all';
   let data = empty(), view = 'cards', speciesFilter = null, speciesReturn, limit = pageSize, editing, damagedStorage = false;
   const collectionStore = createPokedexStore(localStorage,storageKey);
-  let collectionRaw, collectionSync, binderView = '1';
+  let collectionRaw, collectionSync;
 
   function refreshCollection() {
     try {
@@ -285,7 +287,7 @@
 
   function renderSpeciesDetails(entry, copies, preferredId) {
     const name = entryName(entry);
-    const back = button(view === 'binder' ? '← Back to Binder ' + binderView : '← Back to Pokédex', () => {
+    const back = button('← Back to Pokédex', () => {
       const previous = speciesReturn;
       speciesFilter = null;
       speciesReturn = null;
@@ -537,12 +539,10 @@
     document.querySelector('.species-back')?.remove();
     el('viewHeading').textContent = speciesFilter ? entryName(speciesFilter) : heading[view];
     const showingDetails = Boolean(speciesFilter);
-    const special = view === 'binder' && binderView === 'other';
-    const numberedBinder = view === 'binder' && !special;
+    const special = view === 'binder';
     if (special) el('viewHeading').textContent = 'Special Collection';
     else reorderingSpecial = false;
     el('collectionProgress').hidden = showingDetails || (view !== 'cards' && view !== 'missing');
-    el('binderViews').hidden = view !== 'binder' || showingDetails;
     el('addCard').hidden = view === 'progress' || showingDetails;
     el('filters').hidden = view === 'progress' || view === 'recent' || showingDetails;
     const showCollection = view === 'cards' && !showingDetails;
@@ -623,7 +623,6 @@
       }
       const extra = [...copiesByEntry.values()].filter(({entry}) => !entriesByKey.has(entry.key)).map(({entry}) => entry);
       rows = [...catalog,...extra].filter(entry => {
-        if (numberedBinder) return binderNumber(entry.id) === Number(binderView) && groups.has(entry.key);
         if (!entryInRegion(entry,region)) return false;
         const collected = copiesByEntry.has(entry.key);
         if (collection === 'collected' && !collected || collection === 'missing' && collected) return false;
@@ -740,7 +739,7 @@
   for (const key of ['set','number','variant']) editorFields[key].addEventListener('change',updateEditorArtwork);
   function openEditor(card, entry = speciesFilter, draft = null) {
     const values = card || draft;
-    const type = draft?.destination || (view === 'binder' && binderView === 'other' ? 'binder' : 'cards');
+    const type = draft?.destination || (view === 'binder' ? 'binder' : 'cards');
     editing = {card,language:draft?.language,type,originalImage:safeImage(values?.image),
       reference:{set:values?.set || '',number:values?.number || ''},artworkForVariant:draft?.artworkForVariant};
     editorForm.reset();
@@ -820,18 +819,11 @@
     }
   });
   el('cancelEdit').addEventListener('click', () => el('editor').close());
-  el('addCard').addEventListener('click', () => openCardCapture({destination:view === 'binder' && binderView === 'other' ? 'binder' : 'cards'}));
+  el('addCard').addEventListener('click', () => openCardCapture({destination:view === 'binder' ? 'binder' : 'cards'}));
   for (const item of document.querySelectorAll('[data-view]')) item.addEventListener('click', () => {
     view = item.dataset.view; speciesFilter = null; speciesReturn = null; collection = 'all'; limit = pageSize;
     for (const other of document.querySelectorAll('[data-view]')) other.setAttribute('aria-pressed',String(other === item));
     el('search').value = ''; el('variantFilter').value = ''; render();
-  });
-  const binderButtons = [...el('binderViews').querySelectorAll('button')];
-  for (const item of binderButtons) item.addEventListener('click', () => {
-    binderView = item.dataset.binderView;
-    for (const other of binderButtons) other.setAttribute('aria-pressed',String(other === item));
-    limit = pageSize;
-    render();
   });
   for (const id of ['search','variantFilter','regionFilter']) el(id).addEventListener('input', () => {limit = pageSize; render();});
   for (const item of collectionButtons) item.addEventListener('click', () => {

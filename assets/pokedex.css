@@ -191,6 +191,7 @@ input, select, textarea { width: 100%; min-width: 0; }
 .collection-actions button {
   min-height: 44px; padding: 8px 15px; border-radius: 999px; box-shadow: 0 3px 16px #001225a0;
 }
+.scan-destination { max-width: 220px; margin-bottom: 10px; }
 #scanner { width: min(790px,calc(100vw - 24px)); }
 .scanner-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px; }
 .scanner-camera {

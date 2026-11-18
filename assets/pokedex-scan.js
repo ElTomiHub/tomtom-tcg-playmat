@@ -527,10 +527,12 @@
     const video = el('scannerVideo'), camera = el('scannerPreview'), take = el('scannerTake');
     const torch = el('scannerTorch'), start = el('scannerStart'), manual = el('scannerManual'), phone = el('scannerPhone');
     const variant = form.elements.variant;
+    const destination = el('scannerDestination');
+    const register = el('scannerRegister');
     const mobile = navigator.userAgentData?.mobile === true || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) ||
       (navigator.platform === 'MacIntel' && navigator.maxTouchPoints>1);
     let client, request = 0, previewUrl = '', cameraVersion = 0, stream, supportsTorch = false;
-    let context, scanPhoto, scannedVariant, updateVariant, lookupTimer;
+    let context, scanPhoto, photoFile, scannedVariant, updateVariant, lookupTimer;
 
     function variantOptions(finishes = []) {
       const selected = variant.value;
@@ -556,6 +558,7 @@
 
     function clearPhoto() {
       scanPhoto = null;
+      photoFile = null;
       scannedVariant = '';
       if (previewUrl) URL.revokeObjectURL(previewUrl);
       previewUrl = '';
@@ -637,16 +640,45 @@
       }
     }
 
-    function registerManually() {
+    async function registerManually() {
       const fields = Object.fromEntries(new FormData(form));
-      dialog.close();
-      openAdd({name:fields.name.trim(),set:fields.set.trim(),number:fields.number.trim(),variant:fields.variant,
-        pokemonId:context.entry?.id,pokemonKey:context.entry?.key,destination:context.destination});
+      const draft = {name:fields.name.trim(),set:fields.set.trim(),number:fields.number.trim(),variant:fields.variant,
+        pokemonId:context.entry?.id,pokemonKey:context.entry?.key,destination:destination.value};
+      const job = ++request;
+      clearTimeout(lookupTimer);
+      register.disabled = true;
+      try {
+        if (photoFile) {
+          const source = scanPhoto || await photoCanvas(photoFile);
+          const preview = element('canvas');
+          for (const dimension of [480,360,240]) {
+            const scale = Math.min(1,dimension/Math.max(source.width,source.height));
+            preview.width = Math.max(1,Math.round(source.width*scale));
+            preview.height = Math.max(1,Math.round(source.height*scale));
+            const drawing = preview.getContext('2d');
+            drawing.fillStyle = '#ffffff';
+            drawing.fillRect(0,0,preview.width,preview.height);
+            drawing.drawImage(source,0,0,preview.width,preview.height);
+            const jpeg = preview.toDataURL('image/jpeg',.78);
+            if (jpeg.startsWith('data:image/jpeg;base64,') && jpeg.length<=150000) {
+              draft.image = jpeg;
+              break;
+            }
+          }
+          if (!draft.image) throw new Error('This image could not be prepared.');
+        }
+        if (!dialog.open || job!==request) return;
+        dialog.close();
+        openAdd(draft);
+      } catch {
+        if (job===request) state.textContent = 'Could not save this photo. Choose another image to continue.';
+      } finally { register.disabled = false; }
     }
 
     function open(options = {}) {
       if (dialog.open) return;
       context = {destination:'cards',...options};
+      destination.value = context.destination;
       request++;
       updateVariant = null;
       clearPhoto();
@@ -690,7 +722,8 @@
       form.elements.set.focus();
       if (form.elements.set.value && form.elements.number.value && !updateVariant) lookUpFields();
     });
-    el('scannerRegister').addEventListener('click',registerManually);
+    register.addEventListener('click',registerManually);
+    destination.addEventListener('change',()=>updateVariant?.());
     phone.addEventListener('click',()=>{
       stopCamera();
       state.textContent = 'Turn on flash in your phone’s camera if needed, then take the photo.';
@@ -791,6 +824,7 @@
         state.textContent = 'Choose a photo under 25 MB.';
         return;
       }
+      photoFile = file;
       previewUrl = URL.createObjectURL(file);
       el('scannerPhoto').src = previewUrl;
       el('scannerPhoto').hidden = false;
@@ -1007,10 +1041,10 @@
           'Variant suggested from the scan. You can correct it above.' : '','note');
       const collection = element('div',null,'scan-ownership');
       collection.setAttribute('aria-live','polite');
-      const add = action(context.destination === 'binder' ? 'Add to Binder' : 'Add to Pokédex',()=>{
+      const add = action(destination.value === 'binder' ? 'Add to Special Collection' : 'Add to Pokédex',()=>{
         dialog.close();
         openAdd({name:name.textContent,language,set:code,number:identity.printedNumber,variant:variant.value,image:art,artworkForVariant,
-          pokemonId:identity.speciesId,pokemonKey:identity.pokemonKey,destination:context.destination});
+          pokemonId:identity.speciesId,pokemonKey:identity.pokemonKey,destination:destination.value});
       },'primary');
       const refreshOwnership = () => {
         const found = checkCollection(cards(),identity,variant.value,[card.set?.id]);
@@ -1032,7 +1066,8 @@
           }
           collection.append(list);
         }
-        add.disabled = !variant.value || (!identity.speciesId && context.destination !== 'binder');
+        add.textContent = destination.value === 'binder' ? 'Add to Special Collection' : 'Add to Pokédex';
+        add.disabled = !variant.value;
       };
       updateVariant = ()=>{
         variantStatus.textContent = '';
