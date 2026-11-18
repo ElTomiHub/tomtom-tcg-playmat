@@ -143,7 +143,7 @@
     return element;
   };
   const names = new Map();
-  let data = empty(), pending, view = 'cards', speciesFilter = null, limit = pageSize, editing, damagedStorage = false;
+  let data = empty(), pending, view = 'cards', speciesFilter = null, speciesReturn, limit = pageSize, editing, damagedStorage = false;
   try {
     const saved = localStorage.getItem(storageKey);
     if (saved) {
@@ -193,15 +193,37 @@
     return article;
   }
 
-  function speciesTile(id, copies) {
+  function speciesTile(id, copies = []) {
+    const owned = copies.length > 0;
+    const name = speciesName(id);
     const article = node('article',null,'card species-card');
-    const image = copies?.find(card => card.image)?.image ||
-      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/' + id + '.png';
-    article.append(photo(image, 'No image'), node('h3',speciesName(id)), node('small','#' + String(id).padStart(4,'0')));
-    if (copies) article.append(button(copies.length + (copies.length === 1 ? ' copy' : ' copies'), () => {
-      speciesFilter = id; limit = pageSize; render();
-    }));
-    else article.append(button('Add card', () => openEditor(null,id)));
+    article.dataset.owned = String(owned);
+    const sprites = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
+    const artwork = sprites + 'other/official-artwork/' + id + '.png';
+    const featured = copies.find(card => /^(true|t)$/i.test(card.featured) && card.image);
+    const image = featured?.image || copies.find(card => card.image)?.image || artwork;
+    const open = button(null, () => {
+      if (!owned) { openEditor(null,id); return; }
+      speciesReturn = {search:el('search').value, variant:el('variantFilter').value, limit, scroll:window.scrollY};
+      speciesFilter = id;
+      el('search').value = '';
+      el('variantFilter').value = '';
+      limit = pageSize;
+      render();
+      el('viewHeading').focus();
+      el('viewHeading').scrollIntoView({block:'start'});
+    });
+    open.className = 'species-open';
+    open.setAttribute('aria-label', (owned ? 'View registered cards for ' : 'Add a card for ') + name);
+    const picture = photo(image,'No image');
+    if (image !== artwork) picture.addEventListener('error', () => {
+      open.querySelector('.fallback')?.replaceWith(photo(artwork,'No image'));
+    }, {once:true});
+    open.append(picture);
+    const heading = node('h3',null,'species-name');
+    if (owned) heading.append(photo(sprites + id + '.png',''));
+    heading.append(node('span',name));
+    article.append(open,heading,node('small','#' + String(id).padStart(4,'0')));
     return article;
   }
 
@@ -254,7 +276,19 @@
       tile = cardTile;
       if (speciesFilter) {
         rows = rows.filter(card => card.pokemonId === speciesFilter);
-        el('results').append(button('← All Pokémon', () => { speciesFilter = null; limit = pageSize; render(); }));
+        el('results').append(button('← All Pokémon', () => {
+          const previous = speciesReturn;
+          const name = speciesName(speciesFilter);
+          speciesFilter = null;
+          speciesReturn = null;
+          limit = previous?.limit || pageSize;
+          el('search').value = previous?.search || '';
+          el('variantFilter').value = previous?.variant || '';
+          render();
+          window.scrollTo(0,previous?.scroll || 0);
+          [...el('results').querySelectorAll('.species-open')].find(item =>
+            item.getAttribute('aria-label') === 'View registered cards for ' + name)?.focus({preventScroll:true});
+        }));
       } else if (view === 'cards') {
         const groups = new Map();
         for (const card of rows) {
@@ -262,8 +296,10 @@
           group.push(card);
           groups.set(card.pokemonId,group);
         }
-        rows = [...groups.entries()].sort(([a],[b]) => a-b);
-        tile = ([id,copies]) => speciesTile(id,copies);
+        const ids = Array.from({length: totalSpecies}, (_, i) => i+1);
+        for (const id of groups.keys()) if (!validSpecies(id)) ids.push(id);
+        rows = ids.filter(id => groups.has(id) || !variant && matches(id,speciesName(id)));
+        tile = id => speciesTile(id,groups.get(id));
       }
     }
     el('resultCount').textContent = rows.length + (rows.length === 1 ? ' result' : ' results');
@@ -271,7 +307,7 @@
       el('results').append(node('p', 'No cards match this view. Import your collection or add a card to get started.', 'note'));
       return;
     }
-    const grid = node('div',null,'grid');
+    const grid = node('div',null,speciesFilter ? 'grid registered-prints' : 'grid');
     grid.append(...rows.slice(0,limit).map(tile));
     el('results').append(grid);
     el('more').hidden = limit >= rows.length;

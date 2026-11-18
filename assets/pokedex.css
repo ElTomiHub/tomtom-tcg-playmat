@@ -30,7 +30,20 @@ input, select, textarea { width: 100%; min-width: 0; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 155px), 1fr)); gap: 10px; }
 .card { display: grid; align-content: start; gap: 5px; overflow-wrap: anywhere; }
 .card img { height: 140px; width: 100%; object-fit: contain; }
-.species-card img { height: 78px; }
+.species-card { padding: 8px; }
+.species-open {
+  display: grid; place-items: center; width: 100%; height: clamp(126px, 21vw, 175px);
+  padding: 5px; background: #0b2239; border: 1px solid #52708c;
+}
+.species-open:hover { border-color: #f5c75c; }
+.species-card[data-owned="false"] .species-open { background: radial-gradient(ellipse, #254967, #0b2239 80%); }
+.species-card[data-owned="false"] .species-open img { max-width: 86%; height: 100%; }
+.species-open img { display: block; height: 100%; }
+.species-name { display: flex; align-items: center; gap: 5px; min-height: 26px; }
+.species-name img { width: 26px; height: 26px; flex: none; object-fit: contain; }
+.species-name .fallback { display: none; }
+.registered-prints { margin-top: 12px; }
+.registered-prints .card img { height: clamp(180px, 33vw, 255px); }
 .card .fallback { display: grid; place-items: center; min-height: 74px; color: #c5d5e6; }
 .card button { min-height: 32px; font-size: 13px; }
 .note { color: #c5d5e6; }
