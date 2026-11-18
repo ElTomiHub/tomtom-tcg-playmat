@@ -86,6 +86,7 @@ function createPokedexStore(storage, key) {
 
 function mountPokedexSync({store, storageKey, refresh}) {
   const el = id => document.getElementById(id);
+  const menu = el('collectionSync');
   const form = el('collectionSyncForm'), controls = el('collectionSyncControls');
   const status = el('collectionSyncStatus'), badge = el('collectionSyncBadge');
   const client = createLibrarySyncClient({...playmatSyncConfig,storage:localStorage,
@@ -163,6 +164,15 @@ function mountPokedexSync({store, storageKey, refresh}) {
     try { await client.signOut(); }
     catch { /* The client clears the local session even when offline. */ }
     finally { schedule(0); refreshControls(); }
+  });
+  document.addEventListener('click',event => {
+    if (menu.open && !menu.contains(event.target)) menu.open = false;
+  });
+  menu.addEventListener('keydown',event => {
+    if (!menu.open || event.key !== 'Escape') return;
+    menu.open = false;
+    menu.querySelector('summary').focus();
+    event.preventDefault();
   });
   window.addEventListener('storage',event => {
     if (event.key === storageKey) refresh();

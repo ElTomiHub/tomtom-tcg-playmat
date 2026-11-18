@@ -3,11 +3,15 @@
 body { margin: 0; background: radial-gradient(ellipse at top, #1a4264, transparent 50vh); }
 main { width: min(1320px, 100%); min-height: 100vh; padding: 24px clamp(12px, 4vw, 28px) 100px; margin: auto; }
 .sticky-top {
+  display: grid; grid-template: "hero hero" "views sync" "filters filters" / minmax(0,1fr) auto;
+  column-gap: 8px;
   position: sticky; top: 0; z-index: 4; padding: 10px 0 8px;
   margin-bottom: 14px; background: #0e243b; border-bottom: 1px solid #52708c;
   box-shadow: 0 6px 12px #07162970;
 }
-.sticky-top nav { margin-bottom: 8px; }
+.sticky-top .hero { grid-area: hero; }
+.sticky-top nav { grid-area: views; margin-bottom: 8px; }
+#filters { grid-area: filters; }
 .filter-fields { margin-bottom: 6px; }
 .filter-actions, #collectionFilter { display: flex; flex-wrap: wrap; gap: 5px; }
 .filter-actions { justify-content: space-between; }
@@ -29,7 +33,23 @@ small, .panel p, #resultCount { color: #c5d5e6; }
 .panel { margin-bottom: 8px; }
 .panel p { margin: 8px 0; }
 summary { cursor: pointer; font-weight: 750; }
-#collectionSyncBadge { margin-inline-start: 8px; color: #f2c65f; font-size: 12px; }
+#collectionSync { grid-area: sync; position: relative; align-self: start; justify-self: end; }
+#collectionSync > summary {
+  display: flex; align-items: center; gap: 8px; min-height: 38px; padding: 4px 10px;
+  border: 1px solid #52708c; border-radius: 7px; color: #f2c65f; background: #102944;
+  font-size: 12px; white-space: nowrap;
+}
+#collectionSync > summary::-webkit-details-marker { display: none; }
+#collectionSync > summary::after {
+  content: ''; width: 5px; height: 5px; border: solid currentColor; border-width: 0 1px 1px 0;
+  transform: rotate(45deg) translateY(-2px);
+}
+#collectionSync[open] > summary, #collectionSync > summary:hover { border-color: #f2c65f; }
+.collection-sync-menu {
+  position: absolute; inset-block-start: calc(100% + 6px); inset-inline-end: 0;
+  width: min(340px, calc(100vw - 24px)); z-index: 1; box-shadow: 0 8px 24px #071629a0;
+}
+#collectionSyncForm .inputs { display: grid; }
 button, .button, input, select, textarea { min-height: 38px; border-radius: 7px; border: 1px solid #65829e; padding: 6px 10px; background: #102944; color: #fff6e2; font: inherit; }
 button, .button { cursor: pointer; text-decoration: none; font-weight: 650; }
 button[aria-pressed="true"], .primary { background: #f5c75c; border-color: #f5c75c; color: #112238; }
@@ -99,6 +119,11 @@ footer { justify-content: flex-end; }
 [hidden] { display: none !important; }
 @media (max-width: 550px) {
   main { padding-top: 12px; }
+  .sticky-top { grid-template-areas: "hero sync" "views views" "filters filters"; }
+  #collectionSync { align-self: center; margin-bottom: 14px; }
+  .hero .heading { gap: 8px; }
+  .lobby-logo img { width: 36px; height: 36px; }
+  #collectionSync > summary { padding-inline: 8px; }
   nav button { flex: 1 1 calc(50% - 8px); }
   .filter-fields > label { flex-basis: calc(50% - 4px); }
   .filter-fields > label:first-child { flex-basis: 100%; }
