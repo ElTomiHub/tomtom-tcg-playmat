@@ -497,8 +497,6 @@
     open.append(photo(card.image,'No image'),badge);
     tile.append(open,node('h3',title(card),'special-card-title'),
       node('small',[card.set,card.number].filter(Boolean).join(' · ')));
-    const tags = normalizeSpecialTags(card.tags);
-    if (tags.length) tile.append(node('small',tags.join(' · ')));
     if (reorderingSpecial) {
       const actions = node('div',null,'special-order-actions');
       for (const [offset,label] of [[-1,'Move earlier'],[1,'Move later']]) {
