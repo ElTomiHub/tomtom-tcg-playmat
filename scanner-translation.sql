@@ -7,9 +7,6 @@ returns text
 language plpgsql
 security definer
 set search_path = ''
-set http.curlopt_connecttimeout_ms = '2500'
-set http.curlopt_timeout_ms = '4500'
-set http.curlopt_followlocation = '0'
 as $$
 declare
   page_status integer;
