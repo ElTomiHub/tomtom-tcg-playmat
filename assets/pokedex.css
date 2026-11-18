@@ -99,8 +99,49 @@ input, select, textarea { width: 100%; min-width: 0; }
 .species-name img { width: 26px; height: 26px; flex: none; object-fit: contain; }
 .species-name > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .species-name .fallback { display: none; }
-.registered-prints { margin-top: 12px; }
-.registered-prints .card img { height: clamp(180px, 33vw, 255px); }
+#binderViews { display: flex; flex-wrap: wrap; gap: 8px; }
+#binderViews small { color: inherit; opacity: .83; margin-inline-start: 3px; }
+.species-back { margin-bottom: 14px; }
+.species-detail {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .8fr) minmax(0, 1.35fr);
+  gap: clamp(12px, 2vw, 24px); align-items: start; padding: 0 0 20px;
+}
+.species-detail h3 { font-size: 16px; line-height: 1.3; }
+.species-detail .card { min-width: 0; gap: 9px; }
+.species-detail .featured-print {
+  padding: clamp(12px, 2vw, 20px); border-color: #d6ae56;
+  background: radial-gradient(ellipse at 50% 38%, #e4b64124, transparent 67%), #122944;
+}
+.featured-label {
+  justify-self: start; padding: 3px 8px; border-radius: 4px;
+  background: #f5c75c; color: #112238; font-size: 12px; font-weight: 750;
+}
+.featured-print h3 { font-size: 20px; }
+.featured-print img { height: clamp(220px, 31vw, 430px); margin: 5px 0; }
+.featured-print .fallback { aspect-ratio: 5 / 7; max-height: 430px; background: #0b2239; border-radius: 8px; }
+.species-info { padding: clamp(12px, 2vw, 20px); }
+.species-info h3, .species-prints > h3 { color: #ffdb85; }
+.species-info dl { display: grid; grid-template-columns: auto 1fr; gap: 7px 12px; margin: 4px 0 12px; }
+.species-info dt { color: #c5d5e6; font-size: 13px; }
+.species-info dd { margin: 0; font-size: 14px; font-weight: 650; }
+.variant-counts { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.variant-counts li { display: flex; gap: 8px; align-items: center; }
+.species-print-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin-top: 10px; }
+.species-print-grid .card { align-content: start; padding: 10px; }
+.alternate-print img, .alternate-print .fallback { height: clamp(124px, 18vw, 225px); }
+.print-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.species-detail .print-actions button { flex: 1 1 auto; min-height: 36px; }
+.add-species-print { min-height: 88px; align-self: start; border-style: dashed; }
+@media (max-width: 900px) {
+  .species-detail { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .species-prints { grid-column: 1 / -1; }
+  .species-print-grid { grid-template-columns: repeat(auto-fill,minmax(min(100%,150px),1fr)); }
+}
+@media (max-width: 550px) {
+  .species-detail { grid-template-columns: minmax(0,1fr); }
+  .featured-print img { height: clamp(220px, 82vw, 370px); }
+  .species-print-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
 .card .fallback { display: grid; place-items: center; min-height: 74px; color: #c5d5e6; }
 .card button { min-height: 32px; font-size: 13px; }
 .note { color: #c5d5e6; }

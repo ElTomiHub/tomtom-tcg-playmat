@@ -1,6 +1,6 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
-const {parseCSV,convertRows,collectionCounts,selectCollection,mergeCollection,previewCounts,inRegion,normalizeSavedVariants,binderNumber,catalogEntry,entryInRegion,tomaPokemonNames,normalizeSearch}=require('../assets/pokedex.js');
+const {parseCSV,convertRows,collectionCounts,selectCollection,mergeCollection,previewCounts,inRegion,normalizeSavedVariants,binderNumber,catalogEntry,entryInRegion,tomaPokemonNames,normalizeSearch,featuredCard,chooseFeaturedCard}=require('../assets/pokedex.js');
 require('../assets/pokedex-species-names.js');
 
 test('Pokédex search has English, French and Japanese names for all 1025 species',()=>{
@@ -11,6 +11,19 @@ test('Pokédex search has English, French and Japanese names for all 1025 specie
   assert.equal(normalizeSearch(' FLABÉBÉ '),'flabebe');
   assert.equal(normalizeSearch('ふしぎだね'),'フシギダネ');
   assert.equal(normalizeSearch('ﾌｼｷﾞﾀﾞﾈ'),'フシギダネ');
+});
+
+test('featured choices replace the prior selection for one form and retain imported preferences',()=>{
+  const cards=[{id:'imported',featured:'t',image:'imported.png'},{id:'new',image:'new.png'},{id:'no-image'}];
+  const saved=[{id:'preferences:latest',pokemonKey:'59',normalOnly:true}];
+  const base=chooseFeaturedCard(saved,'59','new');
+  const withForm=chooseFeaturedCard(base,'59-hisuian','imported');
+  const updated=chooseFeaturedCard(withForm,'59','no-image');
+  assert.deepEqual(updated,[saved[0],{id:'featured:59',cardId:'no-image'},{id:'featured:59-hisuian',cardId:'imported'}]);
+  assert.equal(featuredCard(cards,updated[1].cardId).id,'no-image');
+  assert.equal(featuredCard(cards,'other-form').id,'imported');
+  assert.equal(featuredCard(cards.slice(1)).id,'new');
+  assert.equal(chooseFeaturedCard(updated,'59','no-image'),updated);
 });
 
 test('collection CSV supports semicolons, BOM, escaped quotes and multiline fields',()=>{

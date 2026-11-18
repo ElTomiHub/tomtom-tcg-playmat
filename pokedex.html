@@ -6,12 +6,12 @@
   <meta name="theme-color" content="#0b213b">
   <title>Pokédex · Pokémon TCG Playmat</title>
   <link rel="icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="assets/pokedex.css?v=8">
+  <link rel="stylesheet" href="assets/pokedex.css?v=9">
   <script defer src="assets/starter-library.js"></script>
   <script defer src="assets/pokedex-species-names.js?v=1"></script>
   <script defer src="assets/library-sync.js?v=4"></script>
   <script defer src="assets/pokedex-sync.js?v=2"></script>
-  <script defer src="assets/pokedex.js?v=7"></script>
+  <script defer src="assets/pokedex.js?v=8"></script>
 </head>
 <body>
   <main>
@@ -83,6 +83,12 @@
     <section aria-labelledby="viewHeading">
       <div class="toolbar">
         <h2 id="viewHeading" tabindex="-1">Pokédex</h2>
+      </div>
+      <div id="binderViews" role="group" aria-label="Choose a binder" hidden>
+        <button type="button" data-binder-view="1" aria-pressed="true">Binder 1 <small>Gen I–III</small></button>
+        <button type="button" data-binder-view="2" aria-pressed="false">Binder 2 <small>Gen IV–VI</small></button>
+        <button type="button" data-binder-view="3" aria-pressed="false">Binder 3 <small>Gen VII–IX</small></button>
+        <button type="button" data-binder-view="other" aria-pressed="false">Other cards</button>
       </div>
       <p id="resultCount" aria-live="polite"></p>
       <div id="results"></div>
