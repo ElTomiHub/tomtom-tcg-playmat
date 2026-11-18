@@ -303,23 +303,24 @@
     const layout = node('div',null,'species-detail');
     const featured = featuredCard(copies,preferredId);
     const info = node('section',null,'card species-info');
-    info.append(node('h3','Pokémon details'));
-    const facts = node('dl');
-    const localizedNames = names[entry.id-1] || [];
-    for (const [index, label, lang] of [[0,'English','en'],[1,'French','fr'],[2,'Japanese','ja']]) {
-      if (!localizedNames[index]) continue;
-      const value = node('dd',localizedNames[index]);
-      value.lang = lang;
-      facts.append(node('dt',label),value);
+    const overview = node('div',null,'species-overview');
+    overview.append(photo(pokemonSprites+entry.sprite+'.png',''));
+    const namesRow = node('div',null,'species-localized');
+    namesRow.append(node('small',dexLabel(entry.id)));
+    for (const [index,lang] of ['en','fr','ja'].entries()) {
+      const value = index===0 ? name : names[entry.id-1]?.[index];
+      if (!value) continue;
+      const label = node(index===0?'strong':'span',value);
+      label.lang = lang;
+      namesRow.append(label);
     }
-    const generation = generationEnds.findIndex(end => entry.id <= end) + 1;
-    facts.append(node('dt','National Pokédex'),node('dd','#' + String(entry.id).padStart(4,'0')),
-      node('dt','Generation'),node('dd',String(generation)),node('dt','Binder'),node('dd','Binder ' + binderNumber(entry.id)));
-    if (entry.region) facts.append(node('dt','Regional form'),node('dd',entry.region));
-    info.append(facts);
+    const organization = node('div',null,'species-localized');
+    organization.append(node('span',generationLabel(entry.id)),node('span','Binder '+binderNumber(entry.id)),
+      node('span',copies.length+' '+(copies.length===1?'card':'cards')+' collected'));
+    overview.append(namesRow,organization);
+    info.append(overview);
     const totals = new Map();
     for (const card of copies) totals.set(card.variant,(totals.get(card.variant) || 0) + 1);
-    info.append(node('h3','My collection'));
     const counts = node('ul',null,'variant-counts');
     for (const [variant,count] of totals) {
       const row = node('li');
@@ -349,8 +350,8 @@
     grid.append(add);
     shelf.append(grid);
     if (featured) layout.append(cardTile(featured,{style:'featured-print',featured:true}));
-    layout.append(info,shelf);
-    el('results').append(layout);
+    layout.append(shelf);
+    el('results').append(info,layout);
   }
 
   function speciesTile(entry, copies = [], deckNames = new Set(), variantCount = 0, preferredId) {
@@ -417,6 +418,36 @@
       return Array.isArray(value) ? value : [];
     } catch { return []; }
   }
+  const dexLabel = id => '#' + String(id).padStart(4,'0');
+  const generationLabel = id => 'Generation ' + ['I','II','III','IV','V','VI','VII','VIII','IX'][generationEnds.findIndex(end=>id<=end)];
+  const additionDate = new Intl.DateTimeFormat(undefined,{dateStyle:'medium',timeStyle:'short'});
+
+  function renderRecent() {
+    const rows = [...data.cards.map(card=>({card,destination:'cards'})),
+      ...data.binder.map(card=>({card,destination:'binder'}))]
+      .map(row=>({...row,time:Date.parse(row.card.createdAt)}))
+      .filter(row=>Number.isFinite(row.time)).sort((a,b)=>b.time-a.time);
+    if (!rows.length) { el('results').append(node('p','Dated card additions will appear here.','note')); return; }
+    const list = node('div',null,'recent-list');
+    for (const {card,destination,time} of rows.slice(0,limit)) {
+      const item = button(null,()=>openEditor(card,null,{destination}));
+      item.className = 'recent-card';
+      const date = node('time',additionDate.format(time));
+      date.dateTime = new Date(time).toISOString();
+      const entry = destination==='cards' && validSpecies(card.pokemonId) ? catalogEntry(card) : null;
+      const print = node('span',null,'recent-print');
+      print.append(node('strong',title(card)));
+      if (entry) print.append(node('small',dexLabel(entry.id)+' '+entryName(entry)));
+      const metadata = node('span',null,'recent-print');
+      metadata.append(node('small',[card.set,card.number].filter(Boolean).join(' · ')),variantBadge(card.variant));
+      const location = node('small',entry ? generationLabel(entry.id)+' · Binder '+binderNumber(entry.id) : 'Other cards');
+      item.append(date,photo(card.image,'No image'),print,metadata,location);
+      list.append(item);
+    }
+    el('results').append(list);
+    el('more').hidden = limit >= rows.length;
+  }
+
   function render() {
     const owned = ownedSpecies();
     const completion = (owned.size*100/totalSpecies).toFixed(1);
@@ -427,14 +458,14 @@
     const progressLabel = owned.size+' / '+totalSpecies+' species · '+completion+'% · '+remaining+' missing';
     el('collectionProgressLabel').textContent = progressLabel;
     progress.setAttribute('aria-valuetext',progressLabel);
-    const heading = {cards: 'Pokédex', binder: 'Binder', missing: 'Missing Pokémon', progress: 'Progress'};
+    const heading = {cards: 'Pokédex', binder: 'Binder', missing: 'Missing Pokémon', progress: 'Progress', recent:'Recent cards'};
     el('viewHeading').textContent = speciesFilter ? entryName(speciesFilter) : heading[view];
     const showingDetails = Boolean(speciesFilter);
     const numberedBinder = view === 'binder' && binderView !== 'other';
     el('collectionProgress').hidden = showingDetails || (view !== 'cards' && view !== 'missing');
     el('binderViews').hidden = view !== 'binder' || showingDetails;
     el('addCard').hidden = view === 'progress' || showingDetails;
-    el('filters').hidden = view === 'progress' || showingDetails;
+    el('filters').hidden = view === 'progress' || view === 'recent' || showingDetails;
     const showCollection = view === 'cards' && !showingDetails;
     el('collectionFilter').hidden = !showCollection;
     for (const button of collectionButtons) button.setAttribute('aria-pressed',String(button.dataset.collection === collection));
@@ -445,6 +476,7 @@
     el('resultCount').textContent = '';
     el('more').hidden = true;
     if (view === 'progress') { renderProgress(owned); return; }
+    if (view === 'recent') { renderRecent(); return; }
 
     const search = normalizeSearch(el('search').value), variant = el('variantFilter').value;
     const region = el('regionFilter').value;
@@ -549,9 +581,8 @@
     sprite.hidden = organization.hidden = !pokemon;
     if (!pokemon) return;
     const form = catalogEntry({pokemonId:id,pokemonKey:editorFields.pokemonForm.value});
-    const generation = ['I','II','III','IV','V','VI','VII','VIII','IX'][generationEnds.findIndex(end=>id<=end)];
     sprite.replaceChildren(photo(pokemonSprites+form.sprite+'.png',''));
-    organization.replaceChildren(node('span','Generation '+generation),node('span','Binder '+binderNumber(id)));
+    organization.replaceChildren(node('span',generationLabel(id)),node('span','Binder '+binderNumber(id)));
   }
 
   function updateEditorArtwork() {
@@ -674,7 +705,7 @@
       if (next !== data) save(next);
       el('editor').close();
       render();
-      el('notice').textContent = 'Card deleted.';
+      el('notice').textContent = '';
     } catch (error) {
       el('editorStatus').textContent = 'Could not delete the card. ' + error.message;
     }

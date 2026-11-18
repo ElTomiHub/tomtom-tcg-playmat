@@ -138,10 +138,28 @@ input, select, textarea { width: 100%; min-width: 0; }
 .alternate-print img, .alternate-print .fallback { height: clamp(124px, 18vw, 225px); }
 .print-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 .species-detail .print-actions button { flex: 1 1 auto; min-height: 36px; }
+.species-detail { grid-template-columns: minmax(0,1fr) minmax(0,2fr); }
+.species-info { margin-bottom: 14px; }
+.species-overview, .species-localized { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.species-overview img { width: 48px; height: 48px; object-fit: contain; }
+.species-info .variant-counts { display: flex; flex-wrap: wrap; gap: 8px; }
+.recent-list { display: grid; gap: 8px; }
+.recent-card {
+  display: grid; grid-template-columns: minmax(105px,.8fr) 42px minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);
+  align-items: center; gap: 8px 12px; text-align: start; overflow-wrap: anywhere;
+}
+.recent-card:hover { border-color: #f5c75c; }
+.recent-card time { font-size: 12px; }
+.recent-card img { width: 42px; height: 58px; object-fit: contain; }
+.recent-print { display: grid; gap: 4px; }
+@media (max-width: 550px) {
+  .recent-card { grid-template-columns: 42px repeat(2,minmax(0,1fr)); }
+  .recent-card time { grid-column: 1 / -1; }
+  .recent-card > small { grid-column: 2 / -1; }
+}
 .add-species-print { min-height: 88px; align-self: start; border-style: dashed; }
 @media (max-width: 900px) {
   .species-detail { grid-template-columns: repeat(2,minmax(0,1fr)); }
-  .species-prints { grid-column: 1 / -1; }
   .species-print-grid { grid-template-columns: repeat(auto-fill,minmax(min(100%,150px),1fr)); }
 }
 @media (max-width: 550px) {
