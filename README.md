@@ -288,3 +288,9 @@ Run `collection-sync.sql` once in the same Supabase SQL Editor. Open **Pokédex 
 Pokédex cards, Binder entries, and imported preferences sync without changing the Playmat library. Additions merge by record ID so multiple copies stay distinct and repeated CSV imports reuse the original records. An older local record with the same ID as an online record uses the online version on first sync. If two devices edit the same card, the last synced edit takes precedence. Photo links sync with the cards.
 
 Changes save in the browser first and sync automatically while signed in. Use **Sync now** to refresh immediately. Signing out keeps the collection on that device.
+
+### Scanning a Pokémon card
+
+Open **Pokédex → Scan card** to use the camera or choose a photo. The browser reads the photo locally. Lookups send the detected print reference or the name to TCGdex. You can correct the fields or enter the set code and collector number without using a photo. Check the displayed print and confirm the finish to see whether the collection contains that exact copy. **Add to Pokédex** opens the editor with the catalog information filled in.
+
+English text is shown for English cards and exact French cards with an English TCGdex counterpart. Japanese prints already translated in the Playmat library use those translations. To enable in-app Limitless English translations for more Japanese prints, run `scanner-translation.sql` once in the same Supabase SQL Editor used for private sync, then sign in with the Playmat account. Exact-print Limitless links are available directly from the scan result.

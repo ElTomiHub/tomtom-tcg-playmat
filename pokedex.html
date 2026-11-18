@@ -6,12 +6,13 @@
   <meta name="theme-color" content="#0b213b">
   <title>Pokédex · Pokémon TCG Playmat</title>
   <link rel="icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="assets/pokedex.css?v=9">
+  <link rel="stylesheet" href="assets/pokedex.css?v=10">
   <script defer src="assets/starter-library.js"></script>
   <script defer src="assets/pokedex-species-names.js?v=1"></script>
-  <script defer src="assets/library-sync.js?v=4"></script>
+  <script defer src="assets/library-sync.js?v=5"></script>
   <script defer src="assets/pokedex-sync.js?v=2"></script>
-  <script defer src="assets/pokedex.js?v=8"></script>
+  <script defer src="assets/pokedex-scan.js?v=1"></script>
+  <script defer src="assets/pokedex.js?v=9"></script>
 </head>
 <body>
   <main>
@@ -95,7 +96,38 @@
       <button type="button" id="more" hidden>Show more</button>
     </section>
   </main>
-  <button class="primary floating-add" type="button" id="addCard">＋ Add card</button>
+  <div class="collection-actions">
+    <button type="button" id="openScanner">Scan card</button>
+    <button class="primary" type="button" id="addCard">＋ Add card</button>
+  </div>
+  <dialog id="scanner" aria-labelledby="scannerHeading">
+    <div class="scanner-heading">
+      <h2 id="scannerHeading">Scan a card</h2>
+      <button type="button" id="closeScanner" aria-label="Close scanner">×</button>
+    </div>
+    <p class="note">Fit one card in the photo and keep the set code and collector number sharp.</p>
+    <div class="scanner-actions">
+      <button type="button" class="primary" id="scannerTake">Take photo</button>
+      <button type="button" id="scannerChoose">Choose image</button>
+      <input type="file" id="scannerCamera" accept="image/*" capture="environment" hidden>
+      <input type="file" id="scannerFile" accept="image/*" hidden>
+    </div>
+    <img id="scannerPhoto" alt="Photo selected for scanning" hidden>
+    <form id="scannerLookup">
+      <div class="inputs">
+        <label>Language
+          <select name="language"><option value="auto">Auto (photo)</option><option value="ja">Japanese</option><option value="en">English</option><option value="fr">French</option></select>
+        </label>
+        <label>Set code <input name="set" maxlength="24" placeholder="SV2a"></label>
+        <label>Collector number <input name="number" maxlength="24" placeholder="025/165" required></label>
+        <label>Printed name <input name="name" maxlength="100" placeholder="Optional if set is known"></label>
+      </div>
+      <button type="submit">Look up print</button>
+    </form>
+    <p id="scannerStatus" role="status"></p>
+    <div id="scannerCandidates" class="scanner-actions"></div>
+    <div id="scannerResult"></div>
+  </dialog>
   <dialog id="editor">
     <form id="editorForm">
       <h2 id="editorHeading">Add card</h2>

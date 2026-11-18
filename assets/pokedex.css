@@ -146,11 +146,34 @@ input, select, textarea { width: 100%; min-width: 0; }
 .card button { min-height: 32px; font-size: 13px; }
 .note { color: #c5d5e6; }
 #more { margin-top: 12px; }
-.floating-add {
+.collection-actions {
   position: fixed; right: max(16px, calc((100vw - 1270px) / 2));
   bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 5;
-  min-height: 44px; padding: 8px 16px; border-radius: 999px;
-  box-shadow: 0 3px 16px #001225a0;
+  display: flex; gap: 8px;
+}
+.collection-actions button {
+  min-height: 44px; padding: 8px 15px; border-radius: 999px; box-shadow: 0 3px 16px #001225a0;
+}
+#scanner { width: min(790px,calc(100vw - 24px)); }
+.scanner-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px; }
+.scanner-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+#scannerPhoto { display: block; max-width: 100%; height: 96px; object-fit: contain; margin-bottom: 10px; }
+#scannerLookup { padding: 12px; border: 1px solid #52708c; border-radius: 8px; }
+#scannerStatus:not(:empty) { margin-top: 10px; color: #ffdb85; }
+.scan-card {
+  display: grid; grid-template-columns: minmax(135px,.75fr) minmax(0,1.25fr); gap: 14px; align-items: start;
+  padding: 12px; background: #162f4d; border: 1px solid #6f8294; border-radius: 10px;
+}
+.scan-card > img { width: 100%; height: auto; border-radius: 8px; }
+.scan-info, .scan-translation { display: grid; gap: 8px; min-width: 0; }
+.scan-info h3 { font-size: 20px; }
+.scan-info a { color: #9bcfff; justify-self: start; }
+.scan-ownership, .scan-skill { padding: 8px; border-radius: 6px; background: #0d253e; }
+.scan-translation h4, .scan-translation h5 { margin: 0; color: #ffdb85; }
+.scan-skill p { margin-top: 4px; }
+@media (max-width: 550px) {
+  .scan-card { grid-template-columns: minmax(0,1fr); }
+  .scan-card > img { width: min(100%,225px); justify-self: center; }
 }
 dialog { width: min(550px, calc(100vw - 24px)); background: #102944; color: #fff6e2; border: 1px solid #e4bd67; border-radius: 12px; padding: 16px; }
 dialog::backdrop { background: #020b17bb; }

@@ -103,6 +103,7 @@ function createLibrarySyncClient({projectUrl,publishableKey,storage,fetcher,cloc
       finally { resetSession(); }
     },
     read:()=>rpc('playmat_library_read',{}),
+    scanTranslation:(set_code,collector_number)=>rpc('playmat_scan_translation',{set_code,collector_number}),
     readCollection:()=>rpc('playmat_collection_read',{}),
     writeCollection:(expected_revision,collection_data)=>rpc('playmat_collection_write',{expected_revision,collection_data}),
     readProgress:()=>rpc('playmat_progress_read',{}),

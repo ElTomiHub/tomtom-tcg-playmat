@@ -698,15 +698,16 @@
     el('formField').hidden = editing?.type==='binder' || select.options.length<=1;
   }
   el('editorForm').elements.namedItem('pokemonId').addEventListener('input',()=>updateFormChoices());
-  function openEditor(card, entry = speciesFilter) {
-    editing = {card, type: view === 'binder' && binderView === 'other' ? 'binder' : 'cards'};
+  function openEditor(card, entry = speciesFilter, draft = null) {
+    editing = {card, language:draft?.language, type: !draft && view === 'binder' && binderView === 'other' ? 'binder' : 'cards'};
+    const values = card || draft;
     const form = el('editorForm');
     form.reset();
-    for (const key of ['name','set','number','variant','image','notes']) form.elements.namedItem(key).value = card?.[key] || '';
+    for (const key of ['name','set','number','variant','image','notes']) form.elements.namedItem(key).value = values?.[key] || '';
     const number = form.elements.namedItem('pokemonId');
     number.required = editing.type === 'cards';
-    number.value = card?.pokemonId ?? entry?.id ?? '';
-    updateFormChoices(card?.pokemonKey || entry?.key);
+    number.value = values?.pokemonId ?? entry?.id ?? '';
+    updateFormChoices(values?.pokemonKey || entry?.key);
     el('speciesField').hidden = !number.required;
     form.elements.namedItem('name').required = editing.type === 'binder';
     el('editorHeading').textContent = card ? 'Edit card' : 'Add card';
@@ -717,11 +718,11 @@
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const read = key => String(form.get(key) || '').trim();
-    const {card, type} = editing;
+    const {card, type, language} = editing;
     const image = safeImage(read('image'));
     if (read('image') && !image) { el('editorStatus').textContent = 'Enter an HTTPS photo URL.'; return; }
     const pokemonId = type === 'cards' ? Number(read('pokemonId')) : null;
-    const entry = {...card, id:card?.id || 'manual:' + crypto.randomUUID(), pokemonId,
+    const entry = {...card, ...(language ? {language} : {}), id:card?.id || 'manual:' + crypto.randomUUID(), pokemonId,
       pokemonKey: type === 'cards' ? read('pokemonForm') || String(pokemonId) : '',
       name:read('name'), set:read('set'), number:read('number'), variant:normalizeVariant(read('variant')) || 'normal',
       image, notes:read('notes'), createdAt:card?.createdAt || new Date().toISOString()};
@@ -776,4 +777,10 @@
   collectionSync = mountPokedexSync({store:collectionStore,storageKey,refresh:() => {
     if (refreshCollection()) render();
   }});
+  mountPokedexScanner({
+    cards:()=>data.cards,
+    savedPrints:()=>[...(globalThis.PLAYMAT_STARTER_LIBRARY?.cards || []),...readLocalList('codexPokemonPlaymat.cards.v1')],
+    speciesNames:names,displayVariant,
+    openAdd:draft=>openEditor(null,null,draft)
+  });
 })();
