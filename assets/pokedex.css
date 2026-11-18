@@ -250,6 +250,9 @@ dialog .inputs { margin: 0; }
 #editor { width: min(745px,calc(100vw - 24px)); }
 .editor-layout { display: grid; grid-template-columns: minmax(0,1fr) minmax(135px,.52fr); gap: 16px; align-items: start; }
 .editor-fields { display: grid; gap: 10px; min-width: 0; }
+#editorFeaturedMessage { margin: 0 0 6px; }
+.editor-featured-choice { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.editor-featured-choice input { width: 18px; min-height: 18px; accent-color: #f5c75c; }
 .editor-fields .inputs > label { flex-basis: 110px; }
 .editor-pokemon { display: flex; flex-wrap: wrap; gap: 8px; }
 .editor-pokemon > label:first-child { flex: 1 1 135px; }

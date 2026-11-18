@@ -117,6 +117,10 @@
     return current ? preferences.map(preference => preference === current ? record : preference) : [...preferences,record];
   }
 
+  function hasOwnedPrint(cards, entryKey) {
+    return cards.some(card => catalogEntry(card).key === entryKey);
+  }
+
   function entryInRegion(entry, region) {
     return entry.region && region ? entry.region===region : inRegion(entry.id,region);
   }
@@ -175,7 +179,7 @@
   }
 
   if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {inRegion,normalizeSavedVariants,binderNumber,catalogEntry,entryInRegion,tomaPokemonNames,normalizeSearch,featuredCard,chooseFeaturedCard,collectedSpecies};
+    module.exports = {inRegion,normalizeSavedVariants,binderNumber,catalogEntry,entryInRegion,tomaPokemonNames,normalizeSearch,featuredCard,chooseFeaturedCard,collectedSpecies,hasOwnedPrint};
     return;
   }
 
@@ -687,8 +691,13 @@
     const sprite = el('editorSprite'), organization = el('editorOrganization');
     const pokemon = editing.type==='cards' && validSpecies(id);
     sprite.hidden = organization.hidden = !pokemon;
-    if (!pokemon) return;
-    const form = catalogEntry({pokemonId:id,pokemonKey:editorFields.pokemonForm.value});
+    const form = pokemon ? catalogEntry({pokemonId:id,pokemonKey:editorFields.pokemonForm.value}) : null;
+    const offer = form && !editing.card && hasOwnedPrint(data.cards,form.key);
+    el('editorFeaturedOffer').hidden = !offer;
+    if (!offer || editing.featuredEntryKey !== form.key) editorFields.makeFeatured.checked = false;
+    editing.featuredEntryKey = offer ? form.key : null;
+    if (offer) el('editorFeaturedMessage').textContent = 'You already have a card for ' + entryName(form) + '.';
+    if (!form) return;
     sprite.replaceChildren(photo(pokemonSprites+form.sprite+'.png',''));
     organization.replaceChildren(node('span',generationLabel(id)),node('span','Binder '+binderNumber(id)));
   }
@@ -791,10 +800,13 @@
       image, createdAt:card?.createdAt || new Date().toISOString()};
     if (type === 'binder') entry.tags = normalizeSpecialTags(read('tags'));
     const updated = card ? data[type].map(item => item.id === card.id ? entry : item) : [...data[type],entry];
+    const makeFeatured = form.has('makeFeatured') && !card && type === 'cards' &&
+      editing.featuredEntryKey === entry.pokemonKey && hasOwnedPrint(data.cards,entry.pokemonKey);
+    const preferences = makeFeatured ? chooseFeaturedCard(data.preferences,entry.pokemonKey,entry.id) : data.preferences;
     try {
-      save({...data,[type]:updated});
+      save({...data,[type]:updated,preferences});
       el('editor').close();
-      el('notice').textContent = 'Card saved in this browser.';
+      el('notice').textContent = makeFeatured ? 'Card saved and set as featured.' : 'Card saved in this browser.';
       render();
     } catch (error) { el('editorStatus').textContent = 'Could not save the card. ' + error.message; }
   });

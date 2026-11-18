@@ -1,6 +1,6 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
-const {inRegion,normalizeSavedVariants,binderNumber,catalogEntry,entryInRegion,tomaPokemonNames,normalizeSearch,featuredCard,chooseFeaturedCard,collectedSpecies}=require('../assets/pokedex.js');
+const {inRegion,normalizeSavedVariants,binderNumber,catalogEntry,entryInRegion,tomaPokemonNames,normalizeSearch,featuredCard,chooseFeaturedCard,collectedSpecies,hasOwnedPrint}=require('../assets/pokedex.js');
 require('../assets/pokedex-species-names.js');
 
 test('species progress counts a Pokédex number once and ignores invalid saved numbers',()=>{
@@ -54,6 +54,9 @@ test('regional forms own separate prints and keep the original species binder',(
   const standard=catalogEntry({pokemonId:59,pokemonKey:'59'});
   const hisuian=catalogEntry({pokemonId:59,pokemonKey:'59-hisuian'});
   assert.notEqual(standard.key,hisuian.key);
+  assert.equal(hasOwnedPrint([{pokemonId:59}],standard.key),true);
+  assert.equal(hasOwnedPrint([{pokemonId:59}],hisuian.key),false);
+  assert.equal(hasOwnedPrint([{pokemonId:59,pokemonKey:hisuian.key}],hisuian.key),true);
   assert.equal(hisuian.sprite,10230);
   assert.equal(binderNumber(hisuian.id),1);
   assert.equal(entryInRegion(hisuian,'Hisui'),true);

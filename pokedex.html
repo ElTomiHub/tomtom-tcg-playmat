@@ -6,13 +6,13 @@
   <meta name="theme-color" content="#0b213b">
   <title>Pokédex · Pokémon TCG Playmat</title>
   <link rel="icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="assets/pokedex.css?v=18">
+  <link rel="stylesheet" href="assets/pokedex.css?v=19">
   <script defer src="assets/starter-library.js"></script>
   <script defer src="assets/pokedex-species-names.js?v=1"></script>
   <script defer src="assets/library-sync.js?v=5"></script>
   <script defer src="assets/pokedex-sync.js?v=4"></script>
   <script defer src="assets/pokedex-scan.js?v=6"></script>
-  <script defer src="assets/pokedex.js?v=19"></script>
+  <script defer src="assets/pokedex.js?v=20"></script>
 </head>
 <body>
   <main>
@@ -159,6 +159,10 @@
           <label id="editorTags" hidden>Tags <input name="tags" placeholder="Separate tags with commas"></label>
         </div>
         <figure id="editorArtwork" class="editor-artwork"></figure>
+      </div>
+      <div id="editorFeaturedOffer" class="panel" hidden>
+        <p id="editorFeaturedMessage"></p>
+        <label class="editor-featured-choice"><input type="checkbox" name="makeFeatured"> Make this the featured card</label>
       </div>
       <p id="editorStatus" role="status"></p>
       <div id="deleteCardConfirm" hidden>
