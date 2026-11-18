@@ -298,7 +298,7 @@
         item.getAttribute('aria-label') === 'View registered cards for ' + name)?.focus({preventScroll:true});
     });
     back.className = 'species-back';
-    el('results').append(back);
+    el('viewHeading').after(back);
 
     const layout = node('div',null,'species-detail');
     const featured = featuredCard(copies,preferredId);
@@ -350,8 +350,10 @@
     grid.append(add);
     shelf.append(grid);
     if (featured) layout.append(cardTile(featured,{style:'featured-print',featured:true}));
-    layout.append(shelf);
-    el('results').append(info,layout);
+    const side = node('div',null,'species-sidebar');
+    side.append(info,shelf);
+    layout.append(side);
+    el('results').append(layout);
   }
 
   function speciesTile(entry, copies = [], deckNames = new Set(), variantCount = 0, preferredId) {
@@ -458,7 +460,8 @@
     const progressLabel = owned.size+' / '+totalSpecies+' species · '+completion+'% · '+remaining+' missing';
     el('collectionProgressLabel').textContent = progressLabel;
     progress.setAttribute('aria-valuetext',progressLabel);
-    const heading = {cards: 'Pokédex', binder: 'Binder', missing: 'Missing Pokémon', progress: 'Progress', recent:'Recent cards'};
+    const heading = {cards: 'Pokédex', binder: 'Binder', missing: 'Missing Pokémon', progress: 'Progress', recent:'History'};
+    document.querySelector('.species-back')?.remove();
     el('viewHeading').textContent = speciesFilter ? entryName(speciesFilter) : heading[view];
     const showingDetails = Boolean(speciesFilter);
     const numberedBinder = view === 'binder' && binderView !== 'other';

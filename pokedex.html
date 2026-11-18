@@ -6,13 +6,13 @@
   <meta name="theme-color" content="#0b213b">
   <title>Pokédex · Pokémon TCG Playmat</title>
   <link rel="icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="assets/pokedex.css?v=15">
+  <link rel="stylesheet" href="assets/pokedex.css?v=16">
   <script defer src="assets/starter-library.js"></script>
   <script defer src="assets/pokedex-species-names.js?v=1"></script>
   <script defer src="assets/library-sync.js?v=5"></script>
   <script defer src="assets/pokedex-sync.js?v=3"></script>
   <script defer src="assets/pokedex-scan.js?v=5"></script>
-  <script defer src="assets/pokedex.js?v=13"></script>
+  <script defer src="assets/pokedex.js?v=14"></script>
 </head>
 <body>
   <main>
@@ -24,9 +24,10 @@
         <button type="button" data-view="cards" aria-pressed="true">Pokédex</button>
         <button type="button" data-view="binder" aria-pressed="false">Binder</button>
         <button type="button" data-view="missing" aria-pressed="false">Missing Pokémon</button>
-        <button type="button" data-view="recent" aria-pressed="false">Recent cards</button>
         <button type="button" data-view="progress" aria-pressed="false">Progress</button>
       </nav>
+      <div class="pokedex-tools">
+        <button type="button" data-view="recent" aria-pressed="false">History</button>
       <details id="collectionSync">
         <summary aria-labelledby="collectionSyncHeading collectionSyncBadge" title="Collection sync">
           <span id="collectionSyncBadge"></span>
@@ -47,6 +48,7 @@
           </div>
         </div>
       </details>
+      </div>
       <div id="filters">
         <div class="inputs filter-fields">
           <label>Search <input id="search" type="search" placeholder="Name (EN, FR, JP), set, or number"></label>

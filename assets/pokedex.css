@@ -41,7 +41,9 @@ small, .panel p, #resultCount { color: #c5d5e6; }
 .panel { margin-bottom: 8px; }
 .panel p { margin: 8px 0; }
 summary { cursor: pointer; font-weight: 750; }
-#collectionSync { grid-area: sync; position: relative; align-self: start; justify-self: end; }
+.pokedex-tools { grid-area: sync; display: flex; gap: 6px; align-self: start; justify-self: end; }
+.pokedex-tools > button { font-size: 13px; }
+#collectionSync { position: relative; }
 #collectionSync > summary {
   display: flex; align-items: center; gap: 8px; min-height: 38px; padding: 4px 10px;
   border: 1px solid #52708c; border-radius: 7px; color: #f2c65f; background: #102944;
@@ -108,9 +110,9 @@ input, select, textarea { width: 100%; min-width: 0; }
 .species-name .fallback { display: none; }
 #binderViews { display: flex; flex-wrap: wrap; gap: 8px; }
 #binderViews small { color: inherit; opacity: .83; margin-inline-start: 3px; }
-.species-back { margin-bottom: 14px; }
+.species-back { margin-inline-start: auto; flex-shrink: 0; }
 .species-detail {
-  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .8fr) minmax(0, 1.35fr);
+  display: grid; grid-template-columns: minmax(0,1fr) minmax(0,2fr);
   gap: clamp(12px, 2vw, 24px); align-items: start; padding: 0 0 20px;
 }
 .species-detail h3 { font-size: 16px; line-height: 1.3; }
@@ -128,9 +130,6 @@ input, select, textarea { width: 100%; min-width: 0; }
 .featured-print .fallback { aspect-ratio: 5 / 7; max-height: 430px; background: #0b2239; border-radius: 8px; }
 .species-info { padding: clamp(12px, 2vw, 20px); }
 .species-info h3, .species-prints > h3 { color: #ffdb85; }
-.species-info dl { display: grid; grid-template-columns: auto 1fr; gap: 7px 12px; margin: 4px 0 12px; }
-.species-info dt { color: #c5d5e6; font-size: 13px; }
-.species-info dd { margin: 0; font-size: 14px; font-weight: 650; }
 .variant-counts { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .variant-counts li { display: flex; gap: 8px; align-items: center; }
 .species-print-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin-top: 10px; }
@@ -138,9 +137,13 @@ input, select, textarea { width: 100%; min-width: 0; }
 .alternate-print img, .alternate-print .fallback { height: clamp(124px, 18vw, 225px); }
 .print-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 .species-detail .print-actions button { flex: 1 1 auto; min-height: 36px; }
-.species-detail { grid-template-columns: minmax(0,1fr) minmax(0,2fr); }
-.species-info { margin-bottom: 14px; }
-.species-overview, .species-localized { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.species-sidebar { display: grid; gap: 14px; min-width: 0; }
+.species-overview { display: grid; grid-template-columns: 48px minmax(0,1fr); gap: 4px 12px; }
+.species-overview > :first-child { grid-row: span 2; }
+.species-overview .species-localized:first-of-type strong { font-size: 18px; }
+.species-overview .species-localized:last-child { font-size: 12px; color: #ffdb85; }
+.species-info .variant-counts { margin-top: 8px; }
+.species-localized { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
 .species-overview img { width: 48px; height: 48px; object-fit: contain; }
 .species-info .variant-counts { display: flex; flex-wrap: wrap; gap: 8px; }
 .recent-list { display: grid; gap: 8px; }
@@ -163,7 +166,9 @@ input, select, textarea { width: 100%; min-width: 0; }
   .species-print-grid { grid-template-columns: repeat(auto-fill,minmax(min(100%,150px),1fr)); }
 }
 @media (max-width: 550px) {
-  .species-detail { grid-template-columns: minmax(0,1fr); }
+  .species-detail { display: flex; flex-direction: column; align-items: stretch; }
+  .species-sidebar { display: contents; }
+  .species-info { order: -1; }
   .featured-print img { height: clamp(220px, 82vw, 370px); }
   .species-print-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
@@ -266,7 +271,7 @@ button.danger:hover { background: #5a2834; }
 @media (max-width: 550px) {
   main { padding-top: 12px; }
   .sticky-top { grid-template-areas: "hero sync" "views views" "filters filters"; }
-  #collectionSync { align-self: center; margin-bottom: 14px; }
+  .pokedex-tools { align-self: center; margin-bottom: 14px; flex-wrap: wrap; justify-content: flex-end; }
   .hero .heading { gap: 8px; }
   .lobby-logo img { width: 36px; height: 36px; }
   #collectionSync > summary { padding-inline: 8px; }
