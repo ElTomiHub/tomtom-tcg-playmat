@@ -1,6 +1,6 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
-const {printIdentity,checkCollection,availableVariants,readPrintedClues,makeCatalog,limitlessLink,cameraCrop,resolveScannerPrints}=require('../assets/pokedex-scan.js');
+const {printIdentity,checkCollection,availableVariants,readPrintedClues,makeCatalog,limitlessLink,cameraCrop,resolveScannerPrints,variantArtwork,variantClue,selectVisualVariant}=require('../assets/pokedex-scan.js');
 const names=[['Bulbasaur','Bulbizarre','フシギダネ'],['Pikachu','Pikachu','ピカチュウ']];
 
 test('the portrait framing guide maps to the camera sensor and clamps the padded crop',()=>{
@@ -67,6 +67,31 @@ test('shared English and French set numbers do not count as the same language pr
   assert.equal(result.samePrint.length,2);
   assert.equal(result.exact.length,1);
   assert.equal(result.unknownLanguage,1);
+});
+
+test('foil clues require an explicit finish and variant artwork prefers exact references',()=>{
+  assert.equal(variantClue('Pikachu - Master Ball Pattern.png'),'masterball-reverse-holo');
+  assert.equal(variantClue('モンスターボールミラー'),'pokeball-reverse-holo');
+  assert.equal(variantClue('You may put a Master Ball into your hand.'),'');
+  assert.equal(variantClue('Pikachu non-holo'),'normal');
+  const base='https://assets.tcgdex.net/ja/SV/SV2a/025/high.webp';
+  const card={variants_detailed:[{type:'reverse',foil:'masterball',image:'https://assets.tcgdex.net/ja/finishes/master'}]};
+  const copies=[
+    {variant:'masterball-reverse-holo',image:base},
+    {variant:'pokeball-reverse-holo',image:'https://example.com/pokeball.webp'}
+  ];
+  assert.deepEqual(variantArtwork(card,'masterball-reverse-holo',copies,[base]),
+    [{url:'https://assets.tcgdex.net/ja/finishes/master/high.webp',label:'Selected variant · catalog'}]);
+  assert.deepEqual(variantArtwork(card,'pokeball-reverse-holo',copies,[base]),
+    [{url:'https://example.com/pokeball.webp',label:'Selected variant · collection photo'}]);
+  assert.deepEqual(variantArtwork(card,'holo',copies,[base]),[]);
+});
+
+test('vision suggests a finish only when an exact image clearly beats other references',()=>{
+  const variants=[{variant:'normal',pixels:[84,105,96]},{variant:'masterball-reverse-holo',pixels:[112,86,73]}];
+  assert.equal(selectVisualVariant([[112,84,76],[100,95,80]],variants),'masterball-reverse-holo');
+  assert.equal(selectVisualVariant([[98,95,84]],variants),'');
+  assert.equal(selectVisualVariant([[112,86,73]],variants.slice(1)),'');
 });
 
 test('catalog options retain the Japanese 151 variants and classify illustration rares',()=>{

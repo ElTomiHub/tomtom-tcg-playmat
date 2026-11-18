@@ -6,13 +6,13 @@
   <meta name="theme-color" content="#0b213b">
   <title>Pokédex · Pokémon TCG Playmat</title>
   <link rel="icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="assets/pokedex.css?v=12">
+  <link rel="stylesheet" href="assets/pokedex.css?v=13">
   <script defer src="assets/starter-library.js"></script>
   <script defer src="assets/pokedex-species-names.js?v=1"></script>
   <script defer src="assets/library-sync.js?v=5"></script>
   <script defer src="assets/pokedex-sync.js?v=3"></script>
-  <script defer src="assets/pokedex-scan.js?v=3"></script>
-  <script defer src="assets/pokedex.js?v=10"></script>
+  <script defer src="assets/pokedex-scan.js?v=4"></script>
+  <script defer src="assets/pokedex.js?v=11"></script>
 </head>
 <body>
   <main>
@@ -97,13 +97,12 @@
     </section>
   </main>
   <div class="collection-actions">
-    <button type="button" id="openScanner">Scan card</button>
     <button class="primary" type="button" id="addCard">＋ Add card</button>
   </div>
   <dialog id="scanner" aria-labelledby="scannerHeading">
     <div class="scanner-heading">
-      <h2 id="scannerHeading">Scan a card</h2>
-      <button type="button" id="closeScanner" aria-label="Close scanner">×</button>
+      <h2 id="scannerHeading">Add card</h2>
+      <button type="button" id="closeScanner" aria-label="Close add card">×</button>
     </div>
     <div class="scanner-camera" id="scannerPreview" hidden>
       <video id="scannerVideo" autoplay muted playsinline aria-label="Live camera preview"></video>
@@ -115,15 +114,18 @@
       <button type="button" id="scannerStart" hidden>Open camera</button>
       <button type="button" id="scannerPhone" hidden>Phone camera</button>
       <button type="button" id="scannerChoose">Choose image</button>
+      <button type="button" id="scannerPaste">Paste image</button>
       <button type="button" id="scannerManual" aria-controls="scannerLookup" aria-expanded="false">Enter manually</button>
       <input type="file" id="scannerCamera" accept="image/*" capture="environment" hidden>
       <input type="file" id="scannerFile" accept="image/*" hidden>
     </div>
-    <img id="scannerPhoto" alt="Photo selected for scanning" hidden>
+    <p class="note" id="scannerPasteHint" hidden>Paste a card image here with Ctrl+V or ⌘V, or enter the set and number below.</p>
+    <img id="scannerPhoto" alt="Your card photo" hidden>
     <form id="scannerLookup" hidden>
       <div class="inputs">
         <label>Set code <input name="set" maxlength="24" placeholder="SV2a"></label>
         <label>Collector number <input name="number" maxlength="24" placeholder="025/165"></label>
+        <label>Variant <select name="variant" id="scanVariant"></select></label>
         <label>Printed name <input name="name" maxlength="100" placeholder="Optional if set is known"></label>
       </div>
       <div class="scanner-form-actions">

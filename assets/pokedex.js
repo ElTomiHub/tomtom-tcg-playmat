@@ -377,6 +377,9 @@
       actions.append(feature);
     }
     actions.append(button('Edit card', () => openEditor(card)));
+    if (style === 'featured-print' || style === 'alternate-print') {
+      actions.append(button('Add variant',() => openCardCapture({entry:catalogEntry(card),print:card})));
+    }
     article.append(actions);
     return article;
   }
@@ -450,7 +453,7 @@
         } catch (error) { el('notice').textContent = 'Could not update the featured card. ' + error.message; }
       }}));
     }
-    const add = button('＋ Add card',() => openEditor(null,entry));
+    const add = button('＋ Add card',() => openCardCapture({entry}));
     add.className = 'add-species-print';
     grid.append(add);
     shelf.append(grid);
@@ -470,7 +473,7 @@
     const cover = featuredCard(copies,preferredId);
     const image = owned ? cover?.image || artwork : sprites + sprite + '.png';
     const open = button(null, () => {
-      if (!owned) { openEditor(null,entry); return; }
+      if (!owned) { openCardCapture({entry}); return; }
       showSpecies(entry);
     });
     open.className = 'species-open';
@@ -699,7 +702,7 @@
   }
   el('editorForm').elements.namedItem('pokemonId').addEventListener('input',()=>updateFormChoices());
   function openEditor(card, entry = speciesFilter, draft = null) {
-    editing = {card, language:draft?.language, type: !draft && view === 'binder' && binderView === 'other' ? 'binder' : 'cards'};
+    editing = {card, language:draft?.language, type:draft?.destination || (view === 'binder' && binderView === 'other' ? 'binder' : 'cards')};
     const values = card || draft;
     const form = el('editorForm');
     form.reset();
@@ -760,7 +763,7 @@
     }
   });
   el('cancelEdit').addEventListener('click', () => el('editor').close());
-  el('addCard').addEventListener('click', () => openEditor(null));
+  el('addCard').addEventListener('click', () => openCardCapture({destination:view === 'binder' && binderView === 'other' ? 'binder' : 'cards'}));
   for (const item of document.querySelectorAll('[data-view]')) item.addEventListener('click', () => {
     view = item.dataset.view; speciesFilter = null; speciesReturn = null; collection = 'all'; limit = pageSize;
     for (const other of document.querySelectorAll('[data-view]')) other.setAttribute('aria-pressed',String(other === item));
@@ -802,10 +805,10 @@
   collectionSync = mountPokedexSync({store:collectionStore,storageKey,refresh:() => {
     if (refreshCollection()) render();
   }});
-  mountPokedexScanner({
+  const openCardCapture = mountPokedexScanner({
     cards:()=>data.cards,
     savedPrints:()=>[...(globalThis.PLAYMAT_STARTER_LIBRARY?.cards || []),...readLocalList('codexPokemonPlaymat.cards.v1')],
-    speciesNames:names,displayVariant,
+    speciesNames:names,displayVariant,variants,
     openAdd:draft=>openEditor(null,null,draft)
   });
 })();

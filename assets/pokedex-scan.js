@@ -42,17 +42,70 @@
       printedNumber:/^\d+$/.test(number) && total ? number+'/'+total : number};
   }
 
+  function catalogFinish(finish) {
+    if (finish.size && finish.size !== 'standard') return '';
+    if (finish.type === 'reverse') {
+      const foil = String(finish.foil || '').toLowerCase();
+      return foil.includes('masterball') ? 'masterball-reverse-holo' :
+        foil.includes('pokeball') ? 'pokeball-reverse-holo' : foil.includes('energy') ? 'energy-reverse-holo' : 'reverse-holo';
+    }
+    if (finish.type === 'normal' || finish.type === 'holo') return finish.type;
+    return finish.type ? 'special' : '';
+  }
+
+  function variantClue(text) {
+    const value = String(text || '').normalize('NFKC').toLowerCase().replace(/[_-]+/g,' ');
+    if (/master\s*ball\s*(?:pattern|mirror|reverse)|マスターボールミラー/.test(value)) return 'masterball-reverse-holo';
+    if (/pok[eé]\s*ball\s*(?:pattern|mirror|reverse)|モンスターボールミラー/.test(value)) return 'pokeball-reverse-holo';
+    if (/energy\s*(?:pattern|reverse)|エネルギーミラー/.test(value)) return 'energy-reverse-holo';
+    if (/illustration rare|(?:special )?art rare/.test(value)) return 'illustration-rare';
+    if (/reverse holo|mirror foil|ミラー仕様/.test(value)) return 'reverse-holo';
+    if (/non\s*holo|normal finish/.test(value)) return 'normal';
+    if (/holofoil|holo finish/.test(value)) return 'holo';
+    return '';
+  }
+
+  function httpsImage(value) {
+    try {
+      const url = new URL(value);
+      return url.protocol === 'https:' && !url.username && !url.password ? url.href : '';
+    } catch { return ''; }
+  }
+
+  function imageUrl(value) {
+    const url = httpsImage(value);
+    return url.startsWith('https://assets.tcgdex.net/') && !/\.(?:png|jpe?g|webp)(?:\?|$)/i.test(url) ?
+      url.replace(/\/$/,'')+'/high.webp' : url;
+  }
+
+  function variantArtwork(card, variant, samePrint, baseUrls) {
+    if (!variant) return [];
+    const entries = card.variants_detailed || [];
+    const catalog = entries.filter(finish=>catalogFinish(finish)===variant)
+      .map(finish=>imageUrl(finish.image)).filter(Boolean);
+    const collection = samePrint.filter(row=>variantKey(row.variant)===variant)
+      .map(row=>imageUrl(row.image)).filter(url=>url && !baseUrls.includes(url));
+    const found = [...new Set([...catalog,...collection])];
+    return found.map(url=>({url,label:catalog.includes(url) ? 'Selected variant · catalog' : 'Selected variant · collection photo'}));
+  }
+
+  function selectVisualVariant(sampleByCrop, references, complete = true) {
+    if (references.length<2 || !sampleByCrop.length) return '';
+    // Require both a close match and visible separation from the other finishes.
+    const distance = (a,b) => a.reduce((total,pixel,index)=>total+Math.abs(pixel-b[index]),0)/a.length;
+    const scores = references.map(ref=>({variant:ref.variant,
+      score:Math.min(...sampleByCrop.map(sample=>distance(sample,ref.pixels)))})).sort((a,b)=>a.score-b.score);
+    const [best,runnerUp] = scores;
+    const closeEnough = complete ? best.score<=6 : best.variant!=='normal' && best.score<=2;
+    return closeEnough && runnerUp.score-best.score>=2.5 ? best.variant : '';
+  }
+
   function availableVariants(card) {
     if (/^(?:special |shiny )?illustration rare$|^(?:special )?art rare$/i.test(card.rarity || '')) return ['illustration-rare'];
     const variants = new Set();
     for (const finish of card.variants_detailed || []) {
-      if (finish.size && finish.size !== 'standard') continue;
-      if (finish.type === 'reverse') {
-        const foil = String(finish.foil || '').toLowerCase();
-        variants.add(foil.includes('masterball') ? 'masterball-reverse-holo' :
-          foil.includes('pokeball') ? 'pokeball-reverse-holo' : foil.includes('energy') ? 'energy-reverse-holo' : 'reverse-holo');
-      } else if (finish.type === 'normal' || finish.type === 'holo') variants.add(finish.type);
-      else if (finish.type) variants.add('special');
+      const key = catalogFinish(finish);
+      if (key) variants.add(key);
     }
     if (!variants.size) {
       if (card.variants?.normal) variants.add('normal');
@@ -241,7 +294,7 @@
   }
 
   if (typeof module === 'object' && module.exports) {
-    module.exports = {printIdentity,checkCollection,availableVariants,readPrintedClues,cardNumber,makeCatalog,limitlessLink,cameraCrop,resolveScannerPrints};
+    module.exports = {printIdentity,checkCollection,availableVariants,readPrintedClues,cardNumber,makeCatalog,limitlessLink,cameraCrop,resolveScannerPrints,variantArtwork,variantClue,selectVisualVariant};
     return;
   }
 
@@ -347,6 +400,43 @@
     return footer;
   }
 
+  function photoPixels(image, inset = 0) {
+    const canvas = element('canvas');
+    canvas.width = 32;
+    canvas.height = 44;
+    const context = canvas.getContext('2d');
+    const width = image.naturalWidth || image.width;
+    const height = image.naturalHeight || image.height;
+    context.drawImage(image,width*inset,height*inset,width*(1-2*inset),height*(1-2*inset),0,0,32,44);
+    const rgba = context.getImageData(0,0,32,44).data;
+    const pixels = [];
+    for (let y=7;y<42;y++) {
+      for (let x=2;x<30;x++) {
+        // Weight the card text and frame, where finish patterns are easier to distinguish.
+        if (y<23 && x>4 && x<27) continue;
+        const index = (y*32+x)*4;
+        pixels.push(.299*rgba[index]+.587*rgba[index+1]+.114*rgba[index+2]);
+      }
+    }
+    return pixels;
+  }
+
+  async function visualVariant(photo, variants, artByFinish) {
+    if (!photo || variants.length<2 || variants.length>5) return '';
+    const candidates = variants.map(variant=>({variant,url:artByFinish(variant)[0]?.url})).filter(row=>row.url);
+    const unique = candidates.filter(row=>candidates.filter(candidate=>candidate.url===row.url).length===1);
+    if (unique.length<2) return '';
+    const results = await Promise.allSettled(unique.map(async ({url,variant})=>{
+      const image = element('img');
+      image.crossOrigin = 'anonymous';
+      image.src = url;
+      await image.decode();
+      return {variant,pixels:photoPixels(image)};
+    }));
+    const references = results.flatMap(result=>result.status==='fulfilled' ? [result.value] : []);
+    return selectVisualVariant([0,.035,.065].map(inset=>photoPixels(photo,inset)),references,references.length===variants.length);
+  }
+
   function translationFromHtml(html, url) {
     if (!html || !url) return null;
     const template = element('template');
@@ -366,7 +456,7 @@
     return {name:title.textContent.trim(),attacks,abilities,effect};
   }
 
-  function mountPokedexScanner({cards, savedPrints, speciesNames, displayVariant, openAdd}) {
+  function mountPokedexScanner({cards, savedPrints, speciesNames, displayVariant, variants, openAdd}) {
     const el = id => document.getElementById(id);
     const dialog = el('scanner');
     const form = el('scannerLookup');
@@ -375,13 +465,36 @@
     const lookup = makeCatalog(window.fetch.bind(window));
     const video = el('scannerVideo'), camera = el('scannerPreview'), take = el('scannerTake');
     const torch = el('scannerTorch'), start = el('scannerStart'), manual = el('scannerManual'), phone = el('scannerPhone');
+    const variant = form.elements.variant;
+    const mobile = navigator.userAgentData?.mobile === true || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints>1);
     let client, request = 0, previewUrl = '', cameraVersion = 0, stream, supportsTorch = false;
+    let context, scanPhoto, scannedVariant, updateVariant, lookupTimer;
+
+    function variantOptions(finishes = []) {
+      const selected = variant.value;
+      const empty = element('option','Auto / choose a variant');
+      empty.value = '';
+      variant.replaceChildren(empty);
+      for (const value of new Set([...finishes,...variants])) {
+        const option = element('option',displayVariant(value));
+        option.value = value;
+        variant.append(option);
+      }
+      variant.value = selected;
+    }
+    manual.hidden = !mobile;
+    take.hidden = !mobile;
+    el('scannerPasteHint').hidden = mobile;
+    variantOptions();
     try {
       client = createLibrarySyncClient({...playmatSyncConfig,storage:localStorage,
         fetcher:(url,options)=>fetch(url,{...options,signal:AbortSignal.timeout(7500)})});
     } catch { /* Lookup remains available without Playmat sync. */ }
 
     function clearPhoto() {
+      scanPhoto = null;
+      scannedVariant = '';
       if (previewUrl) URL.revokeObjectURL(previewUrl);
       previewUrl = '';
       const image = el('scannerPhoto');
@@ -405,12 +518,15 @@
       take.hidden = true;
       take.disabled = true;
       supportsTorch = false;
-      phone.hidden = false;
-      start.hidden = false;
+      phone.hidden = !mobile;
+      start.hidden = !mobile;
     }
 
     async function startCamera() {
+      if (!mobile) return;
       request++;
+      clearTimeout(lookupTimer);
+      updateVariant = null;
       stopCamera();
       clearPhoto();
       candidates.replaceChildren();
@@ -462,19 +578,37 @@
     function registerManually() {
       const fields = Object.fromEntries(new FormData(form));
       dialog.close();
-      openAdd({name:fields.name.trim(),set:fields.set.trim(),number:fields.number.trim()});
+      openAdd({name:fields.name.trim(),set:fields.set.trim(),number:fields.number.trim(),variant:fields.variant,
+        pokemonId:context.entry?.id,pokemonKey:context.entry?.key,destination:context.destination});
     }
 
-    el('openScanner').addEventListener('click',()=>{
+    function open(options = {}) {
       if (dialog.open) return;
+      context = {destination:'cards',...options};
+      request++;
+      updateVariant = null;
+      clearPhoto();
       form.reset();
+      variant.value = '';
+      variantOptions();
+      form.elements.set.value = context.print?.set || '';
+      form.elements.number.value = context.print?.number || '';
+      form.elements.name.value = context.print?.name || '';
+      candidates.replaceChildren();
+      result.replaceChildren();
+      state.textContent = '';
       dialog.showModal();
-      void startCamera();
-    });
+      if (mobile) void startCamera();
+      else {
+        setManual(true);
+        if (form.elements.set.value && form.elements.number.value) lookUpFields();
+      }
+    }
     el('closeScanner').addEventListener('click',()=>dialog.close());
     dialog.addEventListener('close',()=>{
       if (dialog.open) return;
       request++;
+      clearTimeout(lookupTimer);
       stopCamera();
       clearPhoto();
     });
@@ -492,6 +626,7 @@
       setManual(true);
       state.textContent = '';
       form.elements.set.focus();
+      if (form.elements.set.value && form.elements.number.value && !updateVariant) lookUpFields();
     });
     el('scannerRegister').addEventListener('click',registerManually);
     phone.addEventListener('click',()=>{
@@ -554,11 +689,39 @@
       });
     }
 
+    dialog.addEventListener('paste',event=>{
+      const clipboard = event.clipboardData;
+      const image = [...(clipboard?.files || [])].find(file=>file.type.startsWith('image/')) ||
+        [...(clipboard?.items || [])].find(item=>item.kind==='file' && item.type.startsWith('image/'))?.getAsFile();
+      if (!image) return;
+      event.preventDefault();
+      void scan(image);
+    });
+    el('scannerPaste').addEventListener('click',async ()=>{
+      const alive = request;
+      try {
+        const clipboard = await navigator.clipboard.read();
+        for (const item of clipboard) {
+          const type = item.types.find(value=>value.startsWith('image/'));
+          if (!type) continue;
+          const image = await item.getType(type);
+          if (dialog.open && alive === request) void scan(image);
+          return;
+        }
+        if (dialog.open && alive === request) state.textContent = 'Copy a card image first, or choose an image.';
+      } catch {
+        if (dialog.open && alive === request) state.textContent = 'Paste the copied image with Ctrl+V or ⌘V, or choose an image.';
+      }
+    });
+
     async function scan(file) {
       const job = ++request;
+      clearTimeout(lookupTimer);
+      updateVariant = null;
       stopCamera();
       form.reset();
-      setManual(false);
+      variant.value = '';
+      setManual(!mobile);
       result.replaceChildren();
       candidates.replaceChildren();
       clearPhoto();
@@ -574,11 +737,14 @@
       try {
         const [canvas,tesseract] = await Promise.all([photoCanvas(file),loadOcr()]);
         if (job !== request) return;
+        scanPhoto = canvas;
         worker = await tesseract.createWorker('jpn+eng',1,{logger:event=>{
           if (job === request && event.status === 'recognizing text') state.textContent = 'Reading the card…';
         }});
         await worker.setParameters({tessedit_pageseg_mode:tesseract.PSM.SPARSE_TEXT});
         const {data} = await worker.recognize(canvas,{rotateAuto:true});
+        if (job !== request) return;
+        scannedVariant = variantClue(file.name) || variantClue(data.text);
         const language = jpText.test(data.text) ? 'ja' :
           /\bPV\s*\d{2,3}\b|\b\d{2,3}\s*PV\b|\bFR\s+\d{1,4}\s*\//i.test(data.text) ? 'fr' : 'en';
         const sets = await lookup.sets(language).catch(()=>[]);
@@ -644,19 +810,44 @@
       }
     }
 
-    form.addEventListener('submit',event=>{
-      event.preventDefault();
+    function lookUpFields() {
+      clearTimeout(lookupTimer);
       const fields = Object.fromEntries(new FormData(form));
       fields.set = fields.set.trim();
+      fields.number = fields.number.trim();
       fields.name = fields.name.trim();
+      if (!fields.name && (!fields.set || !fields.number)) {
+        state.textContent = 'Enter a set and collector number, or a printed name.';
+        return;
+      }
       stopCamera();
       void find({...fields,insistSet:true},++request);
+    }
+
+    form.addEventListener('submit',event=>{
+      event.preventDefault();
+      lookUpFields();
+    });
+    const refreshReference = () => {
+      updateVariant = null;
+      candidates.replaceChildren();
+      result.replaceChildren();
+      request++;
+      clearTimeout(lookupTimer);
+      if (form.elements.set.value.trim() && form.elements.number.value.trim())
+        lookupTimer = setTimeout(lookUpFields,450);
+    };
+    for (const key of ['set','number']) form.elements[key].addEventListener('input',refreshReference);
+    variant.addEventListener('change',()=>{
+      if (updateVariant) updateVariant();
+      else if (form.elements.set.value.trim() && form.elements.number.value.trim()) lookUpFields();
     });
 
     async function find(fields, job, found) {
       state.textContent = 'Looking up the card…';
       result.replaceChildren();
       candidates.replaceChildren();
+      updateVariant = null;
       try {
         const matches = found || await resolveScannerPrints(lookup,fields);
         if (job !== request) return;
@@ -700,50 +891,62 @@
       form.elements.set.value = code;
       form.elements.number.value = identity.printedNumber;
       const link = limitlessLink(language,code,identity.number);
-      const catalogArt = /^https:\/\/assets\.tcgdex\.net\//.test(card.image || '') ? card.image+'/high.webp' : '';
+      const catalogArt = /^https:\/\/assets\.tcgdex\.net\//.test(card.image || '') ? imageUrl(card.image) : '';
       const fallbackArt = limitlessImage(language,code,identity.number);
-      let art = catalogArt || fallbackArt;
+      const baseUrls = [catalogArt,fallbackArt].filter(Boolean);
       const panel = element('section',null,'scan-card');
-      if (art) {
-        const image = element('img');
-        image.alt = card.name+' catalog artwork';
-        image.src = art;
-        image.referrerPolicy = 'no-referrer';
-        image.addEventListener('error',()=>{
-          if (fallbackArt && image.src !== fallbackArt) {
-            art = fallbackArt;
-            image.src = fallbackArt;
-          } else {
+      const picture = element('figure',null,'scan-artwork');
+      panel.append(picture);
+      const finishes = availableVariants(card);
+      variantOptions(finishes);
+      setManual(true);
+      const structurallyKnown = !variant.value && finishes.length === 1;
+      if (!variant.value && scannedVariant && finishes.includes(scannedVariant)) variant.value = scannedVariant;
+      if (!variant.value && structurallyKnown) variant.value = finishes[0];
+      const artByFinish = selected => {
+        const samePrint = checkCollection(cards(),identity,selected,[card.set?.id]).samePrint;
+        const exact = variantArtwork(card,selected,samePrint,baseUrls);
+        if (!exact.length && (selected==='normal' && finishes.includes('normal') ||
+            finishes.length===1 && finishes[0]===selected)) {
+          return baseUrls.map(url=>({url,label:'Catalog artwork · '+displayVariant(selected)}));
+        }
+        return exact;
+      };
+      let art = '';
+      function refreshArt() {
+        const selected = variant.value;
+        const exact = artByFinish(selected);
+        const label = selected ? 'Catalog artwork · '+displayVariant(selected)+' image unavailable' : 'Catalog artwork';
+        const previews = [...exact,...baseUrls.filter(url=>!exact.some(item=>item.url===url)).map(url=>({url,label}))];
+        const showArt = index => {
+          if (!previews[index]) {
             art = '';
-            image.replaceWith(element('p','Catalog image unavailable.','note'));
+            picture.replaceChildren(element('p','Card image unavailable.','note'));
+            return;
           }
-        });
-        panel.append(image);
-      } else panel.append(element('p','Catalog image unavailable.','note'));
+          const {url,label} = previews[index];
+          const image = element('img');
+          image.alt = card.name+' card artwork';
+          image.referrerPolicy = 'no-referrer';
+          image.addEventListener('error',()=>{ if (image.isConnected) showArt(index+1); },{once:true});
+          art = url;
+          picture.replaceChildren(image,element('figcaption',label,'note'));
+          image.src = url;
+        };
+        showArt(0);
+      }
       const content = element('div',null,'scan-info');
       const name = element('h3',card.name);
       const metadata = element('p',[code,identity.printedNumber,card.set?.name,card.rarity].filter(Boolean).join(' · '),'note');
-      const variantLabel = element('label','Variant');
-      const variant = element('select');
-      variantLabel.append(variant);
-      const finishes = availableVariants(card);
-      const allFinishes = ['normal','holo','reverse-holo','pokeball-reverse-holo','masterball-reverse-holo','energy-reverse-holo','illustration-rare','special'];
-      const options = [...new Set([...finishes,...allFinishes])];
-      const missing = element('option','Confirm the finish');
-      missing.value = '';
-      variant.append(missing);
-      for (const value of options) {
-        const option = element('option',displayVariant(value));
-        option.value = value;
-        variant.append(option);
-      }
-      if (finishes.length === 1) variant.value = finishes[0];
+      const variantStatus = element('p',variant.value && structurallyKnown ?
+        'Variant identified from the catalog.' : variant.value && variant.value === scannedVariant ?
+          'Variant suggested from the scan. You can correct it above.' : '','note');
       const collection = element('p',null,'scan-ownership');
       collection.setAttribute('aria-live','polite');
-      const add = action('Add to Pokédex',()=>{
+      const add = action(context.destination === 'binder' ? 'Add to Binder' : 'Add to Pokédex',()=>{
         dialog.close();
         openAdd({name:name.textContent,language,set:code,number:identity.printedNumber,variant:variant.value,image:art,
-          pokemonId:identity.speciesId,pokemonKey:identity.pokemonKey});
+          pokemonId:identity.speciesId,pokemonKey:identity.pokemonKey,destination:context.destination});
       },'primary');
       const refreshOwnership = () => {
         const found = checkCollection(cards(),identity,variant.value,[card.set?.id]);
@@ -753,12 +956,19 @@
           found.samePrint.length && !variant.value ? 'This print is in your Pokédex. Confirm the finish to check exact ownership.' :
           found.samePrint.length ? 'You own this print in another finish.' :
           found.sameSpecies.length ? 'You own a different print of this Pokémon.' : 'This Pokémon is missing from your Pokédex.';
-        add.disabled = !variant.value || !identity.speciesId;
+        add.disabled = !variant.value || (!identity.speciesId && context.destination !== 'binder');
       };
-      variant.addEventListener('change',refreshOwnership);
+      updateVariant = ()=>{
+        variantStatus.textContent = '';
+        variantStatus.hidden = true;
+        refreshArt();
+        refreshOwnership();
+      };
+      refreshArt();
       refreshOwnership();
       const translation = element('section',null,'scan-translation');
-      content.append(name,metadata,variantLabel,collection,add,translation);
+      variantStatus.hidden = !variantStatus.textContent;
+      content.append(name,metadata,variantStatus,collection,add,translation);
       if (link) {
         const source = element('a',language==='ja'?'English card text on Limitless':'View print on Limitless');
         source.href = link;
@@ -769,7 +979,16 @@
       panel.append(content);
       candidates.replaceChildren();
       result.replaceChildren(panel);
-      state.textContent = 'Review the print and finish.';
+      state.textContent = variant.value ? 'Review the print and finish.' : 'Review the print and select its variant above.';
+      if (!variant.value && scanPhoto) {
+        void visualVariant(scanPhoto,finishes,artByFinish).then(suggestion=>{
+          if (!suggestion || job !== request || variant.value) return;
+          variant.value = suggestion;
+          updateVariant?.();
+          variantStatus.textContent = 'Variant suggested from matching card photos. You can correct it above.';
+          variantStatus.hidden = false;
+        }).catch(()=>{});
+      }
       const fallbackName = identity.speciesId && speciesNames[identity.speciesId-1]?.[0];
       const originalName = card.name;
       async function loadEnglish() {
@@ -815,6 +1034,7 @@
       }
       if (localized.effect) translation.append(element('p',localized.effect));
     }
+    return open;
   }
 
   window.mountPokedexScanner = mountPokedexScanner;
