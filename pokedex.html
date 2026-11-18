@@ -6,9 +6,10 @@
   <meta name="theme-color" content="#0b213b">
   <title>Pokédex · Pokémon TCG Playmat</title>
   <link rel="icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="assets/pokedex.css?v=5">
+  <link rel="stylesheet" href="assets/pokedex.css?v=6">
   <script defer src="assets/starter-library.js"></script>
-  <script defer src="assets/pokedex.js?v=5"></script>
+  <script defer src="assets/pokedex-species-names.js?v=1"></script>
+  <script defer src="assets/pokedex.js?v=6"></script>
 </head>
 <body>
   <main>
@@ -22,10 +23,20 @@
         <button type="button" data-view="missing" aria-pressed="false">Missing Pokémon</button>
         <button type="button" data-view="progress" aria-pressed="false">Progress</button>
       </nav>
-      <div class="inputs" id="filters">
-        <label>Search <input id="search" type="search" placeholder="Name, set, or card number"></label>
-        <label id="regionField">Region <select id="regionFilter"><option value="">All regions</option></select></label>
-        <label id="variantField">Variant <select id="variantFilter"><option value="">All variants</option></select></label>
+      <div id="filters">
+        <div class="inputs filter-fields">
+          <label>Search <input id="search" type="search" placeholder="Name (EN, FR, JP), set, or number"></label>
+          <label id="regionField">Region <select id="regionFilter"><option value="">All regions</option></select></label>
+          <label id="variantField">Variant <select id="variantFilter"><option value="">All variants</option></select></label>
+        </div>
+        <div class="filter-actions">
+          <div id="collectionFilter" role="group" aria-label="Collection status">
+            <button type="button" data-collection="all" aria-pressed="true">All</button>
+            <button type="button" data-collection="collected" aria-pressed="false">Collected</button>
+            <button type="button" data-collection="missing" aria-pressed="false">Missing</button>
+          </div>
+          <button type="button" id="resetFilters">Reset filters</button>
+        </div>
       </div>
     </div>
     <section class="summary" id="summary" aria-label="Collection totals"></section>

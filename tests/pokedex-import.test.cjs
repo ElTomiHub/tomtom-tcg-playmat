@@ -1,6 +1,17 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
-const {parseCSV,convertRows,collectionCounts,selectCollection,mergeCollection,previewCounts,inRegion,normalizeSavedVariants,binderNumber,catalogEntry,entryInRegion,tomaPokemonNames}=require('../assets/pokedex.js');
+const {parseCSV,convertRows,collectionCounts,selectCollection,mergeCollection,previewCounts,inRegion,normalizeSavedVariants,binderNumber,catalogEntry,entryInRegion,tomaPokemonNames,normalizeSearch}=require('../assets/pokedex.js');
+require('../assets/pokedex-species-names.js');
+
+test('Pokédex search has English, French and Japanese names for all 1025 species',()=>{
+  const names=globalThis.POKEDEX_SPECIES_NAMES;
+  assert.equal(names.length,1025);
+  assert.ok(names.every(row=>row.length===3 && row.every(Boolean)));
+  assert.deepEqual(names[0],['Bulbasaur','Bulbizarre','フシギダネ']);
+  assert.equal(normalizeSearch(' FLABÉBÉ '),'flabebe');
+  assert.equal(normalizeSearch('ふしぎだね'),'フシギダネ');
+  assert.equal(normalizeSearch('ﾌｼｷﾞﾀﾞﾈ'),'フシギダネ');
+});
 
 test('collection CSV supports semicolons, BOM, escaped quotes and multiline fields',()=>{
   const csv='\uFEFFid;name;notes\r\n1;"Mime; Jr.";"First\r\nSecond ""line"""\r\n';

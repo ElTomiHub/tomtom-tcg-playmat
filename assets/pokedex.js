@@ -8,7 +8,7 @@
   const variants = ['normal','holo','reverse-holo','pokeball-reverse-holo','masterball-reverse-holo','energy-reverse-holo','illustration-rare','special'];
   const storageKey = 'tomtom.pokedex.collection.v1';
   const totalSpecies = 1025;
-  const pageSize = 54;
+  const pageSize = 48;
   // Form keys and sprite IDs follow the Lovable collection format.
   const forms = [
     [19, 'Alolan', 10091],
@@ -130,6 +130,11 @@
       }
     }
     return included;
+  }
+  function normalizeSearch(value) {
+    return String(value ?? '').normalize('NFKD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[\u3041-\u3096]/g,letter=>String.fromCharCode(letter.charCodeAt(0)+0x60))
+      .normalize('NFC').toLowerCase().trim();
   }
   function normalizeVariant(value) {
     return /^normal[\s_-]+silver$/i.test(value) ? 'normal' : value;
@@ -258,7 +263,7 @@
   }
 
   if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {parseCSV,convertRows,collectionCounts,selectCollection,mergeCollection,previewCounts,inRegion,normalizeSavedVariants,binderNumber,catalogEntry,entryInRegion,tomaPokemonNames};
+    module.exports = {parseCSV,convertRows,collectionCounts,selectCollection,mergeCollection,previewCounts,inRegion,normalizeSavedVariants,binderNumber,catalogEntry,entryInRegion,tomaPokemonNames,normalizeSearch};
     return;
   }
 
@@ -276,7 +281,9 @@
     element.addEventListener('click',handler);
     return element;
   };
-  const names = new Map();
+  const names = globalThis.POKEDEX_SPECIES_NAMES || [];
+  const collectionButtons = [...document.querySelectorAll('[data-collection]')];
+  let collection = 'all';
   let data = empty(), pending, view = 'cards', speciesFilter = null, speciesReturn, limit = pageSize, editing, damagedStorage = false;
   try {
     const saved = localStorage.getItem(storageKey);
@@ -300,7 +307,7 @@
     data = next;
   }
 
-  function speciesName(id) { return names.get(id) || 'Pokémon #' + id; }
+  function speciesName(id) { return names[id-1]?.[0] || 'Pokémon #' + id; }
   function entryName(entry) { return [entry.label,speciesName(entry.id)].filter(Boolean).join(' '); }
   function title(card) { return card.name || entryName(catalogEntry(card)); }
   function validSpecies(id) { return id >= 1 && id <= totalSpecies; }
@@ -388,19 +395,10 @@
     mark('binder-marker','B'+binderNumber(id),'Binder '+binderNumber(id));
     if (variantCount) mark('count-marker','×'+variantCount,variantCount+' distinct variants');
     const heading = node('h3',null,'species-name');
+    heading.title = name;
     if (owned) heading.append(photo(sprites + sprite + '.png',''));
     heading.append(node('span',name));
-    const details = node('div',null,'species-meta');
-    details.append(node('small','#' + String(id).padStart(4,'0')));
-    const regionName = entry.region || regions.find(([name])=>inRegion(id,name))?.[0];
-    if (regionName) {
-      const region = node('span',regionIcons[regionName],'region-marker');
-      region.setAttribute('role','img');
-      region.title = regionName;
-      region.setAttribute('aria-label',regionName);
-      details.append(region);
-    }
-    article.append(open,heading,details);
+    article.append(open,heading,node('small','#' + String(id).padStart(4,'0')));
     return article;
   }
 
@@ -441,16 +439,23 @@
     el('viewHeading').textContent = speciesFilter ? entryName(speciesFilter) : heading[view];
     el('addCard').hidden = view === 'progress';
     el('filters').hidden = view === 'progress';
+    const showCollection = view === 'cards' && !speciesFilter;
+    el('collectionFilter').hidden = !showCollection;
+    for (const button of collectionButtons) button.setAttribute('aria-pressed',String(button.dataset.collection === collection));
     el('variantField').hidden = view === 'missing';
+    el('variantFilter').disabled = showCollection && collection === 'missing';
     el('regionField').hidden = view === 'binder' || !!speciesFilter;
     el('results').replaceChildren();
     el('resultCount').textContent = '';
     el('more').hidden = true;
     if (view === 'progress') { renderProgress(owned); return; }
 
-    const search = el('search').value.trim().toLowerCase(), variant = el('variantFilter').value;
+    const search = normalizeSearch(el('search').value), variant = el('variantFilter').value;
     const region = el('regionFilter').value;
-    const matches = (...values) => !search || values.some(value => String(value ?? '').toLowerCase().includes(search));
+    el('resetFilters').disabled = !search && !variant && (el('regionField').hidden || !region) &&
+      (!showCollection || collection === 'all');
+    const matches = (...values) => !search || values.some(value => normalizeSearch(value).includes(search));
+    const matchesSpecies = entry => matches(entry.id,'#'+String(entry.id).padStart(4,'0'),entryName(entry),...(names[entry.id-1] || []));
     let rows, tile;
     const copiesByEntry = new Map();
     for (const card of data.cards) {
@@ -460,11 +465,11 @@
       copiesByEntry.set(entry.key,group);
     }
     if (view === 'missing') {
-      rows = catalog.filter(entry => !copiesByEntry.has(entry.key) && entryInRegion(entry,region) && matches(entry.id,entryName(entry)));
+      rows = catalog.filter(entry => !copiesByEntry.has(entry.key) && entryInRegion(entry,region) && matchesSpecies(entry));
       tile = entry => speciesTile(entry);
     } else {
       rows = data[view].filter(card => (!variant || card.variant === variant) &&
-        matches(title(card),card.set,card.number,card.pokemonId,card.japaneseName,card.frenchName));
+        (matches(title(card),card.set,card.number,card.japaneseName,card.frenchName) || matchesSpecies(catalogEntry(card))));
       tile = cardTile;
       if (speciesFilter) {
         rows = rows.filter(card => catalogEntry(card).key === speciesFilter.key);
@@ -490,8 +495,12 @@
           groups.set(key,group);
         }
         const extra = [...copiesByEntry.values()].filter(({entry})=>!entriesByKey.has(entry.key)).map(({entry})=>entry);
-        rows = [...catalog,...extra].filter(entry => entryInRegion(entry,region) &&
-          (groups.has(entry.key) || !variant && matches(entry.id,entryName(entry))));
+        rows = [...catalog,...extra].filter(entry => {
+          if (!entryInRegion(entry,region)) return false;
+          const collected = copiesByEntry.has(entry.key);
+          if (collection === 'collected' && !collected || collection === 'missing' && collected) return false;
+          return groups.has(entry.key) || !variant && matchesSpecies(entry);
+        });
         const library = globalThis.PLAYMAT_STARTER_LIBRARY;
         const deckNames = tomaPokemonNames(library?.decks || [],readLocalList('codexPokemonPlaymat.decks.v1'),
           new Set(readLocalList('codexPokemonPlaymat.deletedDecks.v1')),
@@ -502,7 +511,7 @@
     }
     el('resultCount').textContent = rows.length + (rows.length === 1 ? ' result' : ' results');
     if (!rows.length) {
-      el('results').append(node('p', 'No cards match this view. Import your collection or add a card to get started.', 'note'));
+      el('results').append(node('p', 'No results match these filters.', 'note'));
       return;
     }
     const grid = node('div',null,speciesFilter ? 'grid registered-prints' : 'grid');
@@ -633,11 +642,25 @@
   el('cancelEdit').addEventListener('click', () => el('editor').close());
   el('addCard').addEventListener('click', () => openEditor(null));
   for (const item of document.querySelectorAll('[data-view]')) item.addEventListener('click', () => {
-    view = item.dataset.view; speciesFilter = null; limit = pageSize;
+    view = item.dataset.view; speciesFilter = null; collection = 'all'; limit = pageSize;
     for (const other of document.querySelectorAll('[data-view]')) other.setAttribute('aria-pressed',String(other === item));
     el('search').value = ''; el('variantFilter').value = ''; render();
   });
   for (const id of ['search','variantFilter','regionFilter']) el(id).addEventListener('input', () => {limit = pageSize; render();});
+  for (const item of collectionButtons) item.addEventListener('click', () => {
+    collection = item.dataset.collection;
+    if (collection === 'missing') el('variantFilter').value = '';
+    limit = pageSize;
+    render();
+  });
+  el('resetFilters').addEventListener('click', () => {
+    el('search').value = '';
+    el('variantFilter').value = '';
+    if (!el('regionField').hidden) el('regionFilter').value = '';
+    if (!el('collectionFilter').hidden) collection = 'all';
+    limit = pageSize;
+    render();
+  });
   el('more').addEventListener('click', () => {limit += pageSize; render();});
   for (const [region] of regions) {
     const option = node('option',regionIcons[region] + ' ' + region);
@@ -649,14 +672,4 @@
     const option = node('option',(variantIcons[value] || '◇') + ' ' + displayVariant(value)); option.value = value; el('variantFilter').append(option);
   }
   render();
-  fetch('https://pokeapi.co/api/v2/pokemon-species/?limit=' + totalSpecies).then(response => {
-    if (!response.ok) throw new Error('Catalog unavailable');
-    return response.json();
-  }).then(catalog => {
-    for (const entry of catalog.results || []) {
-      const id = Number(entry.url?.match(/\/(\d+)\/$/)?.[1]);
-      if (validSpecies(id)) names.set(id, entry.name.split('-').map(word => word[0]?.toUpperCase()+word.slice(1)).join(' '));
-    }
-    render();
-  }).catch(() => { /* Dex numbers and saved card information remain available offline. */ });
 })();
