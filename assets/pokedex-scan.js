@@ -10,7 +10,16 @@
   const variantKey = value => String(value || '').trim().toLowerCase().replace(/[ _]+/g,'-').replace(/^normal-silver$/,'normal');
   const printSet = (card, fallback) => card.set?.abbreviation?.official || fallback || card.set?.id || '';
   const jpText = /[\u3040-\u30ff\u3400-\u9fff]/;
-  const scanNumber = value => value.replace(/^O(?=\d{2}\/\d)/i,'0');
+  const numericOcr = value => value.toUpperCase().replace(/[OQ]/g,'0').replace(/[IL]/g,'1')
+    .replace(/S/g,'5').replace(/B/g,'8').replace(/Z/g,'2');
+  const printedCollector = value => {
+    const text = value.toUpperCase();
+    // Gallery and promo prefixes are part of the number. Repair only plausible numeric runs.
+    if (/^[0-9OQILSBZ]{1,4}$/.test(text) && /\d/.test(text)) return numericOcr(text);
+    const match = text.match(/^([A-Z]{2,4})([0-9OQILSBZ]{1,4})$/);
+    if (!match || !/\d/.test(match[2])) return text;
+    return (match[1] || '')+numericOcr(match[2]);
+  };
   const formWords = {
     ja:{'アローラ':'alolan','ガラル':'galarian','ヒスイ':'hisuian','パルデア':'paldean',
       'かまどのめん':'hearthflame-mask','いどのめん':'wellspring-mask','いしずえのめん':'cornerstone-mask'},
@@ -67,32 +76,51 @@
   }
 
   function readPrintedClues(body, setCodes, speciesNames, language) {
-    const normalized = body.normalize('NFKC');
+    const normalized = body.normalize('NFKC').replace(/[∕⁄]/g,'/');
     const rows = normalized.split(/\r?\n/).map(row=>row.trim()).filter(Boolean);
     const lang = language || (jpText.test(normalized) ? 'ja' : 'en');
     const known = new Set(setCodes.map(setKey));
-    const pair = /(?:^|\s)([A-Z0-9]{1,5}\d[A-Z0-9.-]{0,12}|[A-Z]{2,6})\s+(?:(?:EN|FR|JP)\s+)?([A-Z]{0,4}\d{1,4})\s*\/\s*(\d{1,4})(?!\d)/ig;
-    for (const row of rows) {
-      for (const match of row.matchAll(pair)) {
-        if (known.has(setKey(match[1])) || /\d/.test(match[1]))
-          return {language:lang,set:setKey(match[1]),number:scanNumber(match[2]+'/'+match[3]),name:readCardName(rows,speciesNames,lang)};
-      }
+    const footer = rows.slice(-14).join(' ');
+    const name = readCardName(rows,speciesNames,lang);
+    const build = (set,number) => ({language:lang,set,number,name});
+    const ratios = [...footer.matchAll(/\b([A-Z0-9]{1,8})\s*\/\s*([A-Z0-9]{1,8})\b/ig)];
+    const references = ratios.flatMap(match => {
+      if (!/\d/.test(match[1]) || !/\d/.test(match[2])) return [];
+      const before = footer.slice(0,match.index).replace(/\b(?:EN|FR|JP)\s*$/i,'').trim();
+      const tokens = before.match(/[A-Z0-9.-]+/ig)?.slice(-4) || [];
+      const possible = tokens.map((_,index)=>setKey(tokens.slice(index).join(''))).reverse();
+      const set = possible.find(value=>known.has(value)) || possible.find(value=>/^(?:SV|SM|S|M|XY|BW)\d{1,2}[A-Z]{0,2}$/.test(value)) || '';
+      const number = printedCollector(match[1]), total = printedCollector(match[2]);
+      if (!/^[A-Z]{0,4}\d{1,4}$/.test(number) || !/^[A-Z]{0,4}\d{1,4}$/.test(total)) return [];
+      return [build(set,number+'/'+total)];
+    });
+    if (references.length) return references.find(reference=>reference.set) || references[0];
+
+    const standalone = footer.matchAll(/\b([A-Z0-9.-]{2,16})\s+(?:(?:JP|EN|FR)\s+)?([A-Z]{0,4}\d{1,4})(?!\s*\/)\b/ig);
+    for (const match of standalone) {
+      const set = setKey(match[1]);
+      if (known.has(set)) return build(set,match[2].toUpperCase());
     }
-    const footer = rows.slice(-7).join(' ');
-    const ratio = footer.match(/\b([A-Z]{0,4}\d{1,4})\s*\/\s*(\d{1,4})\b/i);
-    const code = [...footer.matchAll(/\b[A-Z0-9][A-Z0-9.-]{1,15}\b/ig)]
-      .map(match=>setKey(match[0])).find(token=>known.has(token));
-    const solo = code && footer.match(new RegExp('(?:^|\\s)'+code.replace('.', '\\.')+'\\s+(?:(?:JP|EN|FR)\\s+)?([A-Z]*\\d{1,4})(?=\\s|$)','i'));
-    return {language:lang,set:code || '',number:ratio ? scanNumber(ratio[1]+'/'+ratio[2]) : solo?.[1] || '',
-      name:readCardName(rows,speciesNames,lang)};
+    return build('','');
   }
 
   function readCardName(rows, names, language) {
     const index = {en:0,fr:1,ja:2}[language];
-    const header = rows.slice(0,5).join(' ').toLowerCase();
-    return names.map(row=>row[index]).filter(name => name && (language === 'ja' ?
-      header.replace(/\s/g,'').includes(name) : (' '+header.replace(/[^\p{L}\p{N}'’-]/gu,' ')+' ').includes(' '+name.toLowerCase()+' ')))
-      .sort((a,b)=>b.length-a.length)[0] || '';
+    const header = rows.slice(0,8).join(' ').toLowerCase();
+    const candidates = names.map(row=>row[index]).filter(Boolean);
+    const longest = values => values.sort((a,b)=>b.length-a.length)[0] || '';
+    if (language === 'ja') {
+      const compact = header.replace(/\s/g,'');
+      const exact = longest(candidates.filter(name=>compact.includes(name)));
+      if (exact) return exact;
+      const unmarked = value => value.normalize('NFKD').replace(/[\u3099\u309a]/g,'');
+      const loose = unmarked(compact);
+      const similar = candidates.filter(name=>name.length>=4 && loose.includes(unmarked(name)));
+      if (similar.length===1) return similar[0];
+      return '';
+    }
+    const words = ' '+header.replace(/[^\p{L}\p{N}'’-]/gu,' ')+' ';
+    return longest(candidates.filter(name=>words.includes(' '+name.toLowerCase()+' ')));
   }
 
   function limitlessLink(language, set, number) {
@@ -124,6 +152,17 @@
     async function byId(language,id) { return get(language,'/cards/'+encodeURIComponent(id)); }
     async function lookup({language,set,number,name,insistSet}) {
       const expected = cardNumber(number);
+      if (!expected && name) {
+        const aliases = set && language !== 'ja' ?
+          await get(language,'/sets?abbreviation.official=eq:'+encodeURIComponent(set)) : [];
+        const ids = new Set([set,...(aliases || []).map(row=>row.id)].map(setKey));
+        const candidates = await get(language,'/cards?name=like:'+encodeURIComponent(name));
+        const matches = (candidates || []).filter(card=>!set || ids.has(setKey(card.id.slice(0,-card.localId.length-1))));
+        const exact = matches.filter(card=>setKey(card.name) === setKey(name));
+        const best = exact.length ? exact : matches;
+        const details = await Promise.all(best.slice(0,8).map(card=>byId(language,card.id)));
+        return details.filter(Boolean).map(card=>({card,code:printSet(card)}));
+      }
       if (!expected || !/^[A-Z0-9-]{1,16}$/i.test(expected)) return [];
       const total = Number(String(number).normalize('NFKC').split('/')[1]);
       const valid = card => card && (!total || !card.set?.cardCount?.official || card.set.cardCount.official===total);
@@ -138,7 +177,12 @@
       }
       if (name) {
         const candidates = await get(language,'/cards?name=like:'+encodeURIComponent(name));
-        const matches = (candidates || []).filter(card=>cardNumber(card.localId)===expected);
+        let matches = (candidates || []).filter(card=>cardNumber(card.localId)===expected);
+        if (total && matches.length > 12) {
+          const sets = (await get(language,'/sets') || []).filter(entry=>entry.cardCount?.official===total);
+          const setIds = new Set(sets.map(entry=>entry.id));
+          matches = matches.filter(card=>setIds.has(card.id.slice(0,-card.localId.length-1)));
+        }
         const exact = (await Promise.all(matches.slice(0,12).map(card=>byId(language,card.id)))).filter(valid);
         if (exact.length) return exact.map(card=>({card,code:printSet(card)}));
       }
@@ -173,17 +217,27 @@
     const failures = [];
     if (preferred) {
       const matches = await lookup(preferred).catch(error=>{failures.push(error); return [];});
-      if (matches.length) return matches;
+      const named = matchingNames(matches,fields.name);
+      if (named.length) return named;
+      if (matches.length && (fields.insistSet || !fields.name)) return matches;
+      if (matches.length) failures.push({matches});
     }
     const retries = locales.filter(language=>language!==preferred);
     const results = await Promise.allSettled(retries.map(lookup));
     const matches = results.flatMap(result=>result.status==='fulfilled' ? result.value : []);
-    const query = String(fields.name || '').normalize('NFKC').toLowerCase();
-    const named = matches.filter(match=>match.card.name?.normalize('NFKC').toLowerCase().includes(query));
+    const named = matchingNames(matches,fields.name);
     if (named.length) return named;
-    if (!matches.length && failures.length+results.filter(result=>result.status==='rejected').length===locales.length)
+    const unconfirmed = [...failures.flatMap(failure=>failure.matches || []),...matches];
+    if (unconfirmed.length) return unconfirmed.map(match=>({...match,confirmName:true}));
+    if (failures.length+results.filter(result=>result.status==='rejected').length===locales.length)
       throw failures[0] || results[0].reason;
-    return matches;
+    return [];
+  }
+
+  function matchingNames(matches,name) {
+    const normalize = value => String(value || '').normalize('NFKD').replace(/[\u0300-\u036f\s]/g,'').toLowerCase();
+    const query = normalize(name);
+    return matches.filter(match=>normalize(match.card.name).includes(query));
   }
 
   if (typeof module === 'object' && module.exports) {
@@ -237,6 +291,62 @@
     }
   }
 
+  function enhanceText(canvas, {x=0,y=.75,w=1,h=.25,binary=false} = {}) {
+    const footer = element('canvas');
+    const width = Math.max(1,Math.round(canvas.width*w));
+    const height = Math.max(1,Math.round(canvas.height*h));
+    const scale = Math.min(2.5,1800/width);
+    footer.width = Math.max(1,Math.round(width*scale));
+    footer.height = Math.max(1,Math.round(height*scale));
+    const ctx = footer.getContext('2d',{willReadFrequently:true});
+    ctx.drawImage(canvas,Math.round(canvas.width*x),Math.round(canvas.height*y),width,height,0,0,footer.width,footer.height);
+    const pixels = ctx.getImageData(0,0,footer.width,footer.height);
+    const histogram = new Uint32Array(256);
+    for (let i=0;i<pixels.data.length;i+=4) {
+      const tone = Math.round(pixels.data[i]*.299+pixels.data[i+1]*.587+pixels.data[i+2]*.114);
+      histogram[tone]++;
+      pixels.data[i] = tone;
+    }
+    function percentile(fraction) {
+      const target = footer.width*footer.height*fraction;
+      let count = 0;
+      return histogram.findIndex(value=>(count+=value)>=target);
+    }
+    const low = percentile(.04);
+    const high = Math.max(low+24,percentile(.96));
+    for (let i=0;i<pixels.data.length;i+=4) {
+      const tone = (pixels.data[i]-low)*255/(high-low);
+      pixels.data[i] = pixels.data[i+1] = pixels.data[i+2] = tone;
+    }
+    if (binary) {
+      const {width,height} = footer;
+      const stride = width+1;
+      const integral = new Uint32Array(stride*(height+1));
+      for (let row=1;row<=height;row++) {
+        let sum = 0;
+        for (let col=1;col<=width;col++) {
+          sum += pixels.data[((row-1)*width+col-1)*4];
+          integral[row*stride+col] = integral[(row-1)*stride+col]+sum;
+        }
+      }
+      const radius = Math.max(5,Math.round(height/4));
+      for (let row=0;row<height;row++) {
+        const top = Math.max(0,row-radius), bottom = Math.min(height,row+radius+1);
+        for (let col=0;col<width;col++) {
+          const left = Math.max(0,col-radius), right = Math.min(width,col+radius+1);
+          const sum = integral[bottom*stride+right]-integral[top*stride+right]-
+            integral[bottom*stride+left]+integral[top*stride+left];
+          const average = sum/((bottom-top)*(right-left));
+          const index = (row*width+col)*4;
+          const tone = pixels.data[index] < average-12 ? 0 : 255;
+          pixels.data[index] = pixels.data[index+1] = pixels.data[index+2] = tone;
+        }
+      }
+    }
+    ctx.putImageData(pixels,0,0);
+    return footer;
+  }
+
   function translationFromHtml(html, url) {
     if (!html || !url) return null;
     const template = element('template');
@@ -264,8 +374,8 @@
     const candidates = el('scannerCandidates'), result = el('scannerResult');
     const lookup = makeCatalog(window.fetch.bind(window));
     const video = el('scannerVideo'), camera = el('scannerPreview'), take = el('scannerTake');
-    const torch = el('scannerTorch'), start = el('scannerStart'), manual = el('scannerManual');
-    let client, request = 0, previewUrl = '', cameraVersion = 0, stream, nativeCapture = false;
+    const torch = el('scannerTorch'), start = el('scannerStart'), manual = el('scannerManual'), phone = el('scannerPhone');
+    let client, request = 0, previewUrl = '', cameraVersion = 0, stream, supportsTorch = false;
     try {
       client = createLibrarySyncClient({...playmatSyncConfig,storage:localStorage,
         fetcher:(url,options)=>fetch(url,{...options,signal:AbortSignal.timeout(7500)})});
@@ -290,12 +400,12 @@
       stream = null;
       video.srcObject = null;
       camera.hidden = true;
-      torch.hidden = true;
-      torch.disabled = false;
+      torch.disabled = true;
       torch.setAttribute('aria-pressed','false');
       take.hidden = true;
       take.disabled = true;
-      nativeCapture = false;
+      supportsTorch = false;
+      phone.hidden = false;
       start.hidden = false;
     }
 
@@ -308,6 +418,7 @@
       setManual(false);
       const job = cameraVersion;
       start.hidden = true;
+      phone.hidden = true;
       camera.hidden = false;
       take.hidden = false;
       state.textContent = 'Opening camera…';
@@ -324,8 +435,16 @@
         await video.play();
         if (cameraVersion !== job) return;
         const track = stream.getVideoTracks()[0];
-        const capability = track?.getCapabilities?.().torch;
-        torch.hidden = capability !== true && !(Array.isArray(capability) && capability.includes(true));
+        const capabilities = track?.getCapabilities?.() || {};
+        const capability = capabilities.torch;
+        supportsTorch = capability === true || (Array.isArray(capability) && capability.includes(true));
+        if (capabilities.focusMode?.includes('continuous') && track.applyConstraints) {
+          const current = track.getConstraints?.() || {};
+          await track.applyConstraints({...current,advanced:[...(current.advanced || []),{focusMode:'continuous'}]}).catch(()=>{});
+        }
+        if (cameraVersion !== job) return;
+        phone.hidden = supportsTorch;
+        torch.disabled = false;
         take.disabled = false;
         state.textContent = 'Line up one card in the frame, then take the photo.';
         track?.addEventListener('ended',()=>{
@@ -336,10 +455,7 @@
       } catch {
         if (cameraVersion !== job) return;
         stopCamera();
-        nativeCapture = true;
-        take.hidden = false;
-        take.disabled = false;
-        state.textContent = 'Live camera unavailable. Take a photo with your device, choose an image, or enter the card manually.';
+        state.textContent = 'Live camera unavailable. Use Phone camera, choose an image, or enter the card manually.';
       }
     }
 
@@ -356,7 +472,12 @@
       void startCamera();
     });
     el('closeScanner').addEventListener('click',()=>dialog.close());
-    dialog.addEventListener('close',()=>{request++; stopCamera(); clearPhoto();});
+    dialog.addEventListener('close',()=>{
+      if (dialog.open) return;
+      request++;
+      stopCamera();
+      clearPhoto();
+    });
     window.addEventListener('pagehide',stopCamera);
     document.addEventListener('visibilitychange',()=>{
       if (!document.hidden || !dialog.open || camera.hidden) return;
@@ -373,24 +494,41 @@
       form.elements.set.focus();
     });
     el('scannerRegister').addEventListener('click',registerManually);
+    phone.addEventListener('click',()=>{
+      stopCamera();
+      state.textContent = 'Turn on flash in your phone’s camera if needed, then take the photo.';
+      el('scannerCamera').click();
+    });
+    function showFlashFallback() {
+      phone.hidden = false;
+      state.textContent = 'Use Phone camera to turn on flash in your camera app, or choose a photo you already took.';
+    }
     torch.addEventListener('click',async ()=>{
       const track = stream?.getVideoTracks()[0];
-      if (!track) return;
+      if (!track || !supportsTorch) { showFlashFallback(); return; }
       const enabled = torch.getAttribute('aria-pressed') !== 'true';
       const job = cameraVersion;
       torch.disabled = true;
       try {
-        await track.applyConstraints({advanced:[{torch:enabled}]});
-        if (cameraVersion === job) torch.setAttribute('aria-pressed',String(track.getSettings?.().torch ?? enabled));
+        const current = track.getConstraints?.() || {};
+        delete current.torch;
+        const advanced = (current.advanced || []).filter(option=>!Object.hasOwn(option,'torch'));
+        const first = await track.applyConstraints({...current,advanced:[...advanced,{torch:enabled}]})
+          .then(()=>true,()=>false);
+        if (cameraVersion !== job) return;
+        if (!first || (track.getSettings?.().torch ?? enabled) !== enabled)
+          await track.applyConstraints({...current,advanced,torch:{exact:enabled}});
+        if (cameraVersion !== job) return;
+        if ((track.getSettings?.().torch ?? enabled) !== enabled) { showFlashFallback(); return; }
+        torch.setAttribute('aria-pressed',String(enabled));
       } catch {
-        if (cameraVersion === job) state.textContent = 'The flashlight could not be changed.';
+        if (cameraVersion === job) showFlashFallback();
       } finally {
         if (cameraVersion === job) torch.disabled = false;
       }
     });
 
     take.addEventListener('click',async ()=>{
-      if (nativeCapture) { el('scannerCamera').click(); return; }
       if (!stream || !video.videoWidth || !video.videoHeight) return;
       const job = cameraVersion;
       const crop = cameraCrop(video.videoWidth,video.videoHeight,video.getBoundingClientRect(),el('scannerFrame').getBoundingClientRect());
@@ -445,20 +583,57 @@
           /\bPV\s*\d{2,3}\b|\b\d{2,3}\s*PV\b|\bFR\s+\d{1,4}\s*\//i.test(data.text) ? 'fr' : 'en';
         const sets = await lookup.sets(language).catch(()=>[]);
         const codes = [...(sets || []).map(set=>set.id),'MEG','PFL','ASC','POR','PAF','PAL','SVI','OBF','PAR','TEF','TWM','SFA','SCR','SSP','JTG','DRI','BLK','WHT','PRE','CRZ','SIT','LOR','ASR','BRS','FST','EVS','CRE','BST','VIV','DAA'];
-        let clues = readPrintedClues(data.text,codes,speciesNames,language);
-        if (!clues.set || !clues.number) {
-          const top = Math.round(canvas.height*.76);
-          const footer = await worker.recognize(canvas,{rectangle:{left:0,top,width:canvas.width,height:canvas.height-top}});
-          const footerClues = readPrintedClues(data.text+'\n'+footer.data.text,codes,speciesNames,language);
-          clues = {...footerClues,name:clues.name || footerClues.name};
-        }
+        const full = readPrintedClues(data.text,codes,speciesNames,language);
         if (job !== request) return;
-        for (const key of ['set','number','name']) form.elements[key].value = clues[key];
-        if (clues.number && (clues.set || clues.name || clues.number.includes('/'))) await find(clues,job);
-        else {
-          setManual(true);
-          state.textContent = 'Check the detected text and enter the set code and collector number on the card.';
+        const options = [];
+        const hasReference = clue => clue.number && (clue.set || clue.name || clue.number.includes('/'));
+        if (hasReference(full) && full.set && full.name) {
+          const matches = await resolveScannerPrints(lookup,full).catch(()=>[]);
+          if (job !== request) return;
+          if (matches.some(match=>!match.confirmName)) {
+            for (const key of ['set','number','name']) form.elements[key].value = full[key];
+            await find(full,job,matches);
+            return;
+          }
         }
+        const footer = await worker.recognize(enhanceText(canvas));
+        if (job !== request) return;
+        const read = readPrintedClues(footer.data.text,codes,[],language);
+        if (!full.name && (!full.number || !full.set)) {
+          await worker.setParameters({tessedit_pageseg_mode:tesseract.PSM.SINGLE_LINE});
+          const header = await worker.recognize(enhanceText(canvas,{x:.075,y:.055,w:.7,h:.095}));
+          if (job !== request) return;
+          full.name = readCardName(header.data.text.trim().split(/\r?\n/),speciesNames,language);
+        }
+        const narrowed = [];
+        if (!read.number && (!full.number || !full.set)) {
+          // Collector numbers and modern set codes are printed in Latin characters.
+          await worker.reinitialize('eng',1);
+          await worker.setParameters({tessedit_pageseg_mode:tesseract.PSM.SINGLE_LINE,user_defined_dpi:300});
+          for (const y of [.887,.926]) {
+            const small = await worker.recognize(enhanceText(canvas,{x:.09,y,w:.42,h:.048,binary:true}));
+            if (job !== request) return;
+            const clue = readPrintedClues(small.data.text,codes,[],language);
+            if (clue.number) narrowed.push({...clue,name:full.name});
+            if (clue.set && clue.number) break;
+          }
+        }
+        const focused = {...read,name:full.name};
+        const complete = clue => (clue.set ? 2 : 0)+(clue.number.includes('/') ? 1 : 0);
+        options.push(...[full,focused,...narrowed].filter(hasReference).sort((a,b)=>complete(b)-complete(a)));
+        const clues = options[0] || {...full,set:full.set || focused.set,number:full.number || focused.number};
+        for (const key of ['set','number','name']) form.elements[key].value = clues[key];
+        let unconfirmed = [];
+        for (const candidate of options.filter((option,index)=>options.findIndex(row=>row.set===option.set && row.number===option.number)===index)) {
+          const matches = await resolveScannerPrints(lookup,candidate).catch(()=>[]);
+          if (job !== request) return;
+          if (matches.some(match=>!match.confirmName)) { await find(candidate,job,matches); return; }
+          if (matches.length) unconfirmed = matches;
+        }
+        if (unconfirmed.length) { await find(clues,job,unconfirmed); return; }
+        if (clues.name) { await find({...clues,set:'',number:''},job); return; }
+        setManual(true);
+        state.textContent = 'Could not confirm a print. Check the collector number below or retake the photo.';
       } catch (error) {
         if (job === request) {
           setManual(true);
@@ -478,27 +653,35 @@
       void find({...fields,insistSet:true},++request);
     });
 
-    async function find(fields, job) {
+    async function find(fields, job, found) {
       state.textContent = 'Looking up the card…';
       result.replaceChildren();
       candidates.replaceChildren();
       try {
-        const matches = await resolveScannerPrints(lookup,fields);
+        const matches = found || await resolveScannerPrints(lookup,fields);
         if (job !== request) return;
         if (!matches.length) {
           setManual(true);
           state.textContent = 'No exact print found. Check the set code and collector number.';
           return;
         }
-        if (matches.length === 1) {
+        if (matches.length === 1 && fields.number && !matches[0].confirmName) {
           await showResult(matches[0],matches[0].language,job);
           return;
         }
         state.textContent = 'Choose the print that matches your card.';
         for (const match of matches) {
-          candidates.append(action([match.card.name,match.code,match.card.localId,{en:'English',fr:'French',ja:'Japanese'}[match.language]].join(' · '),()=>{
-            void showResult(match,match.language,++request);
-          }));
+          const choice = action(null,()=>void showResult(match,match.language,++request),'scan-candidate');
+          if (/^https:\/\/assets\.tcgdex\.net\//.test(match.card.image || '')) {
+            const art = element('img');
+            art.src = match.card.image+'/low.webp';
+            art.alt = '';
+            art.loading = 'lazy';
+            art.addEventListener('error',()=>art.remove(),{once:true});
+            choice.append(art);
+          }
+          choice.append(element('span',[match.card.name,match.code,match.card.localId,{en:'English',fr:'French',ja:'Japanese'}[match.language]].join(' · ')));
+          candidates.append(choice);
         }
       } catch (error) {
         if (job === request) {

@@ -15,8 +15,18 @@ function validPokedexCollection(collection) {
   });
 }
 
+const deletionId = (type,id) => 'deleted:' + type + ':' + id;
+
+function deletePokedexCard(collection,type,id) {
+  if (!['cards','binder'].includes(type) || !collection[type].some(row=>row.id===id)) return collection;
+  const tombstone = deletionId(type,id);
+  const preferences = collection.preferences.some(row=>row.id===tombstone) ?
+    collection.preferences : [...collection.preferences,{id:tombstone}];
+  return {...collection,[type]:collection[type].filter(row=>row.id!==id),preferences};
+}
+
 function mergePokedexCollections(cloud, local, pending) {
-  return Object.fromEntries(pokedexCollectionTypes.map(type => {
+  const merged = Object.fromEntries(pokedexCollectionTypes.map(type => {
     const rows = new Map(cloud[type].map(row => [row.id,row]));
     const changed = new Set(pending[type]);
     for (const row of local[type]) {
@@ -24,6 +34,9 @@ function mergePokedexCollections(cloud, local, pending) {
     }
     return [type,[...rows.values()]];
   }));
+  const preferences = new Set(merged.preferences.map(row=>row.id));
+  for (const type of ['cards','binder']) merged[type] = merged[type].filter(row=>!preferences.has(deletionId(type,row.id)));
+  return merged;
 }
 
 function createPokedexStore(storage, key) {
@@ -188,5 +201,5 @@ function mountPokedexSync({store, storageKey, refresh}) {
 }
 
 if (typeof module === 'object' && module.exports) {
-  module.exports = {createPokedexStore,mergePokedexCollections,validPokedexCollection};
+  module.exports = {createPokedexStore,mergePokedexCollections,validPokedexCollection,deletePokedexCard};
 }

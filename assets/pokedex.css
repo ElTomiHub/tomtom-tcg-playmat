@@ -166,11 +166,14 @@ input, select, textarea { width: 100%; min-width: 0; }
   border: 2px solid #ffe1a0; border-radius: 12px; pointer-events: none;
   box-shadow: 0 0 0 999px #07152475;
 }
-#scannerTorch { position: absolute; inset-block-start: 10px; inset-inline-end: 10px; background: #102944e8; }
+#scannerTorch { position: absolute; min-height: 44px; inset-block-start: 10px; inset-inline-end: 10px; background: #102944e8; }
 #scannerTorch[aria-pressed="true"] { color: #112238; background: #f5c75c; }
 .scanner-form-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .scanner-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
 .scanner-actions:empty { display: none; }
+.scan-candidate { display: inline-flex; align-items: center; gap: 8px; text-align: start; }
+.scan-candidate img { width: 38px; aspect-ratio: 63 / 88; object-fit: contain; border-radius: 3px; }
+.scan-candidate span { overflow-wrap: anywhere; }
 #scannerPhoto { display: block; max-width: 100%; height: 96px; object-fit: contain; margin-bottom: 10px; }
 #scannerLookup { padding: 12px; border: 1px solid #52708c; border-radius: 8px; }
 #scannerStatus:not(:empty) { margin-top: 10px; color: #ffdb85; }
@@ -193,7 +196,12 @@ dialog { width: min(550px, calc(100vw - 24px)); background: #102944; color: #fff
 dialog::backdrop { background: #020b17bb; }
 dialog form { display: grid; gap: 10px; }
 dialog .inputs { margin: 0; }
-footer { justify-content: flex-end; }
+footer { justify-content: flex-end; flex-wrap: wrap; }
+#deleteCard { margin-inline-end: auto; }
+#deleteCardConfirm { padding: 10px; border: 1px solid #bd7877; border-radius: 7px; }
+#deleteCardConfirm p { margin-bottom: 6px; }
+button.danger { color: #ffd3d1; border-color: #bd7877; }
+button.danger:hover { background: #5a2834; }
 [hidden] { display: none !important; }
 @media (max-width: 550px) {
   main { padding-top: 12px; }

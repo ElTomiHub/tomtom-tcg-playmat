@@ -26,6 +26,18 @@ test('recognizes a Japanese scan with full-width punctuation and an English set 
     {language:'en',set:'',number:'025/165',name:'Pikachu'});
 });
 
+test('split Japanese set codes and low-contrast OCR errors preserve the full collector reference',()=>{
+  assert.deepEqual(readPrintedClues('ピカ チュ ウ\nS V 2 a　O2S ∕ I6S',['SV2a'],names,'ja'),
+    {language:'ja',set:'SV2A',number:'025/165',name:'ピカチュウ'});
+  assert.equal(readPrintedClues('Pikachu\nLOR TG05/TG30',['LOR'],names).number,'TG05/TG30');
+});
+
+test('a result contradicting the scanned Pokémon name needs confirmation',async()=>{
+  const catalog={lookup:async ({language})=>language==='ja' ? [{code:'SV2a',card:{name:'ニャース'}}] : []};
+  const [match]=await resolveScannerPrints(catalog,{language:'ja',set:'SV2A',name:'ピカチュウ',number:'052/165'});
+  assert.equal(match.confirmName,true);
+});
+
 test('the scan distinguishes regional form, print, and confirmed foil for ownership',()=>{
   const card={name:'ヒスイ ウインディV',dexId:[59],localId:'019',set:{cardCount:{official:68}}};
   const identity=printIdentity(card,'ja','S11a');

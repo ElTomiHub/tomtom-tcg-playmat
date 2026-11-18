@@ -6,13 +6,13 @@
   <meta name="theme-color" content="#0b213b">
   <title>Pokédex · Pokémon TCG Playmat</title>
   <link rel="icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="assets/pokedex.css?v=11">
+  <link rel="stylesheet" href="assets/pokedex.css?v=12">
   <script defer src="assets/starter-library.js"></script>
   <script defer src="assets/pokedex-species-names.js?v=1"></script>
   <script defer src="assets/library-sync.js?v=5"></script>
-  <script defer src="assets/pokedex-sync.js?v=2"></script>
-  <script defer src="assets/pokedex-scan.js?v=2"></script>
-  <script defer src="assets/pokedex.js?v=9"></script>
+  <script defer src="assets/pokedex-sync.js?v=3"></script>
+  <script defer src="assets/pokedex-scan.js?v=3"></script>
+  <script defer src="assets/pokedex.js?v=10"></script>
 </head>
 <body>
   <main>
@@ -108,11 +108,12 @@
     <div class="scanner-camera" id="scannerPreview" hidden>
       <video id="scannerVideo" autoplay muted playsinline aria-label="Live camera preview"></video>
       <div class="scanner-frame" id="scannerFrame" aria-hidden="true"></div>
-      <button type="button" id="scannerTorch" aria-pressed="false" hidden>Flashlight</button>
+      <button type="button" id="scannerTorch" aria-pressed="false" disabled>⚡ Flash</button>
     </div>
     <div class="scanner-actions">
       <button type="button" class="primary" id="scannerTake" disabled>Take photo</button>
       <button type="button" id="scannerStart" hidden>Open camera</button>
+      <button type="button" id="scannerPhone" hidden>Phone camera</button>
       <button type="button" id="scannerChoose">Choose image</button>
       <button type="button" id="scannerManual" aria-controls="scannerLookup" aria-expanded="false">Enter manually</button>
       <input type="file" id="scannerCamera" accept="image/*" capture="environment" hidden>
@@ -122,7 +123,7 @@
     <form id="scannerLookup" hidden>
       <div class="inputs">
         <label>Set code <input name="set" maxlength="24" placeholder="SV2a"></label>
-        <label>Collector number <input name="number" maxlength="24" placeholder="025/165" required></label>
+        <label>Collector number <input name="number" maxlength="24" placeholder="025/165"></label>
         <label>Printed name <input name="name" maxlength="100" placeholder="Optional if set is known"></label>
       </div>
       <div class="scanner-form-actions">
@@ -148,7 +149,18 @@
       <label>Photo URL <input name="image" type="url" maxlength="2048"></label>
       <label>Notes <textarea name="notes" rows="2" maxlength="1000"></textarea></label>
       <p id="editorStatus" role="status"></p>
-      <footer><button type="button" id="cancelEdit">Cancel</button><button type="submit" class="primary">Save card</button></footer>
+      <div id="deleteCardConfirm" hidden>
+        <p>Delete this copy from your collection?</p>
+        <div class="scanner-form-actions">
+          <button type="button" id="keepCard">Keep card</button>
+          <button type="button" class="danger" id="confirmDeleteCard">Delete this copy</button>
+        </div>
+      </div>
+      <footer>
+        <button type="button" class="danger" id="deleteCard" hidden>Delete card</button>
+        <button type="button" id="cancelEdit">Cancel</button>
+        <button type="submit" class="primary">Save card</button>
+      </footer>
     </form>
   </dialog>
   <datalist id="variants"></datalist>

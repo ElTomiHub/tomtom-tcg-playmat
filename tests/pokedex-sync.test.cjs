@@ -1,6 +1,6 @@
 const {test} = require('node:test');
 const assert = require('node:assert/strict');
-const {createPokedexStore} = require('../assets/pokedex-sync.js');
+const {createPokedexStore,deletePokedexCard} = require('../assets/pokedex-sync.js');
 
 const empty = () => ({cards:[],binder:[],preferences:[]});
 const withCard = (id, note = '') => ({...empty(),cards:[{id,note}]});
@@ -71,6 +71,33 @@ test('a save during an upload stays queued and an interrupted request loses no l
   assert.deepEqual(local.read().pending.cards,['manual:first','manual:new']);
   assert.equal(await local.sync(cloud,session),true);
   assert.deepEqual((await cloud.readCollection()).collection.cards.map(row=>row.id),['manual:first','manual:new']);
+});
+
+test('deleting a copy syncs the deletion across stale edits and repeated imports',async()=>{
+  const cloud = server();
+  const first = device({...withCard('cards:one'),binder:[{id:'binder:one'}]});
+  const second = device();
+  await first.sync(cloud,session);
+  await second.sync(cloud,session);
+
+  const old = second.read().collection;
+  const before = first.read().collection;
+  first.save(before,deletePokedexCard(before,'cards','cards:one'));
+  await first.sync(cloud,session);
+  second.save(old,{...old,cards:[{id:'cards:one',note:'offline edit'},{id:'cards:two'}]});
+  await second.sync(cloud,session);
+  await first.sync(cloud,session);
+  assert.deepEqual(first.read().collection.cards,[{id:'cards:two'}]);
+  assert.deepEqual(first.read().collection.binder,[{id:'binder:one'}]);
+
+  const after = second.read().collection;
+  second.save(after,{...after,cards:[...after.cards,{id:'cards:one'}]});
+  assert.deepEqual(second.read().collection.cards,[{id:'cards:two'}]);
+  const withBinder = second.read().collection;
+  second.save(withBinder,deletePokedexCard(withBinder,'binder','binder:one'));
+  await second.sync(cloud,session);
+  await first.sync(cloud,session);
+  assert.deepEqual(first.read().collection.binder,[]);
 });
 
 test('a stale tab cannot discard an independent addition made by another tab',()=>{

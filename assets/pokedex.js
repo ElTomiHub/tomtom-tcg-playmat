@@ -666,9 +666,9 @@
   el('saveImport').addEventListener('click', () => {
     if (!pending) return;
     try {
-      const next = mergeCollection(data, selectCollection(pending,el('collectionSelect').value));
-      const added = Object.keys(fields).reduce((sum,type) => sum+next[type].length-data[type].length,0);
-      save(next);
+      const before = data;
+      save(mergeCollection(before,selectCollection(pending,el('collectionSelect').value)));
+      const added = Object.keys(fields).reduce((sum,type) => sum+data[type].length-before[type].length,0);
       el('notice').textContent = added ? 'Imported ' + added + ' records into this browser.' : 'These records are already in this collection.';
       pending = null;
       el('preview').hidden = true;
@@ -711,6 +711,8 @@
     el('speciesField').hidden = !number.required;
     form.elements.namedItem('name').required = editing.type === 'binder';
     el('editorHeading').textContent = card ? 'Edit card' : 'Add card';
+    el('deleteCard').hidden = !card;
+    el('deleteCardConfirm').hidden = true;
     el('editorStatus').textContent = '';
     el('editor').showModal();
   }
@@ -733,6 +735,29 @@
       el('notice').textContent = 'Card saved in this browser.';
       render();
     } catch (error) { el('editorStatus').textContent = 'Could not save the card. ' + error.message; }
+  });
+  el('deleteCard').addEventListener('click',()=>{
+    el('deleteCard').hidden = true;
+    el('deleteCardConfirm').hidden = false;
+    el('keepCard').focus();
+  });
+  el('keepCard').addEventListener('click',()=>{
+    el('deleteCardConfirm').hidden = true;
+    el('deleteCard').hidden = false;
+    el('deleteCard').focus();
+  });
+  el('confirmDeleteCard').addEventListener('click',()=>{
+    const {type,card} = editing;
+    if (!card) return;
+    try {
+      const next = deletePokedexCard(data,type,card.id);
+      if (next !== data) save(next);
+      el('editor').close();
+      render();
+      el('notice').textContent = 'Card deleted.';
+    } catch (error) {
+      el('editorStatus').textContent = 'Could not delete the card. ' + error.message;
+    }
   });
   el('cancelEdit').addEventListener('click', () => el('editor').close());
   el('addCard').addEventListener('click', () => openEditor(null));
