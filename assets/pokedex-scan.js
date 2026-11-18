@@ -153,8 +153,41 @@
       setDetails:(language,id)=>id ? get(language,'/sets/'+encodeURIComponent(id)) : Promise.resolve(null)};
   }
 
+  function cameraCrop(width,height,viewport,frame) {
+    const scale = Math.max(viewport.width/width,viewport.height/height);
+    const offsetX = (width*scale-viewport.width)/2;
+    const offsetY = (height*scale-viewport.height)/2;
+    const padding = frame.width*.06;
+    const left = Math.max(0,(frame.left-viewport.left+offsetX-padding)/scale);
+    const top = Math.max(0,(frame.top-viewport.top+offsetY-padding)/scale);
+    const right = Math.min(width,(frame.right-viewport.left+offsetX+padding)/scale);
+    const bottom = Math.min(height,(frame.bottom-viewport.top+offsetY+padding)/scale);
+    return {left,top,width:right-left,height:bottom-top};
+  }
+
+  async function resolveScannerPrints(catalog,fields) {
+    const locales = ['en','fr','ja'];
+    const japaneseSet = /^(?:SV|SM|S|M|XY|BW)\d+[A-Z]*$|^(?:SV|S|SM)-P$/i;
+    const preferred = fields.language || (jpText.test(fields.name) || japaneseSet.test(fields.set) ? 'ja' : '');
+    const lookup = async language => (await catalog.lookup({...fields,language})).map(match=>({...match,language}));
+    const failures = [];
+    if (preferred) {
+      const matches = await lookup(preferred).catch(error=>{failures.push(error); return [];});
+      if (matches.length) return matches;
+    }
+    const retries = locales.filter(language=>language!==preferred);
+    const results = await Promise.allSettled(retries.map(lookup));
+    const matches = results.flatMap(result=>result.status==='fulfilled' ? result.value : []);
+    const query = String(fields.name || '').normalize('NFKC').toLowerCase();
+    const named = matches.filter(match=>match.card.name?.normalize('NFKC').toLowerCase().includes(query));
+    if (named.length) return named;
+    if (!matches.length && failures.length+results.filter(result=>result.status==='rejected').length===locales.length)
+      throw failures[0] || results[0].reason;
+    return matches;
+  }
+
   if (typeof module === 'object' && module.exports) {
-    module.exports = {printIdentity,checkCollection,availableVariants,readPrintedClues,cardNumber,makeCatalog,limitlessLink};
+    module.exports = {printIdentity,checkCollection,availableVariants,readPrintedClues,cardNumber,makeCatalog,limitlessLink,cameraCrop,resolveScannerPrints};
     return;
   }
 
@@ -230,8 +263,9 @@
     const state = el('scannerStatus');
     const candidates = el('scannerCandidates'), result = el('scannerResult');
     const lookup = makeCatalog(window.fetch.bind(window));
-    let client, request = 0, previewUrl = '', preferredLanguage = 'auto';
-    form.elements.language.addEventListener('change',event=>{preferredLanguage=event.target.value;});
+    const video = el('scannerVideo'), camera = el('scannerPreview'), take = el('scannerTake');
+    const torch = el('scannerTorch'), start = el('scannerStart'), manual = el('scannerManual');
+    let client, request = 0, previewUrl = '', cameraVersion = 0, stream, nativeCapture = false;
     try {
       client = createLibrarySyncClient({...playmatSyncConfig,storage:localStorage,
         fetcher:(url,options)=>fetch(url,{...options,signal:AbortSignal.timeout(7500)})});
@@ -245,15 +279,137 @@
       image.hidden = true;
     }
 
-    function show() {
-      if (!dialog.open) dialog.showModal();
+    function setManual(open) {
+      form.hidden = !open;
+      manual.setAttribute('aria-expanded',String(open));
     }
-    el('openScanner').addEventListener('click',show);
+
+    function stopCamera() {
+      cameraVersion++;
+      stream?.getTracks().forEach(track=>track.stop());
+      stream = null;
+      video.srcObject = null;
+      camera.hidden = true;
+      torch.hidden = true;
+      torch.disabled = false;
+      torch.setAttribute('aria-pressed','false');
+      take.hidden = true;
+      take.disabled = true;
+      nativeCapture = false;
+      start.hidden = false;
+    }
+
+    async function startCamera() {
+      request++;
+      stopCamera();
+      clearPhoto();
+      candidates.replaceChildren();
+      result.replaceChildren();
+      setManual(false);
+      const job = cameraVersion;
+      start.hidden = true;
+      camera.hidden = false;
+      take.hidden = false;
+      state.textContent = 'Opening camera…';
+      try {
+        const media = await navigator.mediaDevices.getUserMedia({
+          audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1440}}
+        });
+        if (!dialog.open || cameraVersion !== job) {
+          media.getTracks().forEach(track=>track.stop());
+          return;
+        }
+        stream = media;
+        video.srcObject = stream;
+        await video.play();
+        if (cameraVersion !== job) return;
+        const track = stream.getVideoTracks()[0];
+        const capability = track?.getCapabilities?.().torch;
+        torch.hidden = capability !== true && !(Array.isArray(capability) && capability.includes(true));
+        take.disabled = false;
+        state.textContent = 'Line up one card in the frame, then take the photo.';
+        track?.addEventListener('ended',()=>{
+          if (cameraVersion !== job) return;
+          stopCamera();
+          state.textContent = 'The camera stopped. You can open it again or enter the card manually.';
+        },{once:true});
+      } catch {
+        if (cameraVersion !== job) return;
+        stopCamera();
+        nativeCapture = true;
+        take.hidden = false;
+        take.disabled = false;
+        state.textContent = 'Live camera unavailable. Take a photo with your device, choose an image, or enter the card manually.';
+      }
+    }
+
+    function registerManually() {
+      const fields = Object.fromEntries(new FormData(form));
+      dialog.close();
+      openAdd({name:fields.name.trim(),set:fields.set.trim(),number:fields.number.trim()});
+    }
+
+    el('openScanner').addEventListener('click',()=>{
+      if (dialog.open) return;
+      form.reset();
+      dialog.showModal();
+      void startCamera();
+    });
     el('closeScanner').addEventListener('click',()=>dialog.close());
-    dialog.addEventListener('close',()=>{request++; clearPhoto();});
-    for (const [button,input] of [['scannerTake','scannerCamera'],['scannerChoose','scannerFile']]) {
-      el(button).addEventListener('click',()=>el(input).click());
-      el(input).addEventListener('change',event=>{
+    dialog.addEventListener('close',()=>{request++; stopCamera(); clearPhoto();});
+    window.addEventListener('pagehide',stopCamera);
+    document.addEventListener('visibilitychange',()=>{
+      if (!document.hidden || !dialog.open || camera.hidden) return;
+      stopCamera();
+      state.textContent = 'Camera paused. Open it again to continue.';
+    });
+    start.addEventListener('click',startCamera);
+    manual.addEventListener('click',()=>{
+      if (!form.hidden) { setManual(false); return; }
+      request++;
+      stopCamera();
+      setManual(true);
+      state.textContent = '';
+      form.elements.set.focus();
+    });
+    el('scannerRegister').addEventListener('click',registerManually);
+    torch.addEventListener('click',async ()=>{
+      const track = stream?.getVideoTracks()[0];
+      if (!track) return;
+      const enabled = torch.getAttribute('aria-pressed') !== 'true';
+      const job = cameraVersion;
+      torch.disabled = true;
+      try {
+        await track.applyConstraints({advanced:[{torch:enabled}]});
+        if (cameraVersion === job) torch.setAttribute('aria-pressed',String(track.getSettings?.().torch ?? enabled));
+      } catch {
+        if (cameraVersion === job) state.textContent = 'The flashlight could not be changed.';
+      } finally {
+        if (cameraVersion === job) torch.disabled = false;
+      }
+    });
+
+    take.addEventListener('click',async ()=>{
+      if (nativeCapture) { el('scannerCamera').click(); return; }
+      if (!stream || !video.videoWidth || !video.videoHeight) return;
+      const job = cameraVersion;
+      const crop = cameraCrop(video.videoWidth,video.videoHeight,video.getBoundingClientRect(),el('scannerFrame').getBoundingClientRect());
+      const canvas = element('canvas');
+      canvas.width = Math.round(crop.width);
+      canvas.height = Math.round(crop.height);
+      canvas.getContext('2d').drawImage(video,crop.left,crop.top,crop.width,crop.height,0,0,canvas.width,canvas.height);
+      take.disabled = true;
+      const photo = await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.94));
+      if (cameraVersion !== job) return;
+      if (photo) await scan(photo);
+      else {
+        take.disabled = false;
+        state.textContent = 'The camera could not save that frame. Try again.';
+      }
+    });
+    el('scannerChoose').addEventListener('click',()=>el('scannerFile').click());
+    for (const id of ['scannerCamera','scannerFile']) {
+      el(id).addEventListener('change',event=>{
         const file = event.target.files[0];
         event.target.value = '';
         if (file) void scan(file);
@@ -262,9 +418,9 @@
 
     async function scan(file) {
       const job = ++request;
-      const chosenLanguage = preferredLanguage;
+      stopCamera();
       form.reset();
-      form.elements.language.value = chosenLanguage;
+      setManual(false);
       result.replaceChildren();
       candidates.replaceChildren();
       clearPhoto();
@@ -280,14 +436,13 @@
       try {
         const [canvas,tesseract] = await Promise.all([photoCanvas(file),loadOcr()]);
         if (job !== request) return;
-        worker = await tesseract.createWorker(chosenLanguage === 'fr' ? 'fra+eng' :
-          chosenLanguage === 'en' ? 'eng' : 'jpn+eng',1,{logger:event=>{
+        worker = await tesseract.createWorker('jpn+eng',1,{logger:event=>{
           if (job === request && event.status === 'recognizing text') state.textContent = 'Reading the card…';
         }});
         await worker.setParameters({tessedit_pageseg_mode:tesseract.PSM.SPARSE_TEXT});
         const {data} = await worker.recognize(canvas,{rotateAuto:true});
-        const language = chosenLanguage !== 'auto' ? chosenLanguage : jpText.test(data.text) ? 'ja' :
-          /\bPV\s*\d{2,3}\b|\b\d{2,3}\s*PV\b/i.test(data.text) ? 'fr' : 'en';
+        const language = jpText.test(data.text) ? 'ja' :
+          /\bPV\s*\d{2,3}\b|\b\d{2,3}\s*PV\b|\bFR\s+\d{1,4}\s*\//i.test(data.text) ? 'fr' : 'en';
         const sets = await lookup.sets(language).catch(()=>[]);
         const codes = [...(sets || []).map(set=>set.id),'MEG','PFL','ASC','POR','PAF','PAL','SVI','OBF','PAR','TEF','TWM','SFA','SCR','SSP','JTG','DRI','BLK','WHT','PRE','CRZ','SIT','LOR','ASR','BRS','FST','EVS','CRE','BST','VIV','DAA'];
         let clues = readPrintedClues(data.text,codes,speciesNames,language);
@@ -298,11 +453,17 @@
           clues = {...footerClues,name:clues.name || footerClues.name};
         }
         if (job !== request) return;
-        for (const key of ['language','set','number','name']) form.elements[key].value = clues[key];
+        for (const key of ['set','number','name']) form.elements[key].value = clues[key];
         if (clues.number && (clues.set || clues.name || clues.number.includes('/'))) await find(clues,job);
-        else state.textContent = 'Check the detected text and enter the set code and collector number on the card.';
+        else {
+          setManual(true);
+          state.textContent = 'Check the detected text and enter the set code and collector number on the card.';
+        }
       } catch (error) {
-        if (job === request) state.textContent = (error?.message || 'Could not read this photo.')+' You can look up the print manually.';
+        if (job === request) {
+          setManual(true);
+          state.textContent = (error?.message || 'Could not read this photo.')+' You can look up the print manually.';
+        }
       } finally {
         if (worker) await worker.terminate().catch(()=>{});
       }
@@ -313,8 +474,7 @@
       const fields = Object.fromEntries(new FormData(form));
       fields.set = fields.set.trim();
       fields.name = fields.name.trim();
-      if (fields.language === 'auto') fields.language = jpText.test(fields.name) ||
-        /^(?:SV\d+[a-z]|M\d+[a-z]|S\d+[a-z]|SV-P|S-P)$/i.test(fields.set) ? 'ja' : 'en';
+      stopCamera();
       void find({...fields,insistSet:true},++request);
     });
 
@@ -323,24 +483,28 @@
       result.replaceChildren();
       candidates.replaceChildren();
       try {
-        const matches = await lookup.lookup(fields);
+        const matches = await resolveScannerPrints(lookup,fields);
         if (job !== request) return;
         if (!matches.length) {
-          state.textContent = 'No exact print found. Check the language, set code and collector number.';
+          setManual(true);
+          state.textContent = 'No exact print found. Check the set code and collector number.';
           return;
         }
         if (matches.length === 1) {
-          await showResult(matches[0],fields.language,job);
+          await showResult(matches[0],matches[0].language,job);
           return;
         }
         state.textContent = 'Choose the print that matches your card.';
         for (const match of matches) {
-          candidates.append(action([match.card.name,match.code,match.card.localId].join(' · '),()=>{
-            void showResult(match,fields.language,++request);
+          candidates.append(action([match.card.name,match.code,match.card.localId,{en:'English',fr:'French',ja:'Japanese'}[match.language]].join(' · '),()=>{
+            void showResult(match,match.language,++request);
           }));
         }
       } catch (error) {
-        if (job === request) state.textContent = error?.message || 'Could not look up this card.';
+        if (job === request) {
+          setManual(true);
+          state.textContent = error?.message || 'Could not look up this card.';
+        }
       }
     }
 

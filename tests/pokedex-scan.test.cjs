@@ -1,7 +1,21 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
-const {printIdentity,checkCollection,availableVariants,readPrintedClues,makeCatalog,limitlessLink}=require('../assets/pokedex-scan.js');
+const {printIdentity,checkCollection,availableVariants,readPrintedClues,makeCatalog,limitlessLink,cameraCrop,resolveScannerPrints}=require('../assets/pokedex-scan.js');
 const names=[['Bulbasaur','Bulbizarre','フシギダネ'],['Pikachu','Pikachu','ピカチュウ']];
+
+test('the portrait framing guide maps to the camera sensor and clamps the padded crop',()=>{
+  const crop=cameraCrop(1600,900,{left:10,top:20,width:300,height:450},{left:35,top:45,right:285,bottom:445,width:250});
+  assert.deepEqual(crop,{left:520,top:20,width:560,height:860});
+  const edge=cameraCrop(300,450,{left:0,top:0,width:300,height:450},{left:0,top:0,right:300,bottom:450,width:300});
+  assert.deepEqual(edge,{left:0,top:0,width:300,height:450});
+});
+
+test('manual lookup preserves localized candidates and a scan retries when its inferred language misses',async()=>{
+  const catalog={lookup:async ({language})=>language==='ja' ? [] : [{code:'MEG',card:{name:language==='en'?'Pidgey':'Roucool'}}]};
+  assert.deepEqual((await resolveScannerPrints(catalog,{set:'MEG',name:''})).map(match=>match.language),['en','fr']);
+  assert.deepEqual((await resolveScannerPrints(catalog,{set:'MEG',name:'Roucool'})).map(match=>match.language),['fr']);
+  assert.deepEqual((await resolveScannerPrints(catalog,{set:'MEG',name:'Pidgey',language:'ja'})).map(match=>match.language),['en']);
+});
 
 test('recognizes a Japanese scan with full-width punctuation and an English set with a language mark',()=>{
   assert.deepEqual(readPrintedClues('たね ピカチュウ HP60\nＳＶ２ａ ０２５／１６５',['SV2a'],names),
