@@ -248,7 +248,13 @@
     collectionSync?.changed();
   }
 
-  const priceUI = createPokedexPricesUI({getData:()=>data,save,node,button,title});
+  const priceUI = createPokedexPricesUI({getData:()=>data,save,node,button,title,photo,
+    openCard:(card,destination)=>{
+      const entry = validSpecies(Number(card.pokemonId)) ? catalogEntry({...card,pokemonId:Number(card.pokemonId)}) :
+        editorNames.get(normalizeSearch(card.name));
+      if (entry) showSpecies(entry,card.id);
+      else openEditor(card,null,{destination});
+    }});
 
   function speciesName(id) { return names[id-1]?.[0] || 'Pokémon #' + id; }
   function entryName(entry) { return [entry.label,speciesName(entry.id)].filter(Boolean).join(' '); }
@@ -502,7 +508,7 @@
 
   function renderSpeciesDetails(entry, copies, preferredId) {
     const name = entryName(entry);
-    const back = button(speciesReturn?.view === 'recent' ? '← Back to History' : '← Back to Pokédex', () => {
+    const back = button(speciesReturn?.view === 'value' ? '← Back to Value' : speciesReturn?.view === 'recent' ? '← Back to History' : '← Back to Pokédex', () => {
       const previous = speciesReturn;
       view = previous?.view || 'cards';
       speciesFilter = null;
@@ -946,6 +952,20 @@
   const editorForm = el('editorForm');
   const editorFields = editorForm.elements;
   const editorNumber = mountNumberField(editorFields.number,el('editorSetTotal'));
+  const editorPrice = node('div');
+  editorPrice.id = 'editorPrice';
+  editorPrice.hidden = true;
+  editorForm.querySelector('.editor-fields').append(editorPrice);
+  function updateEditorPrice() {
+    editorPrice.replaceChildren();
+    editorPrice.hidden = editing?.type !== 'binder' || !editing.card;
+    if (editorPrice.hidden) return;
+    const current = {...editing.card,set:editorFields.set.value,number:editorNumber.value(),variant:editorFields.variant.value};
+    if (PokedexPrices.identity(current) !== PokedexPrices.identity(editing.card))
+      editorPrice.append(node('small','Save the changed print reference before checking its price.'));
+    else editorPrice.append(priceUI.cardPrice(editing.card));
+  }
+  for (const key of ['set','number','variant']) editorFields[key].addEventListener('input',updateEditorPrice);
   const editorNames = new Map();
   for (const entry of catalog) {
     const name = entryName(entry);
@@ -1070,6 +1090,7 @@
     updateFormChoices(formKey);
     updateEditorSpecies();
     updateEditorArtwork();
+    updateEditorPrice();
     el('editorHeading').textContent = card ? 'Edit card' : 'Add card';
     el('deleteCard').hidden = !card;
     el('deleteCardConfirm').hidden = true;

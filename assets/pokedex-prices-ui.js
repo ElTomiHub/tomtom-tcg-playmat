@@ -1,9 +1,11 @@
 'use strict';
-function createPokedexPricesUI({getData,save,node,button,title}) {
+function createPokedexPricesUI({getData,save,node,button,title,photo,openCard}) {
   const prices=globalThis.PokedexPrices;
   const money=value=>new Intl.NumberFormat('ja-JP',{style:'currency',currency:'JPY',maximumFractionDigits:0}).format(value);
   const client=createLibrarySyncClient({...playmatSyncConfig,storage:localStorage,fetcher:fetch.bind(window)});
   let bindings=[],running=false,stopped=false,message='';
+  const filters={search:'',destination:'',availability:'',sort:'high'};
+  let listLimit=60;
   const statuses={blocked:'Card Rush is blocking automated access. Saved values are unchanged.',
     setup:'Price lookup needs the one-time Supabase setup (card-prices.sql).',
     signin:'Sign in using the sync menu before checking prices.',
@@ -122,7 +124,54 @@ function createPokedexPricesUI({getData,save,node,button,title}) {
     const setup=node('details'),setupTitle=node('summary','Price lookup setup');
     const download=node('a','Download the Supabase setup SQL');download.href='card-prices.sql';download.download='card-prices.sql';
     setup.append(setupTitle,node('p','Run the SQL once in your Supabase SQL Editor, then sign in and refresh. Card Rush may block requests; no price is guessed when a lookup fails.'),download);
-    controls.append(setup);container.append(grid,controls);
+    controls.append(setup);container.append(grid);
+    const browser=node('section',null,'panel value-browser');
+    browser.append(node('h3','Card values'));
+    const fields=node('div',null,'value-filters');
+    const search=node('input');search.type='search';search.placeholder='Name, set or number';search.value=filters.search;
+    const searchLabel=node('label','Search cards');searchLabel.append(search);fields.append(searchLabel);
+    const choices=[['destination','Collection',[['','Both collections'],['cards','Pokédex'],['binder','Special Collection']]],
+      ['availability','Price',[['','All cards'],['missing','Without a price'],['priced','With a price']]],
+      ['sort','Sort by',[['high','Value: high to low'],['low','Value: low to high'],['name','Name: A–Z']]]];
+    const inputs={search};
+    for(const [key,label,options] of choices) {
+      const field=node('label',label),select=node('select');
+      select.setAttribute('aria-label',label);
+      for(const [value,text] of options) {const option=node('option',text);option.value=value;select.append(option);}
+      select.value=filters[key];inputs[key]=select;field.append(select);fields.append(field);
+    }
+    const reset=button('Reset filters',()=>{
+      Object.assign(filters,{search:'',destination:'',availability:'',sort:'high'});
+      for(const [key,input] of Object.entries(inputs)) input.value=filters[key];
+      listLimit=60;draw();
+    });
+    const count=node('p',null,'note'),list=node('div',null,'value-list');count.setAttribute('role','status');
+    const more=button('Show more',()=>{listLimit+=60;draw();});
+    function draw() {
+      const rows=prices.valueRows(getData(),filters);
+      count.textContent=rows.length+' print rows · '+rows.reduce((sum,row)=>sum+row.count,0)+' copies. Values are per copy; totals above include both collections.';
+      list.replaceChildren();
+      for(const row of rows.slice(0,listLimit)) {
+        const {card,destination,quote,count:copies}=row;
+        const item=button(null,()=>openCard(card,destination));item.className='value-card';
+        item.dataset.cardId=card.id;
+        item.setAttribute('aria-label','View '+[title(card),card.set,card.number,card.variant].filter(Boolean).join(' · '));
+        const details=node('span',null,'value-card-details');
+        details.append(node('strong',title(card)),node('small',[card.set,card.number,card.variant].filter(Boolean).join(' · ')),
+          node('small',(destination==='cards'?'Pokédex':'Special Collection')+' · '+copies+(copies===1?' copy':' copies')));
+        const amount=node('span',null,'value-card-amount');
+        amount.append(node('strong',quote?money(quote.value):'No price'));
+        if(quote) amount.append(node('small',quote.source || 'Saved value'));
+        item.append(photo(card.image,'No image'),details,amount);list.append(item);
+      }
+      if(!rows.length) list.append(node('p','No cards match these filters.','note'));
+      more.hidden=rows.length<=listLimit;
+    }
+    for(const [key,input] of Object.entries(inputs)) input.addEventListener(key==='search'?'input':'change',()=>{
+      filters[key]=input.value;listLimit=60;draw();
+    });
+    browser.append(fields,reset,count,list,more);container.append(browser,controls);
+    bind(browser,draw);
   }
   return {cardPrice,summary,renderValue,refresh,reset:()=>{bindings=[];}};
 }

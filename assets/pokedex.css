@@ -356,6 +356,23 @@ button.danger:hover { background: #5a2834; }
 .value-controls { margin-top: 16px; }
 .value-controls > button { margin-right: 8px; }
 .value-controls details { margin-top: 12px; }
+.value-browser { margin-top: 16px; }
+.value-filters { display: grid; grid-template-columns: minmax(140px,2fr) repeat(3,minmax(120px,1fr)); gap: 10px; margin: 12px 0; }
+.value-filters label { min-width: 0; }
+.value-list { display: grid; gap: 8px; margin: 12px 0; }
+.value-card { display: grid; grid-template-columns: 45px minmax(0,1fr) minmax(90px,auto); gap: 12px; align-items: center; text-align: left; width: 100%; }
+.value-card > img { width: 45px; height: 62px; object-fit: contain; border-radius: 4px; }
+.value-card > .fallback { font-size: 10px; }
+.value-card-details, .value-card-amount { display: grid; gap: 4px; min-width: 0; overflow-wrap: anywhere; }
+.value-card-amount { text-align: right; }
+.value-card-amount strong { color: #ffda81; font-variant-numeric: tabular-nums; }
+.value-card small { font-weight: 400; }
+@media (max-width: 850px) { .value-filters { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 550px) {
+  .value-card { grid-template-columns: 34px minmax(0,1fr) 80px; gap: 8px; padding: 8px; }
+  .value-card > img { width: 34px; height: 48px; }
+  .value-card small { font-size: 10px; }
+}
 #results:has(.value-summaries) { display: block; }
 @media (max-width: 550px) {
   .value-summaries { grid-template-columns: minmax(0,1fr); }

@@ -35,6 +35,30 @@
     for (const card of cards) { const item=quote(card,preferences); if(item) {value+=item.value;priced++;} }
     return {value,priced,missing:cards.length-priced,count:cards.length};
   }
+  function valueRows(collection,options={}) {
+    const normalize=value=>clean(value).normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+    const search=normalize(options.search),groups=new Map();
+    for(const destination of ['cards','binder']) {
+      if(options.destination && options.destination!==destination) continue;
+      for(const card of collection[destination]) {
+        if(search && !normalize([card.name,card.set,card.number].join(' ')).includes(search)) continue;
+        const value=quote(card,collection.preferences);
+        if(options.availability==='missing' && value || options.availability==='priced' && !value) continue;
+        // Imported per-copy values can differ, so preserve separate rows for those values.
+        const id=JSON.stringify([destination,identity(card),normalize(card.name) || card.id,value?.value ?? null]);
+        const row=groups.get(id);
+        if(row) row.count++;
+        else groups.set(id,{card,destination,quote:value,count:1});
+      }
+    }
+    return [...groups.values()].sort((a,b)=>{
+      const name=String(a.card.name || '').localeCompare(String(b.card.name || ''));
+      if(options.sort==='name') return name;
+      if(Boolean(a.quote)!==Boolean(b.quote)) return a.quote?-1:1;
+      const delta=(a.quote?.value || 0)-(b.quote?.value || 0);
+      return (options.sort==='low'?delta:-delta) || name;
+    });
+  }
   function upsert(preferences,card,result) {
     const id=key(card), previous=preferences.find(row=>row.id===id);
     const row={...previous,id,lastAttempt:new Date().toISOString(),status:result.status || 'unavailable'};
@@ -81,7 +105,7 @@
     if(matches.length!==1) return {status:matches.length?'ambiguous':'not_found'};
     return {...matches[0],status:'success',source:'Card Rush',checkedAt:new Date().toISOString()};
   }
-  const api={identity,key,lookupInput,quote,totals,upsert,parseListings,match,validAmount};
+  const api={identity,key,lookupInput,quote,totals,valueRows,upsert,parseListings,match,validAmount};
   if(typeof module!=='undefined' && module.exports) module.exports=api;
   else root.PokedexPrices=api;
 })(globalThis);

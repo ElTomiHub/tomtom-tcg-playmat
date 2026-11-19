@@ -39,6 +39,23 @@ test('identity normalization prevents duplicate cache entries but distinguishes 
   assert.equal(p.validAmount(0),true);
   assert.equal(p.lookupInput({...card,set:'../../x'}),null);
 });
+test('value list filters missing prices, includes zero as priced, groups copies and sorts without treating unknown as zero',()=>{
+  const expensive={id:'expensive',name:'Évoli',set:'TEST',number:'1',value:500,currency:'JPY'};
+  const cheap={id:'cheap',name:'Bulbasaur',set:'TEST',number:'2',value:100,currency:'JPY'};
+  const missing={id:'missing',name:'Charmander',set:'TEST',number:'3'};
+  const zero={id:'zero',name:'Trainer',set:'TEST',number:'4'};
+  const data={cards:[expensive,{...expensive,id:'copy'},cheap,missing],binder:[zero],
+    preferences:[{id:p.key(zero),value:0,currency:'JPY'}]};
+  const ids=options=>p.valueRows(data,options).map(row=>row.card.id);
+  assert.deepEqual(ids({}),['expensive','cheap','zero','missing']);
+  assert.equal(p.valueRows(data)[0].count,2);
+  assert.deepEqual(ids({sort:'low'}),['zero','cheap','expensive','missing']);
+  assert.deepEqual(ids({availability:'missing'}),['missing']);
+  assert.deepEqual(ids({availability:'priced',destination:'binder'}),['zero']);
+  assert.deepEqual(ids({destination:'cards',search:'evoli'}),['expensive']);
+  assert.deepEqual(ids({search:'test 2'}),['cheap']);
+  assert.deepEqual(ids({sort:'name'}),['cheap','missing','expensive','zero']);
+});
 test('imported quotes contain only public print data and retain their historical dates without overriding manual removals',()=>{
   const fs=require('node:fs'),vm=require('node:vm');
   const context={};
