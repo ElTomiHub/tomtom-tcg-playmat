@@ -23,8 +23,9 @@ function createPokedexPricesUI({getData,save,node,button,title,photo,openCard}) 
     const box=node('section',null,'price-summary');
     return bind(box,()=>{
       const result=prices.totals(cards(),getData().preferences);
-      box.replaceChildren(node('small',label),node('strong',result.priced?money(result.value):'—'),
-        node('small',result.priced+' priced · '+result.missing+' without a value'));
+      box.title = result.missing ? '* Includes ¥40 per copy without a saved price.' : '';
+      box.replaceChildren(node('small',label),node('strong',result.count?money(result.value)+(result.missing?'*':''):'—'),
+        node('small',result.priced+' priced'+(result.missing?' · '+result.missing+' at ¥40*':'')));
     });
   }
   function cardPrice(card) {
@@ -33,7 +34,8 @@ function createPokedexPricesUI({getData,save,node,button,title,photo,openCard}) 
       const data=getData(),quote=prices.quote(card,data.preferences);
       const saved=data.preferences.find(row=>row.id===prices.key(card));
       const text=node('div',null,'card-price-text');
-      text.append(node('strong',quote?money(quote.value):'Price unavailable'));
+      text.append(node('strong',quote?money(quote.value):money(prices.defaultValue)+'*'));
+      if(!quote) text.append(node('small','* Default estimate · no saved price'));
       if(quote) {
         const source=node('small',quote.source || 'Saved value');
         if(/^https:\/\/www\.cardrush-pokemon\.jp\/product\/\d+$/.test(quote.sourceUrl || '')) {
@@ -120,10 +122,10 @@ function createPokedexPricesUI({getData,save,node,button,title,photo,openCard}) 
     const stop=button('Stop',()=>{stopped=true;stop.disabled=true;});
     const status=node('p'); status.setAttribute('role','status');
     bind(controls,()=>{refreshButton.disabled=running;stop.hidden=!running;stop.disabled=stopped;status.textContent=message;});
-    controls.append(refreshButton,stop,status,node('p','JPY per physical copy. Totals exclude unknown values. Card Rush retail listings are matched by Japanese set, full number and finish; manual and imported values are also included.','note'));
+    controls.append(refreshButton,stop,status,node('p','* Cards without a saved price use a ¥40 estimate per copy, included in all totals. They remain in the Without a price filter until you set a value or a lookup succeeds. Card Rush, imported and manual values replace the estimate.','note'));
     const setup=node('details'),setupTitle=node('summary','Price lookup setup');
     const download=node('a','Download the Supabase setup SQL');download.href='card-prices.sql';download.download='card-prices.sql';
-    setup.append(setupTitle,node('p','Run the SQL once in your Supabase SQL Editor, then sign in and refresh. Card Rush may block requests; no price is guessed when a lookup fails.'),download);
+    setup.append(setupTitle,node('p','Run the SQL once in your Supabase SQL Editor, then sign in and refresh. Card Rush may block requests; cards without a saved value then use the ¥40* default estimate.'),download);
     controls.append(setup);container.append(grid);
     const browser=node('section',null,'panel value-browser');
     browser.append(node('h3','Card values'));
@@ -160,8 +162,8 @@ function createPokedexPricesUI({getData,save,node,button,title,photo,openCard}) 
         details.append(node('strong',title(card)),node('small',[card.set,card.number,card.variant].filter(Boolean).join(' · ')),
           node('small',(destination==='cards'?'Pokédex':'Special Collection')+' · '+copies+(copies===1?' copy':' copies')));
         const amount=node('span',null,'value-card-amount');
-        amount.append(node('strong',quote?money(quote.value):'No price'));
-        if(quote) amount.append(node('small',quote.source || 'Saved value'));
+        amount.append(node('strong',quote?money(quote.value):money(prices.defaultValue)+'*'));
+        amount.append(node('small',quote ? quote.source || 'Saved value' : '* Default estimate'));
         item.append(photo(card.image,'No image'),details,amount);list.append(item);
       }
       if(!rows.length) list.append(node('p','No cards match these filters.','note'));

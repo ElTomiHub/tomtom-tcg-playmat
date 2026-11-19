@@ -19,12 +19,12 @@ test('exact set, denominator, language and variant; graded/damaged and wrong set
   assert.equal(p.match(card,ball+ball).status,'ambiguous');
   assert.equal(p.match(card,'Just a moment... cf-chl-').status,'blocked');
 });
-test('cached prices survive failures; totals count copies and exclude unknowns; deleted manual value does not revive legacy prices',()=>{
+test('cached prices survive failures; totals count copies and include default estimates; deleted manual value does not revive legacy prices',()=>{
   const unknown={...card,number:'060/165'};
   let prefs=p.upsert([],card,{status:'success',value:480,source:'Card Rush'});
   prefs=p.upsert(prefs,card,{status:'blocked',value:null});
   assert.equal(p.quote(card,prefs).value,480);
-  assert.deepEqual(p.totals([card,{...card,id:'b'},unknown],prefs),{value:960,priced:2,missing:1,count:3});
+  assert.deepEqual(p.totals([card,{...card,id:'b'},unknown],prefs),{value:1000,priced:2,missing:1,count:3});
   assert.equal(p.quote({...card,variant:'normal'},prefs),null);
   assert.equal(p.quote({...card,value:'120',currency:'JPY'},[]).value,120);
   assert.equal(p.quote({...card,value:120,currency:'EUR'},[]),null);
@@ -39,7 +39,7 @@ test('identity normalization prevents duplicate cache entries but distinguishes 
   assert.equal(p.validAmount(0),true);
   assert.equal(p.lookupInput({...card,set:'../../x'}),null);
 });
-test('value list filters missing prices, includes zero as priced, groups copies and sorts without treating unknown as zero',()=>{
+test('value list filters missing prices, includes zero as priced, groups copies and sorts estimates at their displayed value',()=>{
   const expensive={id:'expensive',name:'Évoli',set:'TEST',number:'1',value:500,currency:'JPY'};
   const cheap={id:'cheap',name:'Bulbasaur',set:'TEST',number:'2',value:100,currency:'JPY'};
   const missing={id:'missing',name:'Charmander',set:'TEST',number:'3'};
@@ -47,14 +47,30 @@ test('value list filters missing prices, includes zero as priced, groups copies 
   const data={cards:[expensive,{...expensive,id:'copy'},cheap,missing],binder:[zero],
     preferences:[{id:p.key(zero),value:0,currency:'JPY'}]};
   const ids=options=>p.valueRows(data,options).map(row=>row.card.id);
-  assert.deepEqual(ids({}),['expensive','cheap','zero','missing']);
+  assert.deepEqual(ids({}),['expensive','cheap','missing','zero']);
   assert.equal(p.valueRows(data)[0].count,2);
-  assert.deepEqual(ids({sort:'low'}),['zero','cheap','expensive','missing']);
+  assert.deepEqual(ids({sort:'low'}),['zero','missing','cheap','expensive']);
   assert.deepEqual(ids({availability:'missing'}),['missing']);
   assert.deepEqual(ids({availability:'priced',destination:'binder'}),['zero']);
   assert.deepEqual(ids({destination:'cards',search:'evoli'}),['expensive']);
   assert.deepEqual(ids({search:'test 2'}),['cheap']);
   assert.deepEqual(ids({sort:'name'}),['cheap','missing','expensive','zero']);
+});
+test('default estimates are counted per copy without becoming quotes; manual and fetched prices replace them',()=>{
+  const first={id:'first',name:'Unknown',set:'TEST',number:'9',variant:'normal'};
+  const copies=[first,{...first,id:'second'}];
+  assert.equal(p.quote(first,[]),null);
+  assert.deepEqual(p.totals(copies,[]),{value:80,priced:0,missing:2,count:2});
+  assert.equal(p.valueRows({cards:copies,binder:[],preferences:[]},{availability:'missing'})[0].count,2);
+  const failed=p.upsert([],first,{status:'not_found'});
+  assert.equal(p.totals(copies,failed).value,80);
+  assert.equal(p.quote(first,failed),null);
+  const manual=[{id:p.key(first),value:40,currency:'JPY',source:'Manual value',status:'manual'}];
+  assert.deepEqual(p.totals(copies,manual),{value:80,priced:2,missing:0,count:2});
+  assert.equal(p.valueRows({cards:copies,binder:[],preferences:manual},{availability:'missing'}).length,0);
+  const fetched=p.upsert(failed,first,{status:'success',value:150,source:'Card Rush'});
+  assert.deepEqual(p.totals(copies,fetched),{value:300,priced:2,missing:0,count:2});
+  assert.deepEqual(p.totals([],[]),{value:0,priced:0,missing:0,count:0});
 });
 test('imported quotes contain only public print data and retain their historical dates without overriding manual removals',()=>{
   const fs=require('node:fs'),vm=require('node:vm');

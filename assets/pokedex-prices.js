@@ -1,5 +1,6 @@
 (function (root) {
   'use strict';
+  const defaultValue = 40;
   const clean = value => String(value || '').normalize('NFKC').trim();
   const setCode = value => clean(value).toUpperCase();
   const number = value => clean(value).toUpperCase().replace(/\s/g,'').split('/').map(part=>part.replace(/^0+(?=\d)/,'')).join('/');
@@ -32,7 +33,7 @@
   }
   function totals(cards, preferences) {
     let value=0,priced=0;
-    for (const card of cards) { const item=quote(card,preferences); if(item) {value+=item.value;priced++;} }
+    for (const card of cards) { const item=quote(card,preferences); if(item) {value+=item.value;priced++;} else value+=defaultValue; }
     return {value,priced,missing:cards.length-priced,count:cards.length};
   }
   function valueRows(collection,options={}) {
@@ -54,8 +55,7 @@
     return [...groups.values()].sort((a,b)=>{
       const name=String(a.card.name || '').localeCompare(String(b.card.name || ''));
       if(options.sort==='name') return name;
-      if(Boolean(a.quote)!==Boolean(b.quote)) return a.quote?-1:1;
-      const delta=(a.quote?.value || 0)-(b.quote?.value || 0);
+      const delta=(a.quote?.value ?? defaultValue)-(b.quote?.value ?? defaultValue);
       return (options.sort==='low'?delta:-delta) || name;
     });
   }
@@ -105,7 +105,7 @@
     if(matches.length!==1) return {status:matches.length?'ambiguous':'not_found'};
     return {...matches[0],status:'success',source:'Card Rush',checkedAt:new Date().toISOString()};
   }
-  const api={identity,key,lookupInput,quote,totals,valueRows,upsert,parseListings,match,validAmount};
+  const api={defaultValue,identity,key,lookupInput,quote,totals,valueRows,upsert,parseListings,match,validAmount};
   if(typeof module!=='undefined' && module.exports) module.exports=api;
   else root.PokedexPrices=api;
 })(globalThis);
