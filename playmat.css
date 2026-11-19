@@ -537,7 +537,8 @@
     .library-detail .inspector-empty { grid-column: 1 / -1; }
     .attack-cost { color: #f0d47d; }
     .app-hidden { display: none !important; }
-    .main-menu { min-height: 0; max-width: 1100px; width: 100%; margin: auto; padding: 42px 18px; align-self: center; }
+    .app-shell:has(#mainMenu:not(.app-hidden)) { height: auto; min-height: 100dvh; overflow: visible; grid-template-rows: 58px auto; }
+    .main-menu { min-height: 0; max-width: 1200px; width: 100%; margin: auto; padding: 26px 24px 24px; align-self: center; }
     body:has(.main-menu:not(.app-hidden)) { background: radial-gradient(ellipse at 50% 35%,#193c61,#081a31 78%); }
     .main-menu { position: relative; isolation: isolate; }
     .lobby-scenery { position:fixed; inset:52px 0 0; z-index:-1; overflow:hidden; pointer-events:none; }
@@ -549,16 +550,16 @@
       box-shadow:0 0 16px var(--energy),inset 0 0 0 2px #fff3; opacity:.48; }
     .lobby-energy svg { width:65%; height:65%; }
     @media (max-width:720px) { .lobby-energy { opacity:.22; } .lobby-scenery::before { opacity:.1; } }
-    .menu-intro { margin: 0 auto 25px; text-align: center; }
-    .menu-intro h1 { margin: 10px 0 8px; color: #f8f3e6; font-size: calc(clamp(28px, 3vw, 38px) * var(--ui-font-scale)); letter-spacing: -.04em; }
-    .menu-intro p { margin: 0; color: #afbed1; font-size: calc(12px * var(--ui-font-scale)); }
-    .menu-options { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); grid-template-areas: "play campaign" "play decks" "statistics library" "pokedex pokedex"; gap: 12px; }
-    .menu-option { min-height: 104px; position: relative; display: flex; align-items: center; gap: 16px; border: 1px solid #d7b65d78; border-radius: 14px; padding: 18px; color: #f7f3e8; background: linear-gradient(145deg, #11345d, #0b2341); text-align: left; cursor: pointer; transition: .18s ease; box-shadow: 0 12px 30px #00122735; }
-    #menuPokedex { grid-area: pokedex; text-decoration: none; }
+    .menu-intro { margin: 0 auto 22px; text-align: left; }
+    .menu-intro h1 { margin: 0 0 5px; color: #f8f3e6; font-size: calc(clamp(28px, 3vw, 36px) * var(--ui-font-scale)); letter-spacing: -.04em; }
+    .menu-intro p { margin: 0; color: #afbed1; font-size: 14px; }
+    .menu-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1.1fr)) repeat(2, minmax(0, 1fr)); grid-template-areas: "play play pokedex pokedex" "play play statistics statistics" "campaign campaign decks library"; grid-template-rows: minmax(158px,auto) minmax(150px,auto) minmax(166px,auto); gap: 16px; }
+    .menu-option { min-width: 0; min-height: 104px; position: relative; display: flex; align-items: center; gap: 16px; border: 1px solid #d7b65d78; border-radius: 16px; padding: 22px; color: #f7f3e8; background: linear-gradient(145deg, #11345d, #0b2341); text-align: left; cursor: pointer; transition: transform .18s ease, border-color .18s ease, background .18s ease; box-shadow: 0 12px 30px #00122735, inset 0 1px #ffffff09; }
+    #menuPokedex { grid-area: pokedex; --menu-accent: #f1cc77; text-decoration: none; }
     .menu-option:hover { transform: translateY(-3px); border-color: #f2d47d; background: linear-gradient(145deg, #194777, #0e2c50); }
     .menu-options .menu-start {
-      grid-area: play; min-height: 280px; flex-direction: column; align-items: flex-start;
-      justify-content: center; overflow: hidden; isolation: isolate; padding: clamp(22px, 4vw, 38px); border-color: #e7bd62;
+      grid-area: play; min-height: 324px; flex-direction: column; align-items: flex-start; gap: 20px;
+      justify-content: center; overflow: hidden; isolation: isolate; padding: clamp(24px, 3vw, 36px); border-color: #e7bd62;
       background: radial-gradient(ellipse at 81% 54%, #285784, transparent 58%), linear-gradient(115deg, #0b203a, #153455);
     }
     .deck-tag-buttons { display:flex; flex-wrap:wrap; gap:6px; }
@@ -617,6 +618,7 @@
     #menuManageDecks { grid-area: decks; --menu-accent: #86c5ff; }
     #menuManageCards { grid-area: library; --menu-accent: #c6acff; }
     .menu-destination {
+      align-items: flex-start;
       border-color: color-mix(in srgb, var(--menu-accent) 35%, transparent);
       background: linear-gradient(110deg, color-mix(in srgb, var(--menu-accent) 13%, #102743), #0b1e35 78%);
     }
@@ -624,13 +626,24 @@
       border-color: var(--menu-accent);
       background: linear-gradient(110deg, color-mix(in srgb, var(--menu-accent) 20%, #102743), #0d2540 78%);
     }
+    .menu-destination .menu-option-copy { flex: 1; gap: 7px; }
+    .menu-link-label { display: inline-flex; align-items: center; gap: 8px; margin-top: 5px; color: var(--menu-accent); font-size: 12px; font-weight: 750; }
+    .menu-option:hover .menu-link-label { color: #fff1c1; }
+    .menu-options .menu-compact { flex-direction: column; gap: 10px; padding: 18px 20px; }
+    .menu-compact .menu-option-icon { width: 36px; flex-basis: 36px; border-radius: 10px; }
+    .menu-compact .menu-option-icon svg { width: 21px; }
+    .menu-collection progress { appearance: none; width: 100%; height: 6px; margin: 4px 0 0; overflow: hidden; border: 0; border-radius: 8px; background: #ffffff18; }
+    .menu-collection progress::-webkit-progress-bar { background: #ffffff18; border-radius: 8px; }
+    .menu-collection progress::-webkit-progress-value { background: linear-gradient(90deg,#dcae49,#ffe6a0); border-radius: 8px; }
+    .menu-collection progress::-moz-progress-bar { background: #f3c75c; border-radius: 8px; }
+    #menuCollectionStatus { font-variant-numeric: tabular-nums; }
     .menu-option-icon {
       width: 46px; aspect-ratio: 1; flex: 0 0 46px; display: grid; place-items: center;
       border: 1px solid color-mix(in srgb, var(--menu-accent) 44%, transparent); border-radius: 12px;
       background: #0a1c33; color: var(--menu-accent);
     }
     .menu-option-icon svg { width: 24px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
-    .menu-action-label { display: inline-flex; width: fit-content; padding: 8px 12px; border-radius: 7px; background: #f3c75c; color: #132946; font-weight: 800; }
+    .menu-action-label { display: inline-flex; align-items: center; gap: 18px; width: fit-content; padding: 12px 18px; border-radius: 9px; background: linear-gradient(120deg,#ffe195,#f3c75c); color: #132946; font-weight: 800; box-shadow: 0 4px 16px #020f2038; }
     .menu-option:focus-visible { outline: 2px solid #ffe7a0; outline-offset: 3px; }
     .top-actions > [hidden] { display: none; }
     @media (prefers-reduced-motion: reduce) {
@@ -647,15 +660,16 @@
     .menu-option-copy { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
     .menu-option-copy strong { color: #f8e7b0; font-size: calc(14px * var(--ui-font-scale)); }
     .menu-option-copy small { color: #c2cfde; font-size: calc(9px * var(--ui-font-scale)); line-height: 1.5; }
-    .menu-destination .menu-option-copy strong { color: #f7f3e8; font-size: calc(16px * var(--ui-font-scale)); }
-    .menu-destination .menu-option-copy small { font-size: calc(11px * var(--ui-font-scale)); }
+    .menu-destination .menu-option-copy strong { color: #f7f3e8; font-size: 21px; letter-spacing: -.02em; }
+    .menu-destination .menu-option-copy small { font-size: 13px; line-height: 1.5; }
+    .menu-compact .menu-option-copy strong { font-size: 17px; }
     .menu-option-arrow {
       width: 28px; aspect-ratio: 1; flex: 0 0 28px; display: grid; place-items: center; margin-left: auto;
       border-radius: 50%; background: #0a1c33; color: var(--menu-accent); font-size: calc(17px * var(--ui-font-scale));
     }
-    .menu-library-summary { display: flex; justify-content: center; align-items: center; gap: 20px; margin-top: 18px; color: #b7c6d7; font-size: calc(9px * var(--ui-font-scale)); }
+    .menu-library-summary { display: flex; justify-content: flex-start; align-items: center; gap: 20px; margin-top: 22px; padding-top: 14px; border-top: 1px solid #d7b65d24; color: #b7c6d7; font-size: 11px; }
     .menu-library-summary strong { color: #f2d47d; }
-    .menu-note { max-width: 370px; color: #91a5bd; text-align: center; line-height: 1.45; }
+    .menu-note { margin-left: auto; max-width: 370px; color: #91a5bd; text-align: right; line-height: 1.45; }
     .selected-deck-summary { min-height: 44px; display: flex; align-items: center; border: 1px solid #f3c75c38; border-radius: 8px; padding: 9px; color: #d6e0eb; background: #071b34; font-size: calc(10px * var(--ui-font-scale)); }
     .hidden-deck-text { display: none !important; }
     .setup-card .deck-format { color: #9daec3; }
@@ -842,11 +856,24 @@
     .card-detail-drawer .library-context .deck-usage-list { color: #263c56; }
     .library-dashboard .manager-empty { grid-column: 1 / -1; border: 1px dashed #cad5e2; border-radius: 5px; color: #63768e; background: #fff; }
     @media (max-width: 800px) {
-      .menu-options { grid-template-columns: 1fr; grid-template-areas: "play" "statistics" "campaign" "decks" "library" "pokedex"; }
+      body:has(#mainMenu:not(.app-hidden)) { position: relative; }
+      body:has(#mainMenu:not(.app-hidden)) .report-problem-shortcut { position: absolute; bottom: 14px; }
+      .app-shell:has(#mainMenu:not(.app-hidden)) { padding-bottom: 54px; }
+      .app-shell:has(#mainMenu:not(.app-hidden)) .topbar { flex-wrap: nowrap; }
+      .app-shell:has(#mainMenu:not(.app-hidden)) .brand { font-size: 11px; letter-spacing: .07em; }
+      .app-shell:has(#mainMenu:not(.app-hidden)) .top-actions { width: auto; flex: 0 0 auto; margin-left: auto; }
+      .menu-options { grid-template-columns: repeat(2,minmax(0,1fr)); grid-template-areas: "play play" "campaign campaign" "pokedex pokedex" "statistics statistics" "decks library"; grid-template-rows: auto; gap: 12px; }
       .menu-options .menu-start { min-height: 230px; }
       .menu-option { min-height: 112px; flex-direction: row; align-items: center; }
       .menu-option-copy { flex: 1; }
+      .main-menu { padding: 24px 4px; }
+      .menu-intro { margin-bottom: 18px; }
+      .menu-option { padding: 20px; }
+      .menu-options .menu-compact { padding: 16px 14px; }
+      .menu-compact .menu-option-copy strong { font-size: 16px; }
+      .menu-compact .menu-link-label { font-size: 11px; gap: 4px; }
       .menu-library-summary { flex-wrap: wrap; gap: 8px 16px; }
+      .menu-note { margin-left: 0; text-align: left; }
       .deck-builder-layout { grid-template-columns: 1fr; grid-template-rows: minmax(230px, .9fr) minmax(260px, 1fr); }
       .manager-card { height: auto; max-height: calc(100dvh - 24px); }
       .deck-builder-toolbar { grid-template-columns: 1fr auto; }

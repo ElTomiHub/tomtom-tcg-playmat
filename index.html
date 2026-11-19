@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="playmat.css?v=pokedex1">
+  <link rel="stylesheet" href="playmat.css?v=hub2">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -19,7 +19,7 @@
   <main class="app-shell">
     <svg class="type-symbol-definitions" width="0" height="0" aria-hidden="true"><defs><symbol id="lobby-fire" viewBox="0 0 24 24"><path fill="currentColor" d="M13 2c1 5-4 5-3 9-2-1-3-3-3-4-4 5-4 10 0 13 5 4 13 1 13-5 0-4-3-7-5-9 1 4-1 5-2 5 2-4 1-7 0-9Z"/></symbol><symbol id="lobby-water" viewBox="0 0 24 24"><path fill="currentColor" d="M19 2C9 5 4 11 4 16a8 8 0 0 0 16 0c0-5-5-5-4-9l3-5Z"/></symbol><symbol id="lobby-grass" viewBox="0 0 24 24"><path fill="currentColor" d="M20 3C9 3 4 8 4 15c0 3 2 5 5 5l3-5-5-1 1-2 5 1 3-4 1 1-3 5 4-1v2l-5 1-3 5c9-2 13-9 10-19Z"/></symbol><symbol id="lobby-lightning" viewBox="0 0 24 24"><path fill="currentColor" d="M14 1 4 14h7l-2 9 11-14h-7Z"/></symbol><symbol id="lobby-psychic" viewBox="0 0 24 24"><path fill="currentColor" d="M1 12q11-13 22 0Q12 25 1 12Zm3 0q8 8 16 0Q12 4 4 12Zm4 0a4 4 0 1 1 8 0 4 4 0 0 1-8 0Z"/></symbol><symbol id="lobby-fighting" viewBox="0 0 24 24"><path fill="currentColor" d="M3 11h4V5h3v7h2V3h3v9h2V5h3v7l-2 8H7l-5-5v-3Z"/></symbol><symbol id="lobby-metal" viewBox="0 0 24 24"><path fill="currentColor" d="M4 5h7L8 8H5l-2 4-2-3Zm9 0h7l3 4-2 3-2-4h-3Zm8 9 2 3-3 4h-6l2-3h3ZM3 14l2 4h3l2 3H4l-3-4ZM9 9h6l2 4-5 6-5-6Z"/></symbol><symbol id="lobby-darkness" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10c0-2-1-5-3-7 1 5-4 8-8 6C7 9 8 4 12 2Z"/></symbol><symbol id="lobby-dragon" viewBox="0 0 24 24"><path fill="currentColor" d="M22 5C12 2 3 7 3 13c0 6 7 9 13 8l-5-5 6 3-2-5 5 1-3-5 5-2Z"/></symbol><symbol id="lobby-colorless" viewBox="0 0 24 24"><path fill="currentColor" d="m12 1 3 7 8 1-6 5 2 8-7-4-7 4 2-8-6-5 8-1Z"/></symbol><symbol id="lobby-fairy" viewBox="0 0 24 24"><path fill="currentColor" d="M12 21S2 15 2 8a5 5 0 0 1 10-1 5 5 0 0 1 10 1c0 7-10 13-10 13Z"/></symbol></defs></svg>
     <header class="topbar">
-      <div class="brand"><img class="brand-mark" src="logo.png" alt=""><div>POKÉMON TCG</div></div>
+      <div class="brand"><img class="brand-mark" src="logo.png" alt=""><div>TOMTOM TCG HUB</div></div>
       <div class="top-actions"><details class="playmat-settings" id="playmatSettings">
         <summary class="btn small" id="playmatSettingsLabel">Settings</summary>
         <div class="playmat-settings-panel">
@@ -63,42 +63,37 @@
         <span class="lobby-energy" style="--x:86%;--y:92%;--energy:#e8bc63"><svg viewBox="0 0 24 24"><use href="#lobby-dragon"/></svg></span>
         <span class="lobby-energy" style="--x:96%;--y:92%;--energy:#d3dfec"><svg viewBox="0 0 24 24"><use href="#lobby-colorless"/></svg></span>
       </div>
-      <div class="menu-intro"><span class="panel-kicker">POKÉMON TCG · PLAY WITH YAMI</span><h1>Battle Lobby</h1><p>Practice a matchup, take on a campaign, or prepare your next deck.</p></div>
+      <div class="menu-intro"><h1>Battle Lobby</h1><p>Your next battle. Your growing collection.</p></div>
       <div class="resume-card" id="resumeCard" hidden><div><strong>Unfinished game</strong><p id="resumeDescription"></p></div><button class="btn primary" id="resumeMatchBtn">Resume game</button></div>
       <div class="menu-options">
         <button class="menu-option menu-start" id="menuStartGame" type="button">
           <img class="menu-yami" src="assets/yami-lobby.webp" alt="" width="1254" height="1254" decoding="async">
-          <span class="panel-kicker">VS. YAMI · TRAINING</span>
+          <span class="panel-kicker">VS. YAMI · TRAINING PARTNER</span>
           <span class="menu-option-copy"><strong>Play</strong><small class="menu-last-match" id="menuLastMatch">Choose a matchup to start training.</small></span>
-          <span class="menu-action-label">Start New Match →</span>
-        </button>
-        <button class="menu-option menu-destination" id="menuStatistics" type="button">
-          <span class="menu-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 3v18h18M7 16v-3m5 3V9m5 7V6"/></svg></span>
-          <span class="menu-option-copy"><strong>Statistics</strong><small>Compare your deck’s results against Yami.</small></span>
-          <span class="menu-option-arrow" aria-hidden="true">→</span>
+          <span class="menu-action-label">Start new match <span aria-hidden="true">→</span></span>
         </button>
         <button class="menu-option menu-destination" id="menuCampaign" type="button">
           <span class="menu-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 21h8m-4-4v4M7 3h10v7a5 5 0 0 1-10 0V3ZM7 5H3v2a4 4 0 0 0 4 4m10-6h4v2a4 4 0 0 1-4 4"/></svg></span>
-          <span class="menu-option-copy"><strong>Campaign</strong><small id="menuCampaignStatus">Five matches. One deck.</small></span>
-          <span class="menu-option-arrow" aria-hidden="true">→</span>
+          <span class="menu-option-copy"><strong>Campaign</strong><small id="menuCampaignStatus">Five matches. One deck.</small><span class="menu-link-label" id="menuCampaignAction">Start a campaign <span aria-hidden="true">→</span></span></span>
         </button>
-        <button class="menu-option menu-destination" id="menuManageDecks" type="button">
-          <span class="menu-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="8" y="3" width="12" height="16" rx="2"/><path d="m5 6-2 12a2 2 0 0 0 2 2l10 2m-3-12h4m-2-2v4"/></svg></span>
-          <span class="menu-option-copy"><strong>Manage decks</strong><small>Build, edit, and organize your decks.</small></span>
-          <span class="menu-option-arrow" aria-hidden="true">→</span>
-        </button>
-        <a class="menu-option menu-destination" id="menuPokedex" href="pokedex.html">
-          <span class="menu-option-icon" aria-hidden="true">◉</span>
-          <span class="menu-option-copy"><strong>Pokédex</strong><small>Track your collection and see which Pokémon are missing.</small></span>
-          <span class="menu-option-arrow" aria-hidden="true">→</span>
+        <a class="menu-option menu-destination menu-collection" id="menuPokedex" href="pokedex.html">
+          <span class="menu-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 3v18m0-9h13"/><circle cx="14.5" cy="12" r="3"/><path d="M14 12h1M5.5 7v1"/></svg></span>
+          <span class="menu-option-copy"><strong>Pokédex</strong><small id="menuCollectionStatus">View your Pokémon collection.</small><progress id="menuCollectionProgress" max="1025" value="0" aria-label="Pokédex species collected" hidden></progress><span class="menu-link-label">View Pokédex <span aria-hidden="true">→</span></span></span>
         </a>
-        <button class="menu-option menu-destination" id="menuManageCards" type="button">
+        <button class="menu-option menu-destination" id="menuStatistics" type="button">
+          <span class="menu-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 3v18h18M7 16v-3m5 3V9m5 7V6"/></svg></span>
+          <span class="menu-option-copy"><strong>Statistics</strong><small>Find your strongest matchups and your next challenge.</small><span class="menu-link-label">View battle stats <span aria-hidden="true">→</span></span></span>
+        </button>
+        <button class="menu-option menu-destination menu-compact" id="menuManageDecks" type="button">
+          <span class="menu-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="8" y="3" width="12" height="16" rx="2"/><path d="m5 6-2 12a2 2 0 0 0 2 2l10 2m-3-12h4m-2-2v4"/></svg></span>
+          <span class="menu-option-copy"><strong>Manage decks</strong><small><b id="menuDeckTotal">0</b> decks</small><span class="menu-link-label">Build &amp; organize <span aria-hidden="true">→</span></span></span>
+        </button>
+        <button class="menu-option menu-destination menu-compact" id="menuManageCards" type="button">
           <span class="menu-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 6c-3-3-6-3-10-2v14c4-1 7-1 10 2 3-3 6-3 10-2V4c-4-1-7-1-10 2Zm0 0v14M5 8c1.5-.2 3 .1 4 1m6 0c1-.9 2.5-1.2 4-1M5 12c1.5-.2 3 .1 4 1m6 0c1-.9 2.5-1.2 4-1"/></svg></span>
-          <span class="menu-option-copy"><strong>Card library</strong><small>Browse, register, and verify card prints.</small></span>
-          <span class="menu-option-arrow" aria-hidden="true">→</span>
+          <span class="menu-option-copy"><strong>Card library</strong><small><b id="menuPrintTotal">0</b> card prints</small><span class="menu-link-label">Browse cards <span aria-hidden="true">→</span></span></span>
         </button>
       </div>
-      <div class="menu-library-summary"><span><strong id="menuCardCount">0</strong> registered cards</span><span><strong id="menuDeckCount">0</strong> registered decks</span><span class="menu-note">Limitless supplies card text and pictures. Unsupported effects stay flagged and can be resolved manually during play.</span></div>
+      <div class="menu-library-summary"><span><strong id="menuCardCount">0</strong> registered card prints</span><span><strong id="menuDeckCount">0</strong> decks</span><span class="menu-note">Card artwork &amp; text from TCGdex and Limitless</span></div>
     </section>
     <section class="statistics-page app-hidden" id="statisticsPage" aria-labelledby="statisticsTitle">
       <div class="statistics-header"><div><span class="panel-kicker">BATTLE LOBBY · MATCH RECORDS</span><h1 id="statisticsTitle" tabindex="-1">Statistics</h1></div><button class="btn" id="statisticsBack">← Main menu</button></div>
@@ -507,7 +502,7 @@
   <div class="toast" id="toast" role="status"></div>
 
   <script src="assets/starter-library.js"></script>
-  <script src="assets/library-sync.js?v=4"></script>
+  <script src="assets/library-sync.js?v=5"></script>
   <script>
     const $ = (id) => document.getElementById(id);
     const deckInputs = { you: $('youDeck'), codex: $('codexDeck') };
@@ -7823,6 +7818,8 @@
     function updateMenuCounts() {
       if ($('menuCardCount')) $('menuCardCount').textContent = registeredCards.length;
       if ($('menuDeckCount')) $('menuDeckCount').textContent = registeredDecks.length;
+      $('menuDeckTotal').textContent = registeredDecks.length;
+      $('menuPrintTotal').textContent = registeredCards.length;
       const latest = Object.values(deckStats).flatMap(stats=>Array.isArray(stats?.history) ? stats.history : [])
         .filter(validSavedMatchSummary).sort((a,b)=>Date.parse(b.endedAt)-Date.parse(a.endedAt))[0];
       $('menuLastMatch').innerHTML = latest ?
@@ -7835,6 +7832,8 @@
         `${deck ? deckDisplayName(deck) : 'Campaign deck'} · ${wins} of 5 wins · ${run.results.length===5 ? 'Run complete' :
           'Match '+(run.results.length+1)+' of 5 · '+YAMI_DIFFICULTY_LABELS[CAMPAIGN_LEVELS[run.results.length]]}` :
         'Five matches. Earn a Champion badge with three wins.';
+      $('menuCampaignAction').textContent = run ?
+        (run.results.length===5 ? 'View campaign →' : 'Continue campaign →') : 'Start a campaign →';
     }
     function setView(view) {
       if (view !== 'match' && typeof clearPlaymatEffects === 'function') clearPlaymatEffects();
@@ -21971,5 +21970,7 @@
     applyFontSizeSettings();
     showValidation('you'); showValidation('codex'); render();
   </script>
+  <script src="assets/pokedex-sync.js?v=5"></script>
+  <script src="assets/hub-collection.js?v=1"></script>
 </body>
 </html>
