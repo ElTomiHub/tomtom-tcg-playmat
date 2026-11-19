@@ -6033,6 +6033,40 @@
     );
     CARD_EFFECT_REGISTRY.abilities.push({"cardName":"Ditto","setCode":"SV4A","cardNumber":"309","language":"ja","abilityName":"Transformative Start","effectTextExact":"Once during your first turn, if this Pokémon is in the Active Spot, search your deck for a Basic Pokémon other than Ditto. Discard this Pokémon and all attached cards, put the chosen Pokémon in its place, then shuffle your deck.","effect":{"type":"replace_opening_ditto"}});
     CARD_EFFECT_REGISTRY.supporters.push({"cardName":"Crispin","setCode":"SV7","cardNumber":"123","language":"ja","effectTextExact":"Search your deck for up to 2 Basic Energy cards of different types and put 1 of them into your hand. Attach the other card to 1 of your Pokémon. Then, shuffle your deck.","effect":{"type":"search_split_basic_energy"}});
+    VERIFIED_NEW_PRINT_DETAILS.push(
+      {
+        name:'Peonia',setCode:'S6K',cardNumber:'82',language:'ja',
+        meta:{
+          category:'Trainer',trainerType:'Supporter',language:'ja',
+          effect:'Put up to 3 of your Prize cards into your hand. Then, choose that many cards from your hand and put them face down as your Prize cards.',
+          attacks:[],abilities:[],rules:[],attackMetadataStatus:'present',
+          source:'Limitless',textLanguage:'en',translationSource:'Limitless',translationStatus:'unofficial',
+          sourceUrl:'https://limitlesstcg.com/cards/jp/S6K/82?translate=en',
+          image:'https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/S6K/S6K_82_R_JP.png'
+        }
+      },
+      {
+        name:'Moonlight Hill',setCode:'SVP',cardNumber:'95',language:'ja',
+        meta:{
+          category:'Trainer',trainerType:'Stadium',language:'ja',
+          effect:"Once during each player's turn, that player may discard a Basic [P] Energy from their hand to heal 30 damage from all their Pokémon.",
+          attacks:[],abilities:[],rules:[],attackMetadataStatus:'present',
+          source:'Limitless',textLanguage:'en',translationSource:'Limitless',translationStatus:'unofficial',
+          sourceUrl:'https://limitlesstcg.com/cards/jp/SVP/95?translate=en',
+          image:'https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/SVP/SVP_95_R_JP.png'
+        }
+      }
+    );
+    CARD_EFFECT_REGISTRY.supporters.push({
+      cardName:'Peonia',setCode:'S6K',cardNumber:'82',language:'ja',
+      effectTextExact:'Put up to 3 of your Prize cards into your hand. Then, choose that many cards from your hand and put them face down as your Prize cards.',
+      effect:{type:'exchange_prizes_with_hand',count:3}
+    });
+    CARD_EFFECT_REGISTRY.stadiums.push({
+      cardName:'Moonlight Hill',setCode:'SVP',cardNumber:'95',language:'ja',
+      effectTextExact:"Once during each player's turn, that player may discard a Basic [P] Energy from their hand to heal 30 damage from all their Pokémon.",
+      effect:{type:'heal_board_with_psychic',amount:30}
+    });
     const DEFAULT_DECKS = [
       {
         id: 'dragonite-tide-spark', name: 'Dragonite ex · Tide & Spark', builtIn: true,
@@ -6486,8 +6520,10 @@
       });
       cards.forEach(card => {
         if (typeof repairNewPrintMetadata === 'function' && !Object.keys(card.meta || {}).length &&
-            card.setCode === 'SP' && normalizeCollectorNumber(card.cardNumber) === '154' &&
-            cleanCardKey(card.name) === 'hiding darkness energy') repairNewPrintMetadata(card);
+            (card.setCode === 'SP' && normalizeCollectorNumber(card.cardNumber) === '154' &&
+            cleanCardKey(card.name) === 'hiding darkness energy' ||
+            ['S6K:82','SVP:95'].includes(String(card.setCode).toUpperCase()+':'+normalizeCollectorNumber(card.cardNumber))))
+          repairNewPrintMetadata(card);
         restoreLegacyCardLanguage(card);
         repairBasicEnergyType(card);
       });
@@ -10082,7 +10118,7 @@
     function finishCardChoice(value) {
       if (!activeCardChoiceResolver) return;
       if (value === null && activeCardChoice?.required) { showToast('Finish this required choice before continuing.'); return; }
-      if(value===null && resolutionInformationRevealed){showToast('Your deck has been revealed. Finish this effect before continuing.');return;}
+      if(value===null && resolutionInformationRevealed){showToast('Hidden cards have been revealed. Finish this effect before continuing.');return;}
       const resolve = activeCardChoiceResolver;
       activeCardChoiceResolver = null; activeCardChoice = null;
       $('cardChoiceOverlay').classList.add('hidden');
@@ -10092,7 +10128,7 @@
       if (!activeBoardChoiceResolver) return;
       if (!target && activeBoardChoice.required) { showToast('Finish this required choice before continuing.'); return; }
       if (target === 'finish-selection' && !activeBoardChoice?.optional) return;
-      if(!target && resolutionInformationRevealed){showToast('Your deck has been revealed. Finish this effect before continuing.');return;}
+      if(!target && resolutionInformationRevealed){showToast('Hidden cards have been revealed. Finish this effect before continuing.');return;}
       const resolve = activeBoardChoiceResolver;
       activeBoardChoiceResolver = null; activeBoardChoice = null;
       $('boardTargetPrompt').hidden = true;
@@ -10108,7 +10144,7 @@
       activeBoardChoice = { side, title, targets, optional, required };
       $('finishBoardTargetBtn').hidden = !optional;
       $('cancelBoardTargetBtn').disabled=resolutionInformationRevealed || required;
-      $('cancelBoardTargetBtn').title=resolutionInformationRevealed?'Your deck has been revealed; finish this effect.':'Cancel without using the card.';
+      $('cancelBoardTargetBtn').title=resolutionInformationRevealed?'Hidden cards have been revealed; finish this effect.':'Cancel without using the card.';
       $('boardTargetPromptText').textContent = title;
       const prompt = $('boardTargetPrompt');
       positionPlaymatChoice(prompt);
@@ -10172,7 +10208,7 @@
       $('cardChoiceTitle').textContent = title;
       $('cardChoiceDescription').textContent = minCount === maxCount ? `Choose ${minCount} card${minCount === 1 ? '' : 's'} to continue.` : `Choose up to ${maxCount} card${maxCount === 1 ? '' : 's'}.`;
       if (!maxCount) $('cardChoiceDescription').textContent = 'Review the cards and confirm to continue.';
-      if(resolutionInformationRevealed)$('cardChoiceDescription').textContent+=' Your deck has been revealed; finish this effect.';
+      if(resolutionInformationRevealed)$('cardChoiceDescription').textContent+=' Hidden cards have been revealed; finish this effect.';
       activeCardChoice = { side, cards, visibleCards, min: minCount, max: maxCount, selected: new Set(), required, onePerCategory };
       const overlay = $('cardChoiceOverlay');
       overlay.dataset.docked = 'true';
@@ -10574,7 +10610,7 @@
       Object.assign(handlers.item, {boost_fighting_attacks:['amount'], both_switch_opponent_first:[], discard_search_trainer_subtypes:['discardCount']});
       Object.assign(handlers.ability, {look_top_take_one_bottom:[], attach_basic_discard_once:['count'], luna_cycle:['count'], move_own_counters_to_opponent:['count'], gust_on_hand_evolution:[]});
       Object.assign(handlers.attack, {inflict_confusion:[], assault_gate:[], retaliate_next_turn:['count'], lock_opponent_items:[], lunatone_cosmo_beam:[], attach_discard_fighting_to_bench:['count']});
-      Object.assign(handlers.supporter,{rocket_search:['count'],rocket_reset:[],rocket_draw_to_limit:[],rocket_switch:[],draw_and_view_prizes:['count']});
+      Object.assign(handlers.supporter,{rocket_search:['count'],rocket_reset:[],rocket_draw_to_limit:[],rocket_switch:[],draw_and_view_prizes:['count'],exchange_prizes_with_hand:['count']});
       Object.assign(handlers.stadium,{rocket_factory:['count'],prevent_opposing_bench_counters:[],switch_matching_type:[]});
       Object.assign(handlers.supporter,{evolve_from_deck_no_ability:[],search_deck_groups:[],heal_typed_pokemon:['amount']});
       Object.assign(handlers.item,{opponent_bottom_draw:['count','prizes']});
@@ -11566,6 +11602,37 @@
     }
     async function resolveBuiltInSupporter(card, side, targetId = null) {
       const newRule = supporterEffectRuleFor(card)?.effect, owner = player(side);
+      if (newRule?.type === 'exchange_prizes_with_hand') {
+        const prizes = owner.prizes.slice();
+        const slots = prizes.map((_,index)=>({id:'prize-slot:'+index,name:'Face-down Prize '+(index+1),
+          meta:{category:'Prize card',faceDown:true}}));
+        const count = Math.min(newRule.count,slots.length);
+        if (!count) return false;
+        const chosen = side==='codex' && localAiEnabled ? shuffled(slots).slice(0,count) :
+          await chooseCardsInApp(side,card.name+': choose up to '+count+' face-down Prize cards.',slots,0,count);
+        if (!chosen || chosen.length>count || new Set(chosen).size!==chosen.length ||
+            chosen.some(slot=>!slots.includes(slot)) || owner.prizes.length!==prizes.length ||
+            prizes.some((item,index)=>owner.prizes[index]!==item)) return false;
+        if (!chosen.length) { logEvent(owner.name+' used '+card.name+' and exchanged no Prize cards.'); return true; }
+        const picked = chosen.map(slot=>prizes[slots.indexOf(slot)]);
+        owner.prizes = prizes.filter(item=>!picked.includes(item));
+        owner.hand.push(...picked);
+        markDeckInformationRevealed(side);
+        const returned = side==='codex' && localAiEnabled ?
+          stageTwoAiProfile()==='future_princess' ? futureAiPrizeReturns(owner.hand,picked.length) :
+          await pickEffectCards(side,card.name,owner.hand,picked.length) :
+          await chooseCardsInApp(side,card.name+': return '+picked.length+' hand cards face down as Prize cards.',
+            owner.hand,picked.length,picked.length,owner.hand,{required:true});
+        if (!returned || returned.length!==picked.length || new Set(returned).size!==returned.length ||
+            returned.some(item=>!owner.hand.includes(item)) ||
+            supporterEffectRuleFor(card)?.effect!==newRule) return false;
+        const replacements = new Map(picked.map((item,index)=>[item,returned[index]]));
+        owner.hand = owner.hand.filter(item=>!returned.includes(item));
+        owner.prizes = prizes.map(item=>replacements.get(item) || item);
+        logEvent(owner.name+' used '+card.name+' to put '+picked.length+
+          ' Prize cards into hand and return '+returned.length+' cards face down as Prize cards.');
+        return true;
+      }
       if (newRule?.type==='search_deck_groups') {
         markDeckInformationRevealed(side);
         const picked = [];
@@ -13115,6 +13182,7 @@
           ([p.active,...p.bench].filter(Boolean).every(isRocketPokemon) ? 8 : 5);
         if (effect?.type==='rocket_switch') return isRocketPokemon(p.active) && p.bench.some(isRocketPokemon);
         if (effect?.type==='draw_and_view_prizes') return p.deck.length>0 || p.prizes.length>0;
+        if (effect?.type==='exchange_prizes_with_hand') return p.prizes.length>0;
         if (effect?.type === 'protect_from_ex_attacks') return player(oppositeSide(side)).prizes.length <= 2 && !!(p.active || p.bench.length);
         if (effect?.type === 'discard_opponent_hand_to') return player(oppositeSide(side)).hand.length > effect.count;
         if (effect?.type === 'search_order_top') return p.deck.length > 0;
@@ -15902,7 +15970,75 @@
       const sada = p.hand.some(card=>supporterEffectRuleFor(card)?.effect?.type==='attach_discard_ancient_draw');
       if (energy && sada && !p.supporterPlayedThisTurn && stageTwoAiBoard().some(card=>pokemonHasEraTag(card,'Ancient')) &&
           !p.discard.some(isBasicEnergyCard) && (p.energyAttachedThisTurn || cards.filter(isBasicEnergyCard).length>1)) return energy;
-      return cards.slice().sort((a,b)=>aiCardKeepScore(a)-aiCardKeepScore(b))[0];
+      return cards.slice().sort((a,b)=>futureAiKeepScore(a,cards)-futureAiKeepScore(b,cards))[0];
+    }
+    function futureAiKeepScore(card, hand) {
+      const p = player('codex'), board = stageTwoAiBoard(), name = cleanCardKey(card.name);
+      const tier = game.yamiDifficulty, style = game.yamiStyle;
+      if (basicEnergyHasType(card,'psychic')) {
+        const count = hand.filter(item=>basicEnergyHasType(item,'psychic')).length;
+        return count<=1 ? (p.energyAttachedThisTurn ? 70 : 120) : count<=2 && tier==='master' ? 55 : 24;
+      }
+      const copies = hand.filter(item=>cleanCardKey(item.name)===name).length;
+      const base = aiCardKeepScore(card);
+      if (tier==='casual') return base;
+      if (name==='mega gardevoir ex' && !board.some(item=>cleanCardKey(item.name)===name))
+        return copies>1 ? 35 : 110;
+      if (name==='kirlia' && board.some(item=>cleanCardKey(item.name)==='ralts') &&
+          !board.some(item=>cleanCardKey(item.name)==='mega gardevoir ex')) return copies>1 ? 28 : 90;
+      if (itemEffectRuleFor(card)?.effect?.operation==='evolve' &&
+          board.some(item=>cleanCardKey(item.name)==='ralts') &&
+          hand.some(item=>cleanCardKey(item.name)==='mega gardevoir ex')) return copies>1 ? 30 : 105;
+      if (itemEffectRuleFor(card)?.effect?.operation==='switchPositions' && board.some(futureAiTachyonReady))
+        return copies>1 ? 20 : style==='control' ? 95 : 70;
+      if (toolEffectRuleFor(card)?.effect?.type==='future_booster' &&
+          board.some(item=>pokemonHasEraTag(item,'Future') && !boosterEffect(item,'Future'))) return copies>1 ? 18 : 65;
+      return base;
+    }
+    function futureAiPrizeReturns(cards,count) {
+      const remaining = cards.slice(), returned = [];
+      for (let i=0;i<count;i++) {
+        const ranked = remaining.slice().sort((a,b)=>futureAiKeepScore(a,remaining)-futureAiKeepScore(b,remaining));
+        const card = ranked[0];
+        if (!card) return null;
+        returned.push(card);
+        remaining.splice(remaining.indexOf(card),1);
+      }
+      return returned;
+    }
+    function futureAiPeoniaScore() {
+      const p = player('codex'), board = stageTwoAiBoard(), hand = p.hand;
+      if (!p.prizes.length) return -1;
+      const tier = game.yamiDifficulty, style = game.yamiStyle;
+      if (tier==='casual') return hand.length<6 ? 18 : 5;
+      const held = name=>hand.some(card=>cleanCardKey(card.name)===name);
+      const live = name=>board.some(card=>cleanCardKey(card.name)===name);
+      const line = board.some(card=>['ralts','kirlia'].includes(cleanCardKey(card.name)));
+      const missingAttacker = line && !live('mega gardevoir ex') && !held('mega gardevoir ex');
+      const missingBridge = live('ralts') && !live('kirlia') && !live('mega gardevoir ex') && !held('kirlia') &&
+        !hand.some(card=>itemEffectRuleFor(card)?.effect?.operation==='evolve');
+      const missingSwitch = board.some(futureAiTachyonReady) &&
+        !hand.some(card=>itemEffectRuleFor(card)?.effect?.operation==='switchPositions');
+      const need = Number(missingAttacker)+Number(missingBridge)+(style==='control' ? Number(missingSwitch) : 0);
+      return need ? (tier==='master' ? 28 : 18)+need*13+
+        (style==='aggro' && missingAttacker ? 15 : style==='balanced' && missingBridge ? 10 : 0) : 3;
+    }
+    function futureAiHealingPlan(card,forPlacement=false) {
+      const effect = stadiumEffectRuleFor(card)?.effect, p = player('codex'), foe = player('you');
+      if (effect?.type!=='heal_board_with_psychic') return null;
+      const energies = p.hand.filter(item=>basicEnergyHasType(item,'psychic'));
+      const board = stageTwoAiBoard(), tier = game.yamiDifficulty, style = game.yamiStyle;
+      const healing = board.reduce((sum,item)=>sum+Math.min(effect.amount,Number(item.damage || 0)),0);
+      if (!energies.length || !healing || tier!=='casual' && !p.energyAttachedThisTurn && energies.length<=1) return null;
+      if (tier==='casual') return {energy:energies[0],score:healing};
+      const hp = effectivePokemonHp(p.active)-Number(p.active.damage || 0);
+      const reply = tier==='master' ? genAiReplyDamage(p.active,foe.active) : 0;
+      const savesActive = reply>=hp && reply<hp+Math.min(effect.amount,Number(p.active.damage || 0));
+      if (!savesActive && healing<(style==='aggro' ? 60 : style==='control' ? 20 : 30)) return null;
+      const enemyHealing = forPlacement && [foe.active,...foe.bench].some(item=>item && pokemonHasType(item,'psychic')) ?
+        [foe.active,...foe.bench].filter(Boolean).reduce((sum,item)=>sum+Math.min(effect.amount,Number(item.damage || 0)),0) : 0;
+      const score = healing*.7+(savesActive ? 90 : 0)+(style==='control' ? 15 : 0)-enemyHealing*.5;
+      return score>0 ? {energy:energies[0],score} : null;
     }
     function futureAiWishesCount() {
       const p = player('codex');
@@ -16379,6 +16515,9 @@
       if (profile==='future_princess') {
         const candy = aiRareCandyPlan(p,null,false,false,false,card=>futureAiDevelopment(card,board,false));
         if (candy && (!prizeLine || prizeLine.type==='attack' && style!=='aggro')) return candy.action;
+        const hill = p.hand.find(card=>stadiumEffectRuleFor(card)?.effect?.type==='heal_board_with_psychic' &&
+          canPlayTrainerEffect(card,'codex') && cleanCardKey(card.name)!==cleanCardKey(game.stadium?.card?.name));
+        if (hill && !game.stadiumPlayedThisTurn && futureAiHealingPlan(hill,true)) return {type:'play_stadium',card:hill};
         const garden = p.hand.find(card=>stadiumEffectRuleFor(card)?.effect?.type==='discard_energy_draw_to_board' && canPlayTrainerEffect(card,'codex'));
         if (garden && p.deck.length>3 && p.hand.length-1<board.filter(card=>pokemonHasType(card,'psychic')).length &&
             p.hand.filter(card=>basicEnergyHasType(card,'psychic')).length>1) return {type:'play_stadium',card:garden};
@@ -17986,6 +18125,8 @@
     function aiSupporterScore(card) {
       const p=player('codex'), foe=player('you'), effect=supporterEffectRuleFor(card)?.effect, left=p.hand.filter(item=>item!==card), count=left.length;
       if (!effect) return -1;
+      if (effect.type==='exchange_prizes_with_hand') return stageTwoAiProfile()==='future_princess' ?
+        futureAiPeoniaScore() : p.prizes.length ? (left.length<4 ? 16 : 5) : -1;
       const chien = hasChienPaoStrategy(), ethan = hasEthanSkeledirgeStrategy(), stageTwo = stageTwoAiProfile();
       const djinn = hasDjinnStrategy(), skeleridge = hasSkeleridgeStrategy();
       if (stageTwo==='obstagogo' && effect.type==='look_top_type_to_bench_bottom') {
@@ -18733,7 +18874,10 @@
       if (flashingDraw) return { type: 'ability', pokemon: flashingDraw.pokemon, abilityName: flashingDraw.ability.name };
       const rumbling = codex.hand.length <= 6 && abilityActions.find(action=>action.effectType === 'discard_hand_energy_draw_to_six');
       if (rumbling) return {type:'ability',pokemon:rumbling.pokemon,abilityName:rumbling.ability.name};
-      const refinement = codex.hand.length <= 5 && codex.deck.length > 1 && abilityActions.find(action => action.effectType === 'discard_hand_draw_cards');
+      const refinement = codex.hand.length <= 5 && codex.deck.length > 1 &&
+        (stageTwo!=='future_princess' || game.yamiDifficulty==='casual' || !hand.length ||
+          futureAiKeepScore(futureAiRefineDiscard(hand),hand)<70) &&
+        abilityActions.find(action => action.effectType === 'discard_hand_draw_cards');
       if (refinement) return {type:'ability',pokemon:refinement.pokemon,abilityName:refinement.ability.name};
       if (ethan && !prizeLine) {
         const song = ethanAiFireSong(abilityActions);
@@ -18767,7 +18911,7 @@
         if (stadium) return stadium;
       }
       if (canUseActiveStadium('codex') && (stageTwo!=='stellar_snow' || stadiumEffectRuleFor(game.stadium.card)?.effect?.type!=='switch_matching_type' || stellarAiSurfTarget()) && (stageTwo!=='future_princess' || stadiumEffectRuleFor(game.stadium.card)?.effect?.type!=='discard_energy_draw_to_board' ||
-          codex.deck.length>board.length && (codex.energyAttachedThisTurn || hand.filter(isBasicEnergyCard).length>1)) && (stageTwo!=='rocketo_dan' || stadiumEffectRuleFor(game.stadium.card)?.effect?.type!=='rocket_factory' || codex.deck.length>2) && (!skeleridge || stadiumEffectRuleFor(game.stadium.card)?.effect?.type!=='attach_discard_fire_damage') &&
+          codex.deck.length>board.length && (codex.energyAttachedThisTurn || hand.filter(isBasicEnergyCard).length>1)) && (stageTwo!=='future_princess' || stadiumEffectRuleFor(game.stadium.card)?.effect?.type!=='heal_board_with_psychic' || futureAiHealingPlan(game.stadium.card)) && (stageTwo!=='rocketo_dan' || stadiumEffectRuleFor(game.stadium.card)?.effect?.type!=='rocket_factory' || codex.deck.length>2) && (!skeleridge || stadiumEffectRuleFor(game.stadium.card)?.effect?.type!=='attach_discard_fire_damage') &&
           (!ethan || codex.deck.length>1) && (stadiumEffectRuleFor(game.stadium.card)?.effect?.type!=='discard_basic_energy_draw' || hand.filter(card=>card.meta?.category==='Energy').length>1 || codex.energyAttachedThisTurn)) return { type: 'stadium' };
       const firstTurnSupporterLock = game.firstPlayer === 'codex' && codex.turnsTaken === 0;
       if ((ionoFan || peter || gen || chien || djinn || skeleridge) && style === 'control' && !codex.energyAttachedThisTurn && !codex.supporterPlayedThisTurn &&
