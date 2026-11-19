@@ -270,7 +270,7 @@
 
   const pokemonNameEntries = catalog.map(entry => ({...entry,name:entryName(entry),
     aliases:[entryName(entry),...(names[entry.id-1] || []).map(name=>[entry.label,name].filter(Boolean).join(' '))]}));
-  function mountNameSuggestions(input,onSelect) {
+  function mountNameSuggestions(input,onSelect,enabled = () => true) {
     const wrapper = node('span',null,'pokemon-name-search');
     input.before(wrapper);
     wrapper.append(input);
@@ -298,7 +298,7 @@
     }
     function show() {
       const query = normalizeSearch(input.value);
-      if (!query) { close(); return; }
+      if (!enabled() || !query) { close(); return; }
       matches = pokemonNameEntries.filter(entry=>entry.aliases.some(alias=>normalizeSearch(alias).includes(query)))
         .slice(0,8);
       list.replaceChildren();
@@ -952,11 +952,11 @@
     const aliases = entry.label ? [name] : [...(names[entry.id-1] || []),name];
     for (const alias of aliases) editorNames.set(normalizeSearch(alias),entry);
   }
-  mountNameSuggestions(editorFields.name,entry=>{
+  const editorNameSuggestions = mountNameSuggestions(editorFields.name,entry=>{
     editorFields.pokemonId.value = entry.id;
     updateFormChoices(entry.key);
     updateEditorSpecies();
-  });
+  },()=>editing?.type === 'cards');
 
   function updateEditorSpecies() {
     const id = Number(editorFields.pokemonId.value);
@@ -1056,8 +1056,11 @@
       return option;
     }));
     editorFields.variant.value = selected;
+    editorNameSuggestions.close();
     editorFields.pokemonId.required = type === 'cards';
-    editorFields.pokemonId.value = id ?? '';
+    editorFields.pokemonId.disabled = type !== 'cards';
+    editorFields.pokemonForm.disabled = type !== 'cards';
+    editorFields.pokemonId.value = type === 'cards' ? id ?? '' : '';
     el('speciesField').hidden = type !== 'cards';
     el('editorNameLabel').textContent = type === 'cards' ? 'Pokémon' : 'Card name';
     editorFields.name.required = type === 'binder';
