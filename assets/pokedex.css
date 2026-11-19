@@ -291,6 +291,12 @@ dialog .inputs { margin: 0; }
 .editor-layout { display: grid; grid-template-columns: minmax(0,1fr) minmax(135px,.52fr); gap: 16px; align-items: start; }
 .editor-fields { display: grid; gap: 10px; min-width: 0; }
 #editorFeaturedMessage { margin: 0 0 6px; }
+#editorCurrentFeatured { display: flex; align-items: center; gap: 12px; margin: 12px 0; min-width: 0; }
+#editorCurrentFeatured > img { width: 54px; height: 76px; object-fit: contain; flex: none; border-radius: 4px; }
+#editorCurrentFeatured > .fallback { width: 54px; font-size: 11px; color: #b4c7db; }
+.current-featured-copy { display: grid; justify-items: start; gap: 4px; min-width: 0; overflow-wrap: anywhere; }
+.current-featured-copy > strong { font-size: 12px; color: #ffdb85; }
+.current-featured-copy > small { color: #c5d5e6; }
 .editor-featured-choice { display: flex; align-items: center; gap: 8px; cursor: pointer; }
 .editor-featured-choice input { width: 18px; min-height: 18px; accent-color: #f5c75c; }
 .editor-fields .inputs > label { flex-basis: 110px; }

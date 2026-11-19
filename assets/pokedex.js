@@ -535,7 +535,7 @@
     return section;
   }
 
-  function speciesTile(entry, copies = [], deckNames = new Set(), variantCount = 0, preferredId) {
+  function speciesTile(entry, copies = [], deckNames = new Set(), cardCount = 0, preferredId) {
     const {id,sprite} = entry;
     const owned = copies.length > 0;
     const name = entryName(entry);
@@ -567,7 +567,7 @@
     if (deckNames.has(deckPokemonName(name)) || deckNames.has(deckPokemonName(deckAlias)))
       mark('deck-marker','▤','Used in a Toma deck');
     mark('binder-marker','B'+binderNumber(id),'Binder '+binderNumber(id));
-    if (variantCount) mark('count-marker','×'+variantCount,variantCount+' distinct variants');
+    if (cardCount) mark('count-marker','×'+cardCount,cardCount+' '+(cardCount===1?'card':'cards')+' collected');
     const heading = node('h3',null,'species-name');
     heading.title = name;
     if (owned) heading.append(photo(sprites + sprite + '.png',''));
@@ -813,7 +813,7 @@
         new Set(readLocalList('codexPokemonPlaymat.deletedDecks.v1')),
         [...(library?.cards || []),...readLocalList('codexPokemonPlaymat.cards.v1')].filter(card => typeof card?.name === 'string'));
       tile = entry => speciesTile(entry,groups.get(entry.key),deckNames,
-        new Set((copiesByEntry.get(entry.key)?.cards || []).map(card => card.variant).filter(Boolean)).size,selectedCardId(entry));
+        copiesByEntry.get(entry.key)?.cards.length || 0,selectedCardId(entry));
     }
     if (filtered) el('resultCount').textContent = rows.length + (rows.length === 1 ? ' result' : ' results');
     if (!rows.length) {
@@ -871,7 +871,21 @@
     el('editorFeaturedOffer').hidden = !offer;
     if (!offer || editing.featuredEntryKey !== form.key) editorFields.makeFeatured.checked = false;
     editing.featuredEntryKey = offer ? form.key : null;
-    if (offer) el('editorFeaturedMessage').textContent = 'You already have a card for ' + entryName(form) + '.';
+    const currentPreview = el('editorCurrentFeatured');
+    currentPreview.replaceChildren();
+    if (offer) {
+      const copies = data.cards.filter(card=>catalogEntry(card).key === form.key);
+      const preferred = data.preferences.find(preference=>preference.id === 'featured:' + form.key)?.cardId;
+      const current = featuredCard(copies,preferred);
+      el('editorFeaturedMessage').textContent = 'You already have '+copies.length+' '+
+        (copies.length===1?'card':'cards')+' for '+entryName(form)+'. Would you like to feature the new card?';
+      const details = node('div',null,'current-featured-copy');
+      details.append(node('strong','Current featured card'),
+        node('span',current.name || entryName(form)),
+        node('small',[current.set,current.number].filter(Boolean).join(' · ') || 'Print reference not recorded'),
+        variantBadge(current.variant));
+      currentPreview.append(photo(current.image,'Artwork unavailable'),details);
+    }
     if (!form) return;
     sprite.replaceChildren(photo(pokemonSprites+form.sprite+'.png',''));
     organization.replaceChildren(node('span',generationLabel(id)),node('span','Binder '+binderNumber(id)));
