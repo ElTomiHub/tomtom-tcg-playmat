@@ -6,14 +6,17 @@
   <meta name="theme-color" content="#0b213b">
   <title>Pokédex · Pokémon TCG Playmat</title>
   <link rel="icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="assets/pokedex.css?v=23">
+  <link rel="stylesheet" href="assets/pokedex.css?v=24">
   <script defer src="assets/starter-library.js"></script>
   <script defer src="assets/pokedex-species-names.js?v=1"></script>
   <script defer src="assets/pokedex-evolutions.js?v=1"></script>
-  <script defer src="assets/library-sync.js?v=5"></script>
+  <script defer src="assets/library-sync.js?v=6"></script>
   <script defer src="assets/pokedex-sync.js?v=5"></script>
   <script defer src="assets/pokedex-scan.js?v=8"></script>
-  <script defer src="assets/pokedex.js?v=25"></script>
+  <script defer src="assets/pokedex-imported-prices.js?v=1"></script>
+  <script defer src="assets/pokedex-prices.js?v=1"></script>
+  <script defer src="assets/pokedex-prices-ui.js?v=1"></script>
+  <script defer src="assets/pokedex.js?v=26"></script>
 </head>
 <body>
   <main>
@@ -24,6 +27,7 @@
       <nav aria-label="Collection views">
         <button type="button" data-view="cards" aria-pressed="true">Pokédex</button>
         <button type="button" data-view="binder" aria-pressed="false">Special Collection</button>
+        <button type="button" data-view="value" aria-pressed="false">Value</button>
       </nav>
       <div class="pokedex-tools">
         <button type="button" data-view="progress" aria-pressed="false">Progress</button>
@@ -73,6 +77,7 @@
       </div>
     </div>
     <p id="notice" role="status" aria-live="polite"></p>
+    <p id="priceLookupStatus" role="status" hidden></p>
     <section aria-labelledby="viewHeading">
       <div class="toolbar">
         <h2 id="viewHeading" tabindex="-1">Pokédex</h2>

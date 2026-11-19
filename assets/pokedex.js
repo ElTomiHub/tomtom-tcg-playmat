@@ -248,6 +248,8 @@
     collectionSync?.changed();
   }
 
+  const priceUI = createPokedexPricesUI({getData:()=>data,save,node,button,title});
+
   function speciesName(id) { return names[id-1]?.[0] || 'Pokémon #' + id; }
   function entryName(entry) { return [entry.label,speciesName(entry.id)].filter(Boolean).join(' '); }
   function mountNumberField(input,suffix) {
@@ -471,7 +473,7 @@
     if (featured) article.append(node('span','Featured card','featured-label'));
     article.append(photo(card.image,'Photo unavailable',cardPreviewLabel(card)), node('h3',title(card)));
     if (card.set || card.number) article.append(node('small',[card.set,card.number].filter(Boolean).join(' · ')));
-    article.append(variantBadge(card.variant));
+    article.append(variantBadge(card.variant),priceUI.cardPrice(card));
     if (card.notes && !choose) article.append(node('small',card.notes,'print-notes'));
     const actions = node('div',null,'print-actions');
     if (choose) {
@@ -537,7 +539,9 @@
     organization.append(node('span',generationLabel(entry.id)),node('span','Binder '+binderNumber(entry.id)),
       node('span',copies.length+' '+(copies.length===1?'card':'cards')+' collected'));
     overview.append(namesRow,organization);
-    info.append(overview);
+    const overviewTop = node('div',null,'species-info-top');
+    overviewTop.append(overview,priceUI.summary(()=>data.cards.filter(card=>catalogEntry(card)?.key===entry.key),'Pokémon value'));
+    info.append(overviewTop);
     const totals = new Map();
     for (const card of copies) totals.set(card.variant,(totals.get(card.variant) || 0) + 1);
     const counts = node('ul',null,'variant-counts');
@@ -769,6 +773,7 @@
     open.append(photo(card.image,'No image',cardPreviewLabel(card)),badge);
     tile.append(open,node('h3',title(card),'special-card-title'),
       node('small',[card.set,card.number].filter(Boolean).join(' · ')));
+    tile.append(priceUI.cardPrice(card));
     if (reorderingSpecial) {
       const actions = node('div',null,'special-order-actions');
       for (const [offset,label] of [[-1,'Move earlier'],[1,'Move later']]) {
@@ -797,6 +802,7 @@
 
   function render() {
     dismissCardPreview();
+    priceUI.reset();
     for (const button of document.querySelectorAll('[data-view]'))
       button.setAttribute('aria-pressed',String(button.dataset.view === view));
     const owned = ownedSpecies();
@@ -808,7 +814,7 @@
     const progressLabel = owned.size+' / '+totalSpecies+' species · '+completion+'% · '+remaining+' missing';
     el('collectionProgressLabel').textContent = progressLabel;
     progress.setAttribute('aria-valuetext',progressLabel);
-    const heading = {cards: 'Pokédex', binder: 'Binder', progress: 'Progress', recent:'History'};
+    const heading = {cards: 'Pokédex', binder: 'Binder', progress: 'Progress', recent:'History', value:'Collection value'};
     document.querySelector('.species-back')?.remove();
     el('viewHeading').textContent = speciesFilter ? entryName(speciesFilter) : heading[view];
     const showingDetails = Boolean(speciesFilter);
@@ -816,8 +822,8 @@
     if (special) el('viewHeading').textContent = 'Special Collection';
     else reorderingSpecial = false;
     el('collectionProgress').hidden = showingDetails || view !== 'cards';
-    el('addCard').hidden = view === 'progress' || showingDetails;
-    el('filters').hidden = view === 'progress' || view === 'recent' || showingDetails;
+    el('addCard').hidden = ['progress','value'].includes(view) || showingDetails;
+    el('filters').hidden = ['progress','value','recent'].includes(view) || showingDetails;
     const showCollection = view === 'cards' && !showingDetails;
     el('collectionFilter').hidden = !showCollection;
     for (const button of collectionButtons) button.setAttribute('aria-pressed',String(button.dataset.collection === collection));
@@ -831,6 +837,7 @@
     el('results').replaceChildren();
     el('resultCount').textContent = '';
     el('more').hidden = true;
+    if (view === 'value') { priceUI.renderValue(el('results')); return; }
     if (view === 'progress') { renderProgress(owned); return; }
     if (view === 'recent') { renderRecent(); return; }
 
@@ -1079,6 +1086,9 @@
       pokemonKey: type === 'cards' ? read('pokemonForm') || String(pokemonId) : '',
       name:read('name'), set:read('set'), number:editorNumber.value(), variant:normalizeVariant(read('variant')) || 'normal',
       image, createdAt:card?.createdAt || new Date().toISOString()};
+    if (card && PokedexPrices.identity(card) !== PokedexPrices.identity(entry)) {
+      for (const field of ['value','currency','price_source','value_updated_at','price_status']) delete entry[field];
+    }
     if (type === 'binder') entry.tags = normalizeSpecialTags(read('tags'));
     const updated = card ? data[type].map(item => item.id === card.id ? entry : item) : [...data[type],entry];
     const makeFeatured = form.has('makeFeatured') && !card && type === 'cards' &&

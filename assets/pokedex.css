@@ -342,9 +342,29 @@ footer { justify-content: flex-end; flex-wrap: wrap; }
 button.danger { color: #ffd3d1; border-color: #bd7877; }
 button.danger:hover { background: #5a2834; }
 [hidden] { display: none !important; }
+.species-info-top { display: flex; flex-wrap: wrap; align-items: start; justify-content: space-between; gap: 16px; }
+.species-info-top .species-overview { flex: 1 1 290px; min-width: 0; }
+.price-summary { display: grid; gap: 6px; padding: 14px 18px; background: #0b2239; border: 1px solid #54758c; border-radius: 10px; min-width: 0; }
+.price-summary strong { font-size: 25px; color: #ffda81; font-variant-numeric: tabular-nums; }
+.price-summary small { color: #bdd1e3; }
+.card-price { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 10px 0; padding-top: 9px; border-top: 1px solid #496881; }
+.card-price-text { display: grid; gap: 3px; flex: 1 1 125px; min-width: 0; }
+.card-price-text strong { color: #ffda81; font-size: 17px; font-variant-numeric: tabular-nums; }
+.card-price-text small, .card-price-text a { font-size: 11px; color: #bdd1e3; overflow-wrap: anywhere; }
+.price-small-button { padding: 6px 8px; font-size: 11px; }
+.value-summaries { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
+.value-controls { margin-top: 16px; }
+.value-controls > button { margin-right: 8px; }
+.value-controls details { margin-top: 12px; }
+#results:has(.value-summaries) { display: block; }
+@media (max-width: 550px) {
+  .value-summaries { grid-template-columns: minmax(0,1fr); }
+  .species-info-top > .price-summary { width: 100%; }
+  .special-card .card-price-text { flex-basis: 100%; }
+}
 @media (max-width: 550px) {
   main { padding-top: 12px; }
-  .sticky-top { grid-template-areas: "hero sync" "views views" "filters filters"; }
+  .sticky-top { grid-template-areas: "hero hero" "views views" "sync sync" "filters filters"; }
   .pokedex-tools { align-self: center; margin-bottom: 14px; flex-wrap: wrap; justify-content: flex-end; }
   .hero .heading { gap: 8px; }
   .lobby-logo img { width: 36px; height: 36px; }
