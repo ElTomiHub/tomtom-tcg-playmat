@@ -156,6 +156,10 @@
       .replace(/[\u3041-\u3096]/g,letter=>String.fromCharCode(letter.charCodeAt(0)+0x60))
       .normalize('NFC').toLowerCase().trim();
   }
+  function splitCollectorNumber(value) {
+    const [number,total = ''] = String(value || '').normalize('NFKC').split('/');
+    return {number:number.trim(),total:total.trim()};
+  }
   function normalizeVariant(value) {
     return /^normal[\s_-]+silver$/i.test(value) ? 'normal' : value;
   }
@@ -233,6 +237,96 @@
 
   function speciesName(id) { return names[id-1]?.[0] || 'Pokémon #' + id; }
   function entryName(entry) { return [entry.label,speciesName(entry.id)].filter(Boolean).join(' '); }
+  function mountNumberField(input,suffix) {
+    let total = '';
+    function set(value) {
+      const parts = splitCollectorNumber(value);
+      input.value = parts.number;
+      total = parts.total;
+      suffix.textContent = total ? '/' + total : '';
+      suffix.hidden = !total;
+    }
+    input.addEventListener('input',() => {
+      if (input.value.normalize('NFKC').includes('/')) set(input.value);
+    });
+    return {set,value:() => input.value.trim() + (total && input.value.trim() ? '/' + total : ''),
+      clearTotal:() => set(input.value)};
+  }
+
+  const pokemonNameEntries = catalog.map(entry => ({...entry,name:entryName(entry),
+    aliases:[entryName(entry),...(names[entry.id-1] || []).map(name=>[entry.label,name].filter(Boolean).join(' '))]}));
+  function mountNameSuggestions(input,onSelect) {
+    const wrapper = node('span',null,'pokemon-name-search');
+    input.before(wrapper);
+    wrapper.append(input);
+    const list = node('span',null,'pokemon-name-suggestions');
+    list.id = 'pokemon-suggestions-' + input.form.id;
+    list.setAttribute('role','listbox');
+    list.hidden = true;
+    wrapper.append(list);
+    input.setAttribute('role','combobox');
+    input.setAttribute('aria-autocomplete','list');
+    input.setAttribute('aria-controls',list.id);
+    input.setAttribute('aria-expanded','false');
+    let matches = [], active = -1;
+    function close() {
+      list.hidden = true;
+      active = -1;
+      matches = [];
+      input.setAttribute('aria-expanded','false');
+      input.removeAttribute('aria-activedescendant');
+    }
+    function select(entry) {
+      input.value = entry.name;
+      close();
+      onSelect(entry);
+    }
+    function show() {
+      const query = normalizeSearch(input.value);
+      if (!query) { close(); return; }
+      matches = pokemonNameEntries.filter(entry=>entry.aliases.some(alias=>normalizeSearch(alias).includes(query)))
+        .slice(0,8);
+      list.replaceChildren();
+      active = -1;
+      input.removeAttribute('aria-activedescendant');
+      for (const [index,entry] of matches.entries()) {
+        const option = button(null,()=>select(entry));
+        option.id = list.id + '-' + index;
+        option.setAttribute('role','option');
+        option.setAttribute('aria-selected','false');
+        option.tabIndex = -1;
+        option.addEventListener('pointerdown',event=>event.preventDefault());
+        option.append(photo(pokemonSprites + entry.sprite + '.png',''),
+          node('span',entry.name),node('small','#' + String(entry.id).padStart(4,'0')));
+        list.append(option);
+      }
+      list.hidden = matches.length === 0;
+      input.setAttribute('aria-expanded',String(!list.hidden));
+    }
+    input.addEventListener('input',show);
+    input.addEventListener('focus',show);
+    input.addEventListener('blur',close);
+    input.addEventListener('keydown',event=>{
+      if (event.key === 'Escape' && !list.hidden) {
+        event.preventDefault();
+        event.stopPropagation();
+        close();
+      } else if ((event.key === 'ArrowDown' || event.key === 'ArrowUp') && matches.length) {
+        event.preventDefault();
+        list.hidden = false;
+        input.setAttribute('aria-expanded','true');
+        active = (active + (event.key === 'ArrowDown' ? 1 : -1) + matches.length) % matches.length;
+        [...list.children].forEach((option,index)=>option.setAttribute('aria-selected',String(index === active)));
+        input.setAttribute('aria-activedescendant',list.children[active].id);
+        list.children[active].scrollIntoView({block:'nearest'});
+      } else if (event.key === 'Enter' && !list.hidden && active >= 0) {
+        event.preventDefault();
+        select(matches[active]);
+      }
+    });
+    return {close,resolve:value=>pokemonNameEntries.find(entry=>
+      entry.aliases.some(alias=>normalizeSearch(alias) === normalizeSearch(value)))};
+  }
   function title(card) { return card.name || entryName(catalogEntry(card)); }
   const variantIcons = {
     normal:'●', holo:'✦', 'reverse-holo':'◈', 'pokeball-reverse-holo':'◉', 'masterball-reverse-holo':'✪',
@@ -678,16 +772,18 @@
   }
   const editorForm = el('editorForm');
   const editorFields = editorForm.elements;
+  const editorNumber = mountNumberField(editorFields.number,el('editorSetTotal'));
   const editorNames = new Map();
   for (const entry of catalog) {
     const name = entryName(entry);
-    const option = node('option');
-    option.value = name;
-    option.label = '#' + String(entry.id).padStart(4,'0');
-    el('editorPokemonNames').append(option);
     const aliases = entry.label ? [name] : [...(names[entry.id-1] || []),name];
     for (const alias of aliases) editorNames.set(normalizeSearch(alias),entry);
   }
+  mountNameSuggestions(editorFields.name,entry=>{
+    editorFields.pokemonId.value = entry.id;
+    updateFormChoices(entry.key);
+    updateEditorSpecies();
+  });
 
   function updateEditorSpecies() {
     const id = Number(editorFields.pokemonId.value);
@@ -709,7 +805,7 @@
     const figure = el('editorArtwork');
     const selected = editorFields.variant.value;
     const sameReference = editorFields.set.value.trim() === editing.reference.set &&
-      editorFields.number.value.trim() === editing.reference.number;
+      editorNumber.value() === editing.reference.number;
     const choices = sameReference && editing.artworkForVariant ? editing.artworkForVariant(selected) :
       [{url:editing.originalImage,label:sameReference ? 'Card artwork' : 'Artwork from the previous print'}];
     editing.image = choices.map(pick=>safeImage(pick.url)).find(Boolean) || editing.originalImage;
@@ -751,6 +847,7 @@
     if (validSpecies(id)) editorFields.name.value = entryName(catalogEntry({pokemonId:id,pokemonKey:editorFields.pokemonForm.value}));
     updateEditorSpecies();
   });
+  editorFields.set.addEventListener('input',()=>editorNumber.clearTotal());
   for (const key of ['set','number','variant']) editorFields[key].addEventListener('change',updateEditorArtwork);
   function openEditor(card, entry = speciesFilter, draft = null) {
     if (editorSave.disabled) return;
@@ -764,7 +861,7 @@
     const formKey = values?.pokemonKey || entry?.key || inferred?.key;
     editorFields.name.value = values?.name || (type==='cards' && validSpecies(id) ? entryName(catalogEntry({pokemonId:id,pokemonKey:formKey})) : '');
     editorFields.set.value = editing.reference.set;
-    editorFields.number.value = editing.reference.number;
+    editorNumber.set(editing.reference.number);
     const selected = normalizeVariant(values?.variant || 'normal');
     editorFields.variant.replaceChildren(...[...new Set([...variants,selected])].map(value=>{
       const option = node('option',variantOptionLabel(value));
@@ -780,8 +877,6 @@
     el('editorTags').hidden = type !== 'binder';
     editorFields.tags.value = normalizeSpecialTags(values?.tags).join(', ');
     editorFields.name.placeholder = type === 'cards' ? 'Search Pokémon' : '';
-    if (type === 'cards') editorFields.name.setAttribute('list','editorPokemonNames');
-    else editorFields.name.removeAttribute('list');
     updateFormChoices(formKey);
     updateEditorSpecies();
     updateEditorArtwork();
@@ -802,7 +897,7 @@
     const pokemonId = type === 'cards' ? Number(read('pokemonId')) : null;
     const entry = {...card, ...(language ? {language} : {}), id:card?.id || 'manual:' + crypto.randomUUID(), pokemonId,
       pokemonKey: type === 'cards' ? read('pokemonForm') || String(pokemonId) : '',
-      name:read('name'), set:read('set'), number:read('number'), variant:normalizeVariant(read('variant')) || 'normal',
+      name:read('name'), set:read('set'), number:editorNumber.value(), variant:normalizeVariant(read('variant')) || 'normal',
       image, createdAt:card?.createdAt || new Date().toISOString()};
     if (type === 'binder') entry.tags = normalizeSpecialTags(read('tags'));
     const updated = card ? data[type].map(item => item.id === card.id ? entry : item) : [...data[type],entry];
@@ -935,7 +1030,7 @@
   const openCardCapture = mountPokedexScanner({
     cards:()=>data.cards,
     savedPrints:()=>[...(globalThis.PLAYMAT_STARTER_LIBRARY?.cards || []),...readLocalList('codexPokemonPlaymat.cards.v1')],
-    speciesNames:names,displayVariant,variantOptionLabel,variantBadge,variants,
+    speciesNames:names,displayVariant,variantOptionLabel,variantBadge,variants,mountNumberField,mountNameSuggestions,
     openAdd:draft=>openEditor(null,null,draft)
   });
   el('addCard').disabled = false;

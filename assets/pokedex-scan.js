@@ -517,7 +517,8 @@
     return {name:title.textContent.trim(),attacks,abilities,effect};
   }
 
-  function mountPokedexScanner({cards, savedPrints, speciesNames, displayVariant, variantOptionLabel, variantBadge, variants, openAdd}) {
+  function mountPokedexScanner({cards, savedPrints, speciesNames, displayVariant, variantOptionLabel, variantBadge, variants, openAdd,
+    mountNumberField,mountNameSuggestions}) {
     const el = id => document.getElementById(id);
     const dialog = el('scanner');
     const form = el('scannerLookup');
@@ -529,6 +530,12 @@
     const variant = form.elements.variant;
     const destination = el('scannerDestination');
     const register = el('scannerRegister');
+    const collector = mountNumberField(form.elements.number,el('scannerSetTotal'));
+    let resolvedDraft = null, selectedPokemon = null;
+    const nameSuggestions = mountNameSuggestions(form.elements.name,entry=>{
+      resolvedDraft = null;
+      selectedPokemon = entry;
+    });
     const mobile = navigator.userAgentData?.mobile === true || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) ||
       (navigator.platform === 'MacIntel' && navigator.maxTouchPoints>1);
     let client, request = 0, previewUrl = '', cameraVersion = 0, stream, supportsTorch = false;
@@ -642,8 +649,9 @@
 
     async function registerManually() {
       const fields = Object.fromEntries(new FormData(form));
-      const draft = {name:fields.name.trim(),set:fields.set.trim(),number:fields.number.trim(),variant:fields.variant,
-        pokemonId:context.entry?.id,pokemonKey:context.entry?.key,destination:destination.value};
+      const draft = {...resolvedDraft,name:fields.name.trim(),set:fields.set.trim(),number:collector.value(),variant:fields.variant,
+        pokemonId:selectedPokemon?.id ?? resolvedDraft?.pokemonId ?? context.entry?.id,
+        pokemonKey:selectedPokemon?.key ?? resolvedDraft?.pokemonKey ?? context.entry?.key,destination:destination.value};
       const job = ++request;
       clearTimeout(lookupTimer);
       register.disabled = true;
@@ -678,6 +686,9 @@
     function open(options = {}) {
       if (dialog.open) return;
       context = {destination:'cards',...options};
+      resolvedDraft = null;
+      selectedPokemon = null;
+      nameSuggestions.close();
       destination.value = context.destination;
       request++;
       updateVariant = null;
@@ -686,8 +697,9 @@
       variant.value = '';
       variantOptions();
       form.elements.set.value = context.print?.set || '';
-      form.elements.number.value = context.print?.number || '';
-      form.elements.name.value = context.print?.name || '';
+      collector.set(context.print?.number || '');
+      form.elements.name.value = context.print?.name ||
+        [context.entry?.label,speciesNames[(context.entry?.id || 0)-1]?.[0]].filter(Boolean).join(' ');
       candidates.replaceChildren();
       result.replaceChildren();
       state.textContent = '';
@@ -853,7 +865,8 @@
           const matches = await resolveScannerPrints(lookup,full).catch(()=>[]);
           if (job !== request) return;
           if (matches.some(match=>!match.confirmName)) {
-            for (const key of ['set','number','name']) form.elements[key].value = full[key];
+            for (const key of ['set','name']) form.elements[key].value = full[key];
+            collector.set(full.number);
             await find(full,job,matches);
             return;
           }
@@ -884,7 +897,8 @@
         const complete = clue => (clue.set ? 2 : 0)+(clue.number.includes('/') ? 1 : 0);
         options.push(...[full,focused,...narrowed].filter(hasReference).sort((a,b)=>complete(b)-complete(a)));
         const clues = options[0] || {...full,set:full.set || focused.set,number:full.number || focused.number};
-        for (const key of ['set','number','name']) form.elements[key].value = clues[key];
+        for (const key of ['set','name']) form.elements[key].value = clues[key];
+        collector.set(clues.number);
         let unconfirmed = [];
         for (const candidate of options.filter((option,index)=>options.findIndex(row=>row.set===option.set && row.number===option.number)===index)) {
           const matches = await resolveScannerPrints(lookup,candidate).catch(()=>[]);
@@ -910,7 +924,7 @@
       clearTimeout(lookupTimer);
       const fields = Object.fromEntries(new FormData(form));
       fields.set = fields.set.trim();
-      fields.number = fields.number.trim();
+      fields.number = collector.value();
       fields.name = fields.name.trim();
       if (!fields.name && (!fields.set || !fields.number)) {
         state.textContent = 'Enter a set and collector number, or a printed name.';
@@ -925,6 +939,8 @@
       lookUpFields();
     });
     const refreshReference = () => {
+      if (resolvedDraft && form.elements.name.value === resolvedDraft.name) form.elements.name.value = '';
+      resolvedDraft = null;
       updateVariant = null;
       candidates.replaceChildren();
       result.replaceChildren();
@@ -934,6 +950,11 @@
         lookupTimer = setTimeout(lookUpFields,450);
     };
     for (const key of ['set','number']) form.elements[key].addEventListener('input',refreshReference);
+    form.elements.set.addEventListener('input',()=>collector.clearTotal());
+    form.elements.name.addEventListener('input',()=>{
+      resolvedDraft = null;
+      selectedPokemon = nameSuggestions.resolve(form.elements.name.value);
+    });
     variant.addEventListener('change',()=>{
       if (updateVariant) updateVariant();
       else if (form.elements.set.value.trim() && form.elements.number.value.trim()) lookUpFields();
@@ -985,7 +1006,11 @@
       const code = setDetails?.abbreviation?.official || match.code;
       const identity = printIdentity(card,language,code,speciesNames);
       form.elements.set.value = code;
-      form.elements.number.value = identity.printedNumber;
+      collector.set(identity.printedNumber);
+      form.elements.name.value = (identity.speciesId && speciesNames[identity.speciesId-1]?.[0]) || card.name || '';
+      nameSuggestions.close();
+      resolvedDraft = {name:form.elements.name.value,language,set:code,number:identity.printedNumber,
+        pokemonId:identity.speciesId,pokemonKey:identity.pokemonKey};
       const link = limitlessLink(language,code,identity.number);
       const catalogArt = /^https:\/\/assets\.tcgdex\.net\//.test(card.image || '') ? imageUrl(card.image) : '';
       const fallbackArt = limitlessImage(language,code,identity.number);
@@ -1028,6 +1053,7 @@
           image.referrerPolicy = 'no-referrer';
           image.addEventListener('error',()=>{ if (image.isConnected) showArt(index+1); },{once:true});
           art = url;
+          if (resolvedDraft) Object.assign(resolvedDraft,{image:url,artworkForVariant});
           picture.replaceChildren(image,element('figcaption',label,'note'));
           image.src = url;
         };

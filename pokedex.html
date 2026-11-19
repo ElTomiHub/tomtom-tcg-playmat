@@ -6,13 +6,13 @@
   <meta name="theme-color" content="#0b213b">
   <title>Pokédex · Pokémon TCG Playmat</title>
   <link rel="icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="assets/pokedex.css?v=19">
+  <link rel="stylesheet" href="assets/pokedex.css?v=20">
   <script defer src="assets/starter-library.js"></script>
   <script defer src="assets/pokedex-species-names.js?v=1"></script>
   <script defer src="assets/library-sync.js?v=5"></script>
   <script defer src="assets/pokedex-sync.js?v=5"></script>
-  <script defer src="assets/pokedex-scan.js?v=6"></script>
-  <script defer src="assets/pokedex.js?v=21"></script>
+  <script defer src="assets/pokedex-scan.js?v=7"></script>
+  <script defer src="assets/pokedex.js?v=22"></script>
 </head>
 <body>
   <main>
@@ -125,9 +125,9 @@
     <form id="scannerLookup" autocomplete="off" hidden>
       <div class="inputs">
         <label>Set code <input name="set" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="24" placeholder="SV2a"></label>
-        <label>Collector number <input name="number" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="24" placeholder="025/165"></label>
+        <label>Collector number <span class="collector-number-field"><input name="number" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="24" placeholder="025"><span id="scannerSetTotal" aria-label="Set total" hidden></span></span></label>
         <label>Variant <select name="variant" id="scanVariant"></select></label>
-        <label>Printed name <input name="name" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="100" placeholder="Optional if set is known"></label>
+        <label>Pokémon / printed name <input name="name" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="100" placeholder="Name (EN, FR, JP)"></label>
       </div>
       <div class="scanner-form-actions">
         <button type="submit" class="primary">Look up print</button>
@@ -153,7 +153,7 @@
           <div id="editorOrganization" aria-live="polite" hidden></div>
           <div class="inputs">
             <label>Set <input name="set" maxlength="100"></label>
-            <label>Card number <input name="number" maxlength="40"></label>
+            <label>Card number <span class="collector-number-field"><input name="number" maxlength="40" placeholder="025"><span id="editorSetTotal" aria-label="Set total" hidden></span></span></label>
           </div>
           <label>Variant <select name="variant"></select></label>
           <label id="editorTags" hidden>Tags <input name="tags" placeholder="Separate tags with commas"></label>
@@ -179,6 +179,5 @@
       </footer>
     </form>
   </dialog>
-  <datalist id="editorPokemonNames"></datalist>
 </body>
 </html>
