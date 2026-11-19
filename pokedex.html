@@ -6,14 +6,14 @@
   <meta name="theme-color" content="#0b213b">
   <title>Pokédex · Pokémon TCG Playmat</title>
   <link rel="icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="assets/pokedex.css?v=22">
+  <link rel="stylesheet" href="assets/pokedex.css?v=23">
   <script defer src="assets/starter-library.js"></script>
   <script defer src="assets/pokedex-species-names.js?v=1"></script>
   <script defer src="assets/pokedex-evolutions.js?v=1"></script>
   <script defer src="assets/library-sync.js?v=5"></script>
   <script defer src="assets/pokedex-sync.js?v=5"></script>
   <script defer src="assets/pokedex-scan.js?v=7"></script>
-  <script defer src="assets/pokedex.js?v=24"></script>
+  <script defer src="assets/pokedex.js?v=25"></script>
 </head>
 <body>
   <main>
@@ -24,7 +24,6 @@
       <nav aria-label="Collection views">
         <button type="button" data-view="cards" aria-pressed="true">Pokédex</button>
         <button type="button" data-view="binder" aria-pressed="false">Special Collection</button>
-        <button type="button" data-view="missing" aria-pressed="false">Missing Pokémon</button>
       </nav>
       <div class="pokedex-tools">
         <button type="button" data-view="progress" aria-pressed="false">Progress</button>
@@ -85,6 +84,10 @@
   </main>
   <div class="collection-actions">
     <button class="primary" type="button" id="addCard">＋ Add card</button>
+  </div>
+  <div id="cardPreview" class="card-preview" aria-hidden="true" hidden>
+    <img id="cardPreviewImage" alt="" draggable="false">
+    <p id="cardPreviewCaption"></p>
   </div>
   <dialog id="collectionBackup" aria-labelledby="collectionBackupHeading">
     <div class="scanner-heading">

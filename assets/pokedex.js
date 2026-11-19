@@ -362,7 +362,97 @@
   function formatProgress(owned, total) { return owned + ' / ' + total; }
 
   const pokemonSprites = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
-  function photo(url, fallback) {
+  function cardPreviewLabel(card) {
+    return [title(card),card.set,card.number,displayVariant(card.variant)].filter(Boolean).join(' · ');
+  }
+  const preview = el('cardPreview'), previewImage = el('cardPreviewImage');
+  let previewTimer, previewGesture = null, suppressedPreviewClick = null;
+  function dismissCardPreview() {
+    clearTimeout(previewTimer);
+    preview.hidden = true;
+    previewImage.removeAttribute('src');
+  }
+  function showCardPreview(image,touch) {
+    if (!image.isConnected) return;
+    preview.dataset.touch = String(touch);
+    previewImage.src = image.currentSrc || image.src;
+    el('cardPreviewCaption').textContent = image.dataset.previewLabel;
+    if (touch) preview.removeAttribute('style');
+    else {
+      const width = Math.min(300,innerWidth-32,(innerHeight-90)*63/88);
+      const height = width*88/63+64;
+      const rect = image.getBoundingClientRect();
+      const left = rect.right+12+width < innerWidth ? rect.right+12 : rect.left-width-12;
+      preview.style.width = width+'px';
+      preview.style.left = Math.max(12,Math.min(left,innerWidth-width-12))+'px';
+      preview.style.top = Math.max(12,Math.min(rect.top,innerHeight-height-12))+'px';
+    }
+    preview.hidden = false;
+  }
+  const previewSource = target => target.closest?.('img[data-preview-label]');
+  document.addEventListener('pointerover',event=>{
+    if (event.pointerType !== 'mouse' || reorderingSpecial) return;
+    const image = previewSource(event.target);
+    if (!image) return;
+    clearTimeout(previewTimer);
+    previewTimer = setTimeout(()=>showCardPreview(image,false),180);
+  });
+  document.addEventListener('pointerout',event=>{
+    if (event.pointerType === 'mouse' && previewSource(event.target)) dismissCardPreview();
+  });
+  document.addEventListener('pointerdown',event=>{
+    if (event.pointerType !== 'touch' && event.pointerType !== 'pen') return;
+    const image = previewSource(event.target);
+    if (!image || reorderingSpecial) return;
+    dismissCardPreview();
+    const gesture = {image,id:event.pointerId,x:event.clientX,y:event.clientY,shown:false};
+    previewGesture = gesture;
+    previewTimer = setTimeout(()=>{
+      if (previewGesture !== gesture) return;
+      showCardPreview(image,true);
+      gesture.shown = true;
+    },300);
+  });
+  document.addEventListener('pointermove',event=>{
+    const gesture = previewGesture;
+    if (!gesture || gesture.id !== event.pointerId) return;
+    if (Math.hypot(event.clientX-gesture.x,event.clientY-gesture.y)>12) {
+      finishPreviewPress(event);
+    }
+  },{passive:true});
+  function finishPreviewPress(event) {
+    const gesture = previewGesture;
+    if (!gesture || gesture.id !== event.pointerId) return;
+    if (gesture.shown) suppressedPreviewClick = {
+      target:gesture.image.closest('.species-open') || gesture.image,until:Date.now()+750
+    };
+    previewGesture = null;
+    dismissCardPreview();
+  }
+  document.addEventListener('pointerup',finishPreviewPress);
+  document.addEventListener('pointercancel',finishPreviewPress);
+  document.addEventListener('click',event=>{
+    const suppressed = suppressedPreviewClick;
+    if (suppressed && Date.now()<suppressed.until && suppressed.target.contains(event.target)) {
+      event.preventDefault();
+      event.stopPropagation();
+      suppressedPreviewClick = null;
+    }
+  },true);
+  const protectedCard = target => target.closest?.('.species-card,.featured-print,.alternate-print,#cardPreview');
+  document.addEventListener('contextmenu',event=>{
+    if (protectedCard(event.target) && (event.pointerType === 'touch' ||
+        window.matchMedia('(any-pointer: coarse)').matches)) event.preventDefault();
+  });
+  document.addEventListener('selectstart',event=>{if (protectedCard(event.target)) event.preventDefault();});
+  document.addEventListener('dragstart',dismissCardPreview);
+  document.addEventListener('scroll',dismissCardPreview,{capture:true,passive:true});
+  window.addEventListener('resize',dismissCardPreview);
+  window.addEventListener('blur',dismissCardPreview);
+  document.addEventListener('visibilitychange',dismissCardPreview);
+  document.addEventListener('keydown',event=>{if (event.key==='Escape') dismissCardPreview();});
+  previewImage.addEventListener('error',dismissCardPreview);
+  function photo(url, fallback, previewLabel) {
     if (!url) return node('span', fallback, 'fallback');
     const image = node('img');
     image.src = url;
@@ -370,6 +460,8 @@
     image.loading = 'lazy';
     image.decoding = 'async';
     image.referrerPolicy = 'no-referrer';
+    image.draggable = false;
+    if (previewLabel) image.dataset.previewLabel = previewLabel;
     image.addEventListener('error', () => image.replaceWith(node('span',fallback,'fallback')), {once:true});
     return image;
   }
@@ -377,7 +469,7 @@
   function cardTile(card, {style = '', choose, featured = false} = {}) {
     const article = node('article',null,style ? 'card ' + style : 'card');
     if (featured) article.append(node('span','Featured card','featured-label'));
-    article.append(photo(card.image,'Photo unavailable'), node('h3',title(card)));
+    article.append(photo(card.image,'Photo unavailable',cardPreviewLabel(card)), node('h3',title(card)));
     if (card.set || card.number) article.append(node('small',[card.set,card.number].filter(Boolean).join(' · ')));
     article.append(variantBadge(card.variant));
     if (card.notes && !choose) article.append(node('small',card.notes,'print-notes'));
@@ -551,7 +643,7 @@
     });
     open.className = 'species-open';
     open.setAttribute('aria-label', (owned ? 'View registered cards for ' : 'Add a card for ') + name);
-    const picture = photo(image,'No image');
+    const picture = photo(image,'No image',cover?.image ? cardPreviewLabel(cover) : '');
     if (owned && image !== artwork) picture.addEventListener('error', () => {
       open.querySelector('.fallback')?.replaceWith(photo(artwork,'No image'));
     }, {once:true});
@@ -674,7 +766,7 @@
     open.setAttribute('aria-label','Open '+title(card));
     const badge = node('span',variantIcons[card.variant] || '◇','tile-marker variant-marker');
     badge.title = displayVariant(card.variant);
-    open.append(photo(card.image,'No image'),badge);
+    open.append(photo(card.image,'No image',cardPreviewLabel(card)),badge);
     tile.append(open,node('h3',title(card),'special-card-title'),
       node('small',[card.set,card.number].filter(Boolean).join(' · ')));
     if (reorderingSpecial) {
@@ -704,6 +796,7 @@
   }
 
   function render() {
+    dismissCardPreview();
     for (const button of document.querySelectorAll('[data-view]'))
       button.setAttribute('aria-pressed',String(button.dataset.view === view));
     const owned = ownedSpecies();
@@ -715,20 +808,20 @@
     const progressLabel = owned.size+' / '+totalSpecies+' species · '+completion+'% · '+remaining+' missing';
     el('collectionProgressLabel').textContent = progressLabel;
     progress.setAttribute('aria-valuetext',progressLabel);
-    const heading = {cards: 'Pokédex', binder: 'Binder', missing: 'Missing Pokémon', progress: 'Progress', recent:'History'};
+    const heading = {cards: 'Pokédex', binder: 'Binder', progress: 'Progress', recent:'History'};
     document.querySelector('.species-back')?.remove();
     el('viewHeading').textContent = speciesFilter ? entryName(speciesFilter) : heading[view];
     const showingDetails = Boolean(speciesFilter);
     const special = view === 'binder';
     if (special) el('viewHeading').textContent = 'Special Collection';
     else reorderingSpecial = false;
-    el('collectionProgress').hidden = showingDetails || (view !== 'cards' && view !== 'missing');
+    el('collectionProgress').hidden = showingDetails || view !== 'cards';
     el('addCard').hidden = view === 'progress' || showingDetails;
     el('filters').hidden = view === 'progress' || view === 'recent' || showingDetails;
     const showCollection = view === 'cards' && !showingDetails;
     el('collectionFilter').hidden = !showCollection;
     for (const button of collectionButtons) button.setAttribute('aria-pressed',String(button.dataset.collection === collection));
-    el('variantField').hidden = view === 'missing' || special;
+    el('variantField').hidden = special;
     el('specialTagField').hidden = !special;
     el('reorderSpecial').hidden = !special;
     el('reorderSpecial').textContent = reorderingSpecial ? 'Done' : 'Reorder';
@@ -789,10 +882,7 @@
 
     const matchesCard = card => (!variant || card.variant === variant) &&
       (matches(title(card),card.set,card.number,card.japaneseName,card.frenchName) || matchesSpecies(catalogEntry(card)));
-    if (view === 'missing') {
-      rows = catalog.filter(entry => !copiesByEntry.has(entry.key) && entryInRegion(entry,region) && matchesSpecies(entry));
-      tile = entry => speciesTile(entry);
-    } else if (special) {
+    if (special) {
       rows = orderedSpecialCards().filter(card=>matchesCard(card) && (!tag || normalizeSpecialTags(card.tags).some(label=>specialTagKey(label)===tag)));
       tile = (card,index) => specialTile(card,index,rows);
     } else {
