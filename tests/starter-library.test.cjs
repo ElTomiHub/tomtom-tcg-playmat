@@ -13,6 +13,43 @@ const fixture = loadFixture();
 const start = savedStorage => createEngineRunner(fixture,1,{starterSource:source,savedStorage});
 const withApp = (runner, code) => vm.runInContext(code,runner.context);
 
+test('invalid saved records show recovery controls and cannot overwrite the original lists or sync',async()=>{
+  const r = start({});
+  const raw = JSON.stringify([
+    {id:'valid',name:'Saved deck',decklist:'1 Riolu PRE 50'},
+    {id:'invalid',name:'Broken deck',decklist:42}
+  ]);
+  r.context.localStorage.setItem('codexPokemonPlaymat.decks.v1',raw);
+  assert.equal(withApp(r,'readSavedDecks().length'),1);
+  assert.equal(r.document.getElementById('libraryStorageWarning').hidden,false);
+  assert.equal(withApp(r,'persistSavedDecks()'),false);
+  assert.throws(()=>withApp(r,'librarySyncSnapshot()'),/Recover the saved library/);
+  assert.equal(r.context.localStorage.getItem('codexPokemonPlaymat.decks.v1'),raw);
+  await r.document.getElementById('downloadUnreadableLibraryBtn').click();
+  const exported = JSON.parse(await r.context.window.__downloadBlob.text());
+  assert.equal(exported.entries['codexPokemonPlaymat.decks.v1'].raw,raw);
+  const backup = r.api.backup();
+  r.api.restoreBackup(backup);
+  assert.equal(withApp(r,'libraryStorageIssues.size'),0);
+  assert.equal(r.document.getElementById('libraryStorageWarning').hidden,true);
+});
+
+test('malformed JSON and card metadata preserve raw data while valid metadata-free cards load',()=>{
+  const r = start({});
+  r.context.localStorage.setItem('codexPokemonPlaymat.cards.v1','{unfinished');
+  assert.equal(withApp(r,'readSavedCards().length'),0);
+  assert.equal(withApp(r,'persistRegisteredCards()'),false);
+  assert.equal(r.context.localStorage.getItem('codexPokemonPlaymat.cards.v1'),'{unfinished');
+  const cards = [
+    {id:'pending',name:'Riolu',setCode:'PRE',cardNumber:'50',meta:null},
+    {id:'bad-set',name:'Riolu',setCode:123,meta:null},
+    {id:'bad-attack',name:'Riolu',meta:{attacks:'invalid'}}
+  ];
+  r.context.localStorage.setItem('codexPokemonPlaymat.cards.v1',JSON.stringify(cards));
+  assert.deepEqual(Array.from(withApp(r,'readSavedCards().map(card=>card.id)')),['pending']);
+  assert.equal(withApp(r,'libraryStorageIssues.get(CARD_STORAGE_KEY).rejected'),2);
+});
+
 test('the shipped website seeds a fresh browser with playable decks, covers and no private history',()=>{
   assert.ok(fs.readFileSync(path.join(app,'index.html'),'utf8').includes('src="assets/starter-library.js"'));
   const r = start({});

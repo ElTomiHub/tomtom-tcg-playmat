@@ -380,7 +380,8 @@ function loadStartupCardContext() {
   if (deckStart < 0 || deckEnd < 7) throw new Error('Could not find the application default deck data.');
   vm.runInContext(html.slice(deckStart, deckEnd) + '\nglobalThis.DEFAULT_DECKS = DEFAULT_DECKS;', context);
   vm.runInContext('let engineTestHooks = null;', context);
-  for (const name of ['engineRandom', 'cleanName', 'normalizeCategory', 'normalizeCollectorNumber', 'cleanCardKey', 'isBasicEnergy', 'normalizedEnergyType', 'parseDeck', 'cardCatalogKey', 'seedRegisteredCards', 'readSavedCards', 'restoreLegacyCardLanguage', 'repairBasicEnergyType', 'loadRegisteredCards']) vm.runInContext(engineFunction(name), context);
+  for (const name of ['engineRandom', 'cleanName', 'normalizeCategory', 'normalizeCollectorNumber', 'cleanCardKey', 'isBasicEnergy', 'normalizedEnergyType', 'parseDeck', 'cardCatalogKey', 'seedRegisteredCards', 'readStoredLibraryRecords', 'readSavedCards', 'restoreLegacyCardLanguage', 'repairBasicEnergyType', 'loadRegisteredCards']) vm.runInContext(engineFunction(name), context);
+  vm.runInContext('const libraryStorageIssues = new Map();',context);
   vm.runInContext("const CARD_STORAGE_KEY = 'cards'; const DELETED_CARDS_STORAGE_KEY = 'deleted-cards'; const deletedCardIds = new Set(); const registeredDecks = DEFAULT_DECKS; globalThis.startupCardApi = { parseDeck, seedRegisteredCards, loadRegisteredCards };", context);
   return context;
 }

@@ -184,7 +184,86 @@ function createPokedexStore(storage, key) {
   return {read,save,sync,exportBackup,restoreBackup};
 }
 
-function mountPokedexSync({store, storageKey, refresh}) {
+function createPokedexBrowserStore({database, legacy, key, notify = () => {}}) {
+  let opened;
+  function open() {
+    opened ??= new Promise((resolve,reject) => {
+      const request = database.open('tomtom-pokedex',1);
+      request.onupgradeneeded = () => request.result.createObjectStore('collections');
+      request.onsuccess = () => {
+        const db = request.result;
+        db.onversionchange = () => { db.close(); opened = null; };
+        resolve(db);
+      };
+      request.onerror = () => reject(request.error);
+      request.onblocked = () => reject(new Error('Close older collection tabs and try again.'));
+    }).catch(error => { opened = null; throw error; });
+    return opened;
+  }
+
+  async function transact(operation) {
+    const db = await open();
+    return new Promise((resolve,reject) => {
+      const transaction = db.transaction('collections','readwrite');
+      const collections = transaction.objectStore('collections');
+      const request = collections.get(key);
+      let result, migrated, changed, failure;
+      request.onsuccess = () => {
+        try {
+          const legacyValue = request.result === undefined ? legacy.getItem(key) : null;
+          const before = request.result ?? legacyValue;
+          const snapshot = pokedexSnapshot(before,key);
+          result = operation(snapshot);
+          const after = snapshot.raw();
+          changed = after !== before;
+          if (legacyValue !== null) {
+            snapshot.store.read();
+            migrated = legacyValue;
+          }
+          if (changed || migrated !== undefined) collections.put(after,key);
+        } catch (error) {
+          failure = error;
+          transaction.abort();
+        }
+      };
+      transaction.onabort = () => reject(failure ?? transaction.error);
+      transaction.oncomplete = () => {
+        // Keep the old copy until the database commits successfully.
+        try {
+          if (migrated !== undefined && legacy.getItem(key) === migrated) legacy.removeItem(key);
+        } catch { /* The migrated copy is already committed. */ }
+        resolve(result);
+        if (changed) notify();
+      };
+    });
+  }
+
+  return {
+    read:() => transact(({store}) => store.read()),
+    save:(before,next) => transact(({store}) => store.save(before,next)),
+    exportBackup:() => transact(({store}) => store.exportBackup()),
+    restoreBackup:backup => transact(({store}) => store.restoreBackup(backup)),
+    async sync(client,session) {
+      const before = await transact(snapshot => snapshot.raw());
+      const snapshot = pokedexSnapshot(before,key);
+      const synced = await snapshot.store.sync(client,session);
+      if (!synced) return false;
+      return transact(current => {
+        if (client.getSession()?.userId !== session.userId || current.raw() !== before) return false;
+        current.replace(snapshot.raw());
+        return true;
+      });
+    }
+  };
+}
+
+function pokedexSnapshot(value,key) {
+  let raw = value;
+  const replace = next => { raw = next; };
+  return {raw:() => raw,replace,store:createPokedexStore({getItem:() => raw,setItem:(_,next) => replace(next)},key)};
+}
+
+function mountPokedexSync({store, refresh}) {
   const el = id => document.getElementById(id);
   const menu = el('collectionSync');
   const form = el('collectionSyncForm'), controls = el('collectionSyncControls');
@@ -275,7 +354,6 @@ function mountPokedexSync({store, storageKey, refresh}) {
     event.preventDefault();
   });
   window.addEventListener('storage',event => {
-    if (event.key === storageKey) refresh();
     if (event.key === client.sessionKey) { refreshControls(); schedule(0); }
   });
   window.addEventListener('focus',sync);
@@ -288,5 +366,5 @@ function mountPokedexSync({store, storageKey, refresh}) {
 }
 
 if (typeof module === 'object' && module.exports) {
-  module.exports = {createPokedexStore,mergePokedexCollections,validPokedexCollection,deletePokedexCard,parsePokedexBackup};
+  module.exports = {createPokedexStore,mergePokedexCollections,validPokedexCollection,deletePokedexCard,parsePokedexBackup,createPokedexBrowserStore};
 }

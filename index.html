@@ -29,6 +29,11 @@
         </div>
       </details><button class="btn small mobile-match-button" id="mobileInspectorBtn" type="button" aria-controls="cardInspectorPanel" aria-expanded="false">Inspect</button><button class="btn small mobile-match-button" id="mobileToolsBtn" type="button" aria-controls="matchBoardToolbar" aria-expanded="false">Match</button><button class="btn small" id="matchLogBtn" hidden aria-controls="matchActivityPanel" aria-expanded="true"><span class="desktop-log-label">History &amp; chat</span><span class="mobile-log-label">Log</span></button><button class="btn small" id="homeBtn" hidden>Main menu</button><button class="btn small primary" id="startGameBtn" hidden>Start a game</button></div>
     </header>
+    <aside id="libraryStorageWarning" class="panel" role="status" hidden>
+      <p id="libraryStorageWarningText"></p>
+      <button type="button" class="btn small" id="downloadUnreadableLibraryBtn">Download original saved data</button>
+      <button type="button" class="btn small" id="libraryRecoveryToolsBtn">Open backup &amp; restore</button>
+    </aside>
     <section class="main-menu" id="mainMenu">
       <div class="lobby-scenery" aria-hidden="true">
         <span class="lobby-energy" style="--x:6%;--y:13%;--energy:#ef704f"><svg viewBox="0 0 24 24"><use href="#lobby-fire"/></svg></span>
@@ -205,7 +210,7 @@
             <div class="yami-dialogue"><strong>Yami</strong><p class="yami-speech" id="yamiSpeech" role="status" aria-live="polite">Ready, Toma? Behold my master plan!</p></div>
           </div>
           <label class="local-ai-toggle" title="Pause automatic turns to control Yami by hand"><input id="localAiToggle" type="checkbox" checked><span><strong>Automatic Yami turns</strong></span></label>
-          
+
           <details class="yami-extra-controls"><summary>More controls</summary><div class="local-ai-status" id="localAiStatus">Local opponent ready.</div><div class="yami-control-buttons">
             <button class="btn small" id="runCodexTurnBtn" disabled>Run next move</button>
             <button class="btn small" id="copyStateBtn">Copy chat snapshot</button>
@@ -239,7 +244,7 @@
       <button class="btn small" id="evolveBtn" hidden disabled>Evolve selected</button>
       <div class="attack-panel" id="attackPanel" hidden>
         <div class="attack-panel-heading"><strong>Attacks</strong><small>Hover or focus to preview. Click or tap to attack and end your turn.</small></div>
-        <div class="attack-options" id="attackOptions" role="group" aria-label="Attack moves"></div>
+        <div class="attack-options" id="attackOptions" role="group" aria-label="Attack moves"></div>
       </div>
       <button class="btn small" id="retreatBtn" hidden disabled>Retreat</button>
       <button class="btn small" id="promoteBtn" hidden disabled>Promote Active</button>
@@ -526,6 +531,9 @@
     const MAX_PLAYMAT_IMAGE_LENGTH = 512 * 1024;
     const MAX_PLAYMAT_LIBRARY_LENGTH = 2 * 1024 * 1024;
     const FONT_AREA_DEFAULT = { playmat: 1.15, card: 1.15, log: 1.15 };
+    const libraryStorageIssues = new Map();
+    let databaseRecoveryBackup = null;
+    let libraryRestorePending = false;
     // Card text is matched here; shared resolvers below carry out registered effects.
     const CARD_EFFECT_REGISTRY = {
       attacks: [
@@ -6358,20 +6366,61 @@
       return String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     }
     function readDeletedIds(key) {
+      const field = key === DELETED_DECKS_STORAGE_KEY ? 'deletedDeckIds' : 'deletedCardIds';
+      return new Set(readStoredLibraryRecords(key,field));
+    }
+    function renderLibraryStorageIssue() {
+      const warning = $('libraryStorageWarning');
+      warning.hidden = libraryStorageIssues.size === 0;
+      if (!warning.hidden) $('libraryStorageWarningText').textContent =
+        'Some saved library data needs recovery. Valid entries are available. Download the original data below and restore a valid backup to resume library changes and sync.';
+    }
+    function validateStoredLibraryRecord(field,record) {
+      const data = {decks:[],cards:[],deletedDeckIds:[],deletedCardIds:[],deckStats:{},
+        fontSizes:{...FONT_AREA_DEFAULT},playmats:[]};
+      data[field] = [record];
+      validateLibraryBackup({kind:'pokemon-tcg-playmat-backup',schemaVersion:1,
+        createdAt:new Date().toISOString(),data});
+    }
+    function readStoredLibraryRecords(key,field) {
+      let raw;
+      try { raw = localStorage.getItem(key); }
+      catch {
+        libraryStorageIssues.set(key,{field,error:'Browser storage is unavailable'});
+        renderLibraryStorageIssue();
+        return [];
+      }
       try {
-        const saved = JSON.parse(localStorage.getItem(key) || '[]');
-        return new Set(Array.isArray(saved) ? saved.filter(id => typeof id === 'string') : []);
-      } catch { return new Set(); }
+        const records = raw === null ? [] : JSON.parse(raw);
+        if (!Array.isArray(records)) throw new Error('Expected a saved list');
+        const ids = new Set(), valid = [];
+        let rejected = 0;
+        for (const record of records) {
+          try {
+            validateStoredLibraryRecord(field,record);
+            const id = field.startsWith('deleted') ? record : record.id;
+            if (ids.has(id)) throw new Error('Repeated saved ID');
+            ids.add(id);
+            valid.push(record);
+          } catch { rejected++; }
+        }
+        if (rejected) libraryStorageIssues.set(key,{field,raw,rejected});
+        else libraryStorageIssues.delete(key);
+        if (rejected || libraryStorageIssues.size) renderLibraryStorageIssue();
+        return valid;
+      } catch (error) {
+        libraryStorageIssues.set(key,{field,raw,error:error.message});
+        renderLibraryStorageIssue();
+        return [];
+      }
     }
     function persistDeletedIds(key, ids) {
+      if (libraryStorageIssues.size) return false;
       try { localStorage.setItem(key, JSON.stringify([...ids])); return true; }
       catch { return false; }
     }
     function readSavedDecks() {
-      try {
-        const saved = JSON.parse(localStorage.getItem(DECK_STORAGE_KEY) || '[]');
-        return Array.isArray(saved) ? saved.filter(deck => deck && typeof deck.id === 'string' && typeof deck.name === 'string' && typeof deck.decklist === 'string' && !deletedDeckIds.has(deck.id)) : [];
-      } catch { return []; }
+      return readStoredLibraryRecords(DECK_STORAGE_KEY,'decks').filter(deck => !deletedDeckIds.has(deck.id));
     }
     function starterLibrary() {
       const bundle = globalThis.PLAYMAT_STARTER_LIBRARY;
@@ -6413,10 +6462,7 @@
       return [...cards.values()];
     }
     function readSavedCards() {
-      try {
-        const saved = JSON.parse(localStorage.getItem(CARD_STORAGE_KEY) || '[]');
-        return Array.isArray(saved) ? saved.filter(card => card && typeof card.id === 'string' && typeof card.name === 'string' && typeof card.meta === 'object').map(card => ({ ...card, builtIn: false })) : [];
-      } catch { return []; }
+      return readStoredLibraryRecords(CARD_STORAGE_KEY,'cards').map(card => ({...card,builtIn:false}));
     }
     function loadRegisteredCards() {
       const cards = seedRegisteredCards().filter(card => !deletedCardIds.has(card.id));
@@ -6474,6 +6520,7 @@
       return true;
     }
     function persistRegisteredCards() {
+      if (libraryStorageIssues.size) return false;
       try {
         const starterCards = new Map((starterLibrary()?.cards || []).map(card=>[card.id,card]));
         const localCards = registeredCards.filter(card=>{
@@ -6491,6 +6538,7 @@
       catch { return false; }
     }
     function persistSavedDecks() {
+      if (libraryStorageIssues.size) return false;
       try {
         const customDecks = registeredDecks.filter(deck => !deck.builtIn);
         const builtInOverrides = registeredDecks.filter(deck => deck.builtIn).filter(deck => {
@@ -20730,12 +20778,14 @@
         deletedDeckIds:DELETED_DECKS_STORAGE_KEY,deletedCardIds:DELETED_CARDS_STORAGE_KEY};
     }
     function librarySyncSnapshot() {
+      if (libraryStorageIssues.size) throw new Error('Recover the saved library before syncing. Download the original data from the recovery notice.');
       const data = {schemaVersion:1};
       for (const [field,key] of Object.entries(librarySyncStorageKeys())) {
         const value = JSON.parse(localStorage.getItem(key) || '[]');
         if (!Array.isArray(value)) throw new Error('This browser’s library could not be read.');
         data[field] = value;
       }
+      validateSyncedLibrary(data);
       data.decks = data.decks.map(({id,name,decklist,category,coverCardId,coverImage,strategyBaseline})=>
         ({id,name,decklist,category,coverCardId,coverImage,strategyBaseline}));
       data.cards = data.cards.map(({id,name,setCode,cardNumber,language,category,categoryHint,tcgdexId,limitlessId,meta})=>
@@ -20872,7 +20922,7 @@
     function dataTransferBusy() {
       return !!(coinPresentationPending || window.effectResolutionPending || attackResolutionPending || activeCardChoiceResolver || activeBoardChoiceResolver || deckImportBusy || deckResolutionBusy || playmatUploadBusy || implementingCard || activeCardHydrations || cardHydrationQueue.length || $('refreshAllCardStatusesBtn').disabled || $('retryMissingCardDataBtn').disabled);
     }
-    function restoreLibraryBackup(input) {
+    function restoreLibraryBackup(input, reservedRecovery = null) {
       if (dataTransferBusy()) throw new Error('Finish the current choice or card update before restoring a backup.');
       const backup = validateLibraryBackup(input), keys = managedBackupKeys();
       if (backup.data.deckOrder === undefined) delete keys.deckOrder;
@@ -20880,10 +20930,19 @@
       let previous;
       try { previous = Object.fromEntries(Object.entries(keys).map(([name, key]) => [name, localStorage.getItem(key)])); }
       catch { throw new Error('The browser blocked access to saved data. No data was changed.'); }
-      const recovery = JSON.stringify(buildLibraryBackup());
+      const recovery = JSON.stringify({...buildLibraryBackup(),
+        unreadableLibrary:Object.fromEntries(libraryStorageIssues)});
       const next = Object.fromEntries(Object.keys(keys).map(name => [name, JSON.stringify(backup.data[name])]));
-      try { localStorage.setItem(RECOVERY_BACKUP_STORAGE_KEY, recovery); }
-      catch { throw new Error('There is not enough browser storage to keep a recovery copy. No saved data was changed. Download a backup before freeing any space.'); }
+      if (reservedRecovery !== null) {
+        if (reservedRecovery !== databaseRecoveryBackup ||
+            JSON.stringify(JSON.parse(reservedRecovery).data) !== JSON.stringify(buildLibraryBackup().data)) {
+          throw new Error('Your saved data changed while preparing recovery. Try restoring again.');
+        }
+        localStorage.removeItem(RECOVERY_BACKUP_STORAGE_KEY);
+      } else {
+        try { localStorage.setItem(RECOVERY_BACKUP_STORAGE_KEY, recovery); }
+        catch { throw new Error('There is not enough browser storage to keep a recovery copy. No saved data was changed. Download a backup before freeing any space.'); }
+      }
       try { for (const [name, key] of Object.entries(keys)) localStorage.setItem(key, next[name]); }
       catch (error) {
         try {
@@ -20894,6 +20953,8 @@
         }
         throw new Error('Restore could not be saved. Your previous saved data was restored; the recovery copy is also available below.');
       }
+      libraryStorageIssues.clear();
+      renderLibraryStorageIssue();
       clearTimeout(localAiTimer); localAiTimer = null;
       clearPlaymatEffects();
       deletedDeckIds = readDeletedIds(DELETED_DECKS_STORAGE_KEY); deletedCardIds = readDeletedIds(DELETED_CARDS_STORAGE_KEY);
@@ -20931,10 +20992,20 @@
       ++restoreFileReadId; stagedRestoreBackup = null;
       $('confirmBackupRestore').checked = false; $('confirmBackupRestore').disabled = true; $('restoreBackupBtn').disabled = true;
     }
-    function openBackupTools() {
+    async function openBackupTools() {
       resetRestorePreview(); $('restoreBackupFile').value = ''; $('restoreBackupPreview').textContent = 'Choose a backup file to see what it contains.'; $('backupToolsStatus').textContent = '';
       $('downloadRecoveryBackupBtn').hidden = !hasRecoveryBackup();
       $('backupToolsModal').classList.remove('hidden');
+      if (typeof indexedDB !== 'undefined') {
+        try {
+          const saved = await recordingTransaction('readonly',store=>store.get(RECOVERY_BACKUP_STORAGE_KEY));
+          if (saved && typeof saved === 'string') {
+            parseLibraryBackup(saved);
+            databaseRecoveryBackup = saved;
+            $('downloadRecoveryBackupBtn').hidden = false;
+          }
+        } catch { /* A legacy recovery download can still be available. */ }
+      }
     }
     async function previewRestoreFile(file) {
       resetRestorePreview(); const readId = restoreFileReadId;
@@ -20950,20 +21021,40 @@
         return true;
       } catch (error) { if (readId === restoreFileReadId) $('restoreBackupPreview').textContent = error.message; return false; }
     }
-    function applyStagedRestore() {
+    async function applyStagedRestore() {
+      if (libraryRestorePending) return false;
       if (!stagedRestoreBackup || !$('confirmBackupRestore').checked) { $('backupToolsStatus').textContent = 'Choose a valid backup and confirm replacement first.'; return false; }
+      libraryRestorePending = true;
+      const staged = stagedRestoreBackup;
+      $('restoreBackupBtn').disabled = true;
       try {
-        const result = restoreLibraryBackup(stagedRestoreBackup);
+        let reserved = null;
+        if (typeof indexedDB !== 'undefined') {
+          validateLibraryBackup(staged);
+          reserved = JSON.stringify({...buildLibraryBackup(),unreadableLibrary:Object.fromEntries(libraryStorageIssues)});
+          await recordingTransaction('readwrite',store=>store.put(reserved,RECOVERY_BACKUP_STORAGE_KEY));
+          databaseRecoveryBackup = reserved;
+          if (staged !== stagedRestoreBackup || !$('confirmBackupRestore').checked) return false;
+        }
+        const result = restoreLibraryBackup(staged,reserved);
         resetRestorePreview(); $('restoreBackupFile').value = ''; $('restoreBackupPreview').textContent = 'Restore completed. Choose another backup to restore again.';
         $('downloadRecoveryBackupBtn').hidden = false;
         $('backupToolsStatus').textContent = `Restored ${result.decks} decks and ${result.cards} cards. Your previous data is available with the recovery download button.`;
         populateDeckSelectors(); applyFontSizeSettings(); refreshDeckReadinessUi(); renderDeckBuilder(); setView('menu'); render();
         return true;
       } catch (error) { recordDiagnostic('restore-error', error.message); $('backupToolsStatus').textContent = error.message; $('downloadRecoveryBackupBtn').hidden = !hasRecoveryBackup(); return false; }
+      finally {
+        libraryRestorePending = false;
+        $('restoreBackupBtn').disabled = !stagedRestoreBackup || !$('confirmBackupRestore').checked;
+      }
     }
-    function hasRecoveryBackup() { try { return !!localStorage.getItem(RECOVERY_BACKUP_STORAGE_KEY); } catch { return false; } }
+    function hasRecoveryBackup() { try { return !!databaseRecoveryBackup || !!localStorage.getItem(RECOVERY_BACKUP_STORAGE_KEY); } catch { return !!databaseRecoveryBackup; } }
     function downloadRecoveryBackup() {
-      const saved = localStorage.getItem(RECOVERY_BACKUP_STORAGE_KEY);
+      let saved = databaseRecoveryBackup;
+      try {
+        const legacy = localStorage.getItem(RECOVERY_BACKUP_STORAGE_KEY);
+        if (legacy && (!saved || Date.parse(JSON.parse(legacy).createdAt) > Date.parse(JSON.parse(saved).createdAt))) saved = legacy;
+      } catch { /* Use the recovery copy loaded from the database. */ }
       if (!saved) throw new Error('There is no previous restore to recover.');
       const recovery = parseLibraryBackup(saved);
       downloadJsonFile(recovery, datedDownloadName('playmat-before-restore'));
@@ -21247,6 +21338,11 @@
     $('downloadProblemReportBtn').addEventListener('click', () => { try { downloadProblemReport(); } catch (error) { $('problemReportStatus').textContent = error.message; } });
     $('backupToolsBtn').addEventListener('click', () => { settingsMenu.open = false; openBackupTools(); });
     $('closeBackupToolsBtn').addEventListener('click', () => { resetRestorePreview(); $('backupToolsModal').classList.add('hidden'); });
+    $('libraryRecoveryToolsBtn').addEventListener('click',openBackupTools);
+    $('downloadUnreadableLibraryBtn').addEventListener('click',() => {
+      downloadJsonFile({kind:'playmat-library-recovery-data',createdAt:new Date().toISOString(),
+        entries:Object.fromEntries(libraryStorageIssues)},datedDownloadName('playmat-original-library'));
+    });
     $('downloadBackupBtn').addEventListener('click', () => {
       try { if (dataTransferBusy()) throw new Error('Finish the current choice or card update before making a backup.'); downloadJsonFile(buildLibraryBackup(), datedDownloadName('playmat-backup')); $('backupToolsStatus').textContent = 'Full backup downloaded. Keep the file somewhere safe.'; }
       catch (error) { $('backupToolsStatus').textContent = error.message; }

@@ -1,4 +1,4 @@
-(() => {
+(async () => {
   'use strict';
   const variants = ['normal','holo','reverse-holo','pokeball-reverse-holo','masterball-reverse-holo','energy-reverse-holo','illustration-rare','special'];
   const storageKey = 'tomtom.pokedex.collection.v1';
@@ -201,13 +201,15 @@
   const collectionButtons = [...document.querySelectorAll('[data-collection]')];
   let collection = 'all';
   let data = empty(), view = 'cards', speciesFilter = null, speciesReturn, limit = pageSize, editing, damagedStorage = false;
-  const collectionStore = createPokedexStore(localStorage,storageKey);
+  const collectionChannel = typeof BroadcastChannel === 'function' ? new BroadcastChannel(storageKey) : null;
+  const collectionStore = createPokedexBrowserStore({database:globalThis.indexedDB,legacy:localStorage,key:storageKey,
+    notify:() => collectionChannel?.postMessage('changed')});
   let collectionRaw, collectionSync;
 
-  function refreshCollection() {
+  async function refreshCollection() {
     try {
-      if (localStorage.getItem(storageKey) === collectionRaw) return false;
-      const current = collectionStore.read();
+      const current = await collectionStore.read();
+      if (current.raw === collectionRaw) return false;
       collectionRaw = current.raw;
       data = normalizeSavedVariants(current.collection);
       if (damagedStorage) el('notice').textContent = '';
@@ -219,12 +221,13 @@
       return false;
     }
   }
-  refreshCollection();
+  el('addCard').disabled = true;
+  await refreshCollection();
 
-  function save(next) {
+  async function save(next) {
     if (damagedStorage) throw new Error('Saved collection could not be read. Changes are disabled.');
-    data = normalizeSavedVariants(collectionStore.save(data,next));
-    collectionRaw = localStorage.getItem(storageKey);
+    await collectionStore.save(data,next);
+    await refreshCollection();
     collectionSync?.changed();
   }
 
@@ -347,9 +350,9 @@
     const grid = node('div',null,'species-print-grid');
     for (const card of copies) {
       if (card === featured) continue;
-      grid.append(cardTile(card,{style:'alternate-print',choose:() => {
+      grid.append(cardTile(card,{style:'alternate-print',choose:async () => {
         try {
-          save({...data,preferences:chooseFeaturedCard(data.preferences,entry.key,card.id)});
+          await save({...data,preferences:chooseFeaturedCard(data.preferences,entry.key,card.id)});
           render();
           el('results').querySelector('.featured-print button')?.focus({preventScroll:true});
           el('notice').textContent = 'Featured card updated.';
@@ -481,7 +484,7 @@
     return [...data.binder].sort((a,b)=>(ranks.get(a.id) ?? Infinity)-(ranks.get(b.id) ?? Infinity) || 0);
   }
 
-  function moveSpecialCard(id,target) {
+  async function moveSpecialCard(id,target) {
     if (!reorderingSpecial || id===target) return;
     const order = orderedSpecialCards().map(card=>card.id);
     const from = order.indexOf(id), to = order.indexOf(target);
@@ -489,7 +492,7 @@
     order.splice(from,1);
     order.splice(to,0,id);
     try {
-      save({...data,preferences:[...data.preferences.filter(row=>row.id!==specialOrderId),{id:specialOrderId,order}]});
+      await save({...data,preferences:[...data.preferences.filter(row=>row.id!==specialOrderId),{id:specialOrderId,order}]});
       render();
       [...el('results').querySelectorAll('.special-card')].find(card=>card.dataset.cardId===id)?.querySelector('button')?.focus({preventScroll:true});
     } catch (error) { el('notice').textContent = error.message; }
@@ -750,6 +753,7 @@
   });
   for (const key of ['set','number','variant']) editorFields[key].addEventListener('change',updateEditorArtwork);
   function openEditor(card, entry = speciesFilter, draft = null) {
+    if (editorSave.disabled) return;
     const values = card || draft;
     const type = draft?.destination || (view === 'binder' ? 'binder' : 'cards');
     editing = {card,language:draft?.language,type,originalImage:safeImage(values?.image),
@@ -787,8 +791,10 @@
     el('editorStatus').textContent = '';
     el('editor').showModal();
   }
-  el('editorForm').addEventListener('submit', event => {
+  const editorSave = editorForm.querySelector('button[type="submit"]');
+  el('editorForm').addEventListener('submit', async event => {
     event.preventDefault();
+    if (editorSave.disabled) return;
     const form = new FormData(event.currentTarget);
     const read = key => String(form.get(key) || '').trim();
     const {card, type, language} = editing;
@@ -803,12 +809,17 @@
     const makeFeatured = form.has('makeFeatured') && !card && type === 'cards' &&
       editing.featuredEntryKey === entry.pokemonKey && hasOwnedPrint(data.cards,entry.pokemonKey);
     const preferences = makeFeatured ? chooseFeaturedCard(data.preferences,entry.pokemonKey,entry.id) : data.preferences;
+    editorSave.disabled = true;
     try {
-      save({...data,[type]:updated,preferences});
+      await save({...data,[type]:updated,preferences});
       el('editor').close();
       el('notice').textContent = makeFeatured ? 'Card saved and set as featured.' : 'Card saved in this browser.';
       render();
-    } catch (error) { el('editorStatus').textContent = 'Could not save the card. ' + error.message; }
+    } catch (error) {
+      el('editorStatus').textContent = error.name === 'QuotaExceededError' ?
+        'This device has no room for the card. Free up device storage and try again.' :
+        'Could not save the card. ' + error.message;
+    } finally { editorSave.disabled = false; }
   });
   el('deleteCard').addEventListener('click',()=>{
     el('deleteCard').hidden = true;
@@ -820,20 +831,23 @@
     el('deleteCard').hidden = false;
     el('deleteCard').focus();
   });
-  el('confirmDeleteCard').addEventListener('click',()=>{
+  el('confirmDeleteCard').addEventListener('click',async event=>{
     const {type,card} = editing;
     if (!card) return;
+    const confirm = event.currentTarget;
+    confirm.disabled = true;
     try {
       const next = deletePokedexCard(data,type,card.id);
-      if (next !== data) save(next);
+      if (next !== data) await save(next);
       el('editor').close();
       render();
       el('notice').textContent = '';
     } catch (error) {
       el('editorStatus').textContent = 'Could not delete the card. ' + error.message;
-    }
+    } finally { confirm.disabled = false; }
   });
-  el('cancelEdit').addEventListener('click', () => el('editor').close());
+  el('cancelEdit').addEventListener('click', () => { if (!editorSave.disabled) el('editor').close(); });
+  el('editor').addEventListener('cancel',event => { if (editorSave.disabled) event.preventDefault(); });
   el('addCard').addEventListener('click', () => openCardCapture({destination:view === 'binder' ? 'binder' : 'cards'}));
   for (const item of document.querySelectorAll('[data-view]')) item.addEventListener('click', () => {
     view = item.dataset.view; speciesFilter = null; speciesReturn = null; collection = 'all'; limit = pageSize;
@@ -868,9 +882,10 @@
     const option = node('option',variantOptionLabel(value)); option.value = value; el('variantFilter').append(option);
   }
   render();
-  collectionSync = mountPokedexSync({store:collectionStore,storageKey,refresh:() => {
-    if (refreshCollection()) render();
-  }});
+  const refreshView = async () => { if (await refreshCollection()) render(); };
+  collectionChannel?.addEventListener('message',refreshView);
+  window.addEventListener('focus',refreshView);
+  collectionSync = mountPokedexSync({store:collectionStore,refresh:refreshView});
   const backupDialog = el('collectionBackup');
   const backupStatus = el('collectionBackupStatus');
   const backupFile = el('collectionBackupFile');
@@ -880,9 +895,9 @@
     backupFile.value = '';
     backupDialog.showModal();
   });
-  el('collectionBackupDownload').addEventListener('click', () => {
+  el('collectionBackupDownload').addEventListener('click', async () => {
     try {
-      const backup = collectionStore.exportBackup();
+      const backup = await collectionStore.exportBackup();
       const url = URL.createObjectURL(new Blob([backup],{type:'application/json'}));
       const link = node('a');
       link.href = url;
@@ -904,8 +919,8 @@
     backupStatus.textContent = '';
     try {
       const backup = parsePokedexBackup(await file.text());
-      collectionStore.restoreBackup(backup);
-      if (refreshCollection()) render();
+      await collectionStore.restoreBackup(backup);
+      await refreshView();
       collectionSync.changed();
       backupFile.value = '';
       backupStatus.textContent = 'Collection recovered in this browser.';
@@ -923,4 +938,5 @@
     speciesNames:names,displayVariant,variantOptionLabel,variantBadge,variants,
     openAdd:draft=>openEditor(null,null,draft)
   });
+  el('addCard').disabled = false;
 })();

@@ -58,18 +58,18 @@ test('download full backup button produces a valid local JSON backup',async()=>{
 });
 test('restore preview and confirmation are required; successful restore resets the match and shows recovery controls',async()=>{
   const r=runner(true),backup=sampleBackup(r),file={name:'my-backup.json',size:1000,text:async()=>JSON.stringify(backup)};
-  assert.equal(r.api.applyRestore(),false);assert.equal(await r.api.previewBackupFile(file),true);assert.match(r.document.getElementById('restoreBackupPreview').textContent,/decks, .* cards/);
-  assert.equal(r.api.applyRestore(),false);assert.ok(r.api.state());r.document.getElementById('confirmBackupRestore').checked=true;
-  assert.equal(r.api.applyRestore(),true);assert.equal(r.api.state(),null);assert.equal(r.document.getElementById('downloadRecoveryBackupBtn').hidden,false);assert.match(r.document.getElementById('backupToolsStatus').textContent,/Restored/);
+  assert.equal(await r.api.applyRestore(),false);assert.equal(await r.api.previewBackupFile(file),true);assert.match(r.document.getElementById('restoreBackupPreview').textContent,/decks, .* cards/);
+  assert.equal(await r.api.applyRestore(),false);assert.ok(r.api.state());r.document.getElementById('confirmBackupRestore').checked=true;
+  assert.equal(await r.api.applyRestore(),true);assert.equal(r.api.state(),null);assert.equal(r.document.getElementById('downloadRecoveryBackupBtn').hidden,false);assert.match(r.document.getElementById('backupToolsStatus').textContent,/Restored/);
 });
 test('an invalid file clears a previously valid restore candidate and cannot restore stale data',async()=>{
   const r=runner(),backup=sampleBackup(r);assert.equal(await r.api.previewBackupFile({name:'good.json',size:100,text:async()=>JSON.stringify(backup)}),true);
   r.document.getElementById('confirmBackupRestore').checked=true;const before=rawStorage(r);
-  assert.equal(await r.api.previewBackupFile({name:'bad.json',size:10,text:async()=>'{broken'}),false);assert.equal(r.document.getElementById('confirmBackupRestore').checked,false);assert.equal(r.api.applyRestore(),false);assert.equal(rawStorage(r),before);
+  assert.equal(await r.api.previewBackupFile({name:'bad.json',size:10,text:async()=>'{broken'}),false);assert.equal(r.document.getElementById('confirmBackupRestore').checked,false);assert.equal(await r.api.applyRestore(),false);assert.equal(rawStorage(r),before);
 });
 test('late file reads cannot replace a newer selected backup',async()=>{
   const r=runner(),backup=sampleBackup(r);let finish;const old=r.api.previewBackupFile({name:'old.json',size:100,text:()=>new Promise(resolve=>{finish=resolve})});
-  await r.api.previewBackupFile({name:'new.json',size:10,text:async()=>'{invalid'});finish(JSON.stringify(backup));assert.equal(await old,false);assert.equal(r.document.getElementById('confirmBackupRestore').disabled,true);assert.equal(r.api.applyRestore(),false);
+  await r.api.previewBackupFile({name:'new.json',size:10,text:async()=>'{invalid'});finish(JSON.stringify(backup));assert.equal(await old,false);assert.equal(r.document.getElementById('confirmBackupRestore').disabled,true);assert.equal(await r.api.applyRestore(),false);
 });
 test('file picker, confirmation, restore and recovery download work through their registered controls',async()=>{
   const r=runner(true),backup=sampleBackup(r),oldData=JSON.stringify(r.api.backup().data);
@@ -87,7 +87,7 @@ test('closing backup tools invalidates an unfinished file read',async()=>{
   const r=runner();let finish;await r.document.getElementById('backupToolsBtn').click();
   const pending=r.api.previewBackupFile({name:'slow.json',size:100,text:()=>new Promise(resolve=>{finish=resolve})});
   await r.document.getElementById('closeBackupToolsBtn').click();finish(JSON.stringify(sampleBackup(r)));assert.equal(await pending,false);
-  assert.equal(r.document.getElementById('backupToolsModal').classList.contains('hidden'),true);assert.equal(r.api.applyRestore(),false);
+  assert.equal(r.document.getElementById('backupToolsModal').classList.contains('hidden'),true);assert.equal(await r.api.applyRestore(),false);
 });
 test('blocked browser storage leaves the live library unchanged and produces a useful restore error',()=>{
   const r=runner(true),backup=sampleBackup(r),before=gameState(r),data=JSON.stringify(r.api.backup().data);
@@ -98,7 +98,7 @@ test('a rollback storage failure still leaves a downloadable recovery backup',as
   const r=runner(),backup=sampleBackup(r);r.api.restoreBackup(backup);const oldData=JSON.stringify(r.api.backup().data),storage=r.context.localStorage,original=storage.setItem;
   storage.setItem=(key,value)=>{if(key!==recoveryKey)throw new Error('Storage unavailable');return original(key,value)};
   await r.api.previewBackupFile({name:'next.json',size:100,text:async()=>JSON.stringify(backup)});r.document.getElementById('confirmBackupRestore').checked=true;
-  assert.equal(r.api.applyRestore(),false);assert.match(r.document.getElementById('backupToolsStatus').textContent,/could not be fully recovered/);assert.equal(r.document.getElementById('downloadRecoveryBackupBtn').hidden,false);
+  assert.equal(await r.api.applyRestore(),false);assert.match(r.document.getElementById('backupToolsStatus').textContent,/could not be fully recovered/);assert.equal(r.document.getElementById('downloadRecoveryBackupBtn').hidden,false);
   await r.document.getElementById('downloadRecoveryBackupBtn').click();assert.equal(JSON.stringify(JSON.parse(await r.context.window.__downloadBlob.text()).data),oldData);
 });
 test('restored card status labels cannot bypass exact-print and complete-text checks',()=>{
