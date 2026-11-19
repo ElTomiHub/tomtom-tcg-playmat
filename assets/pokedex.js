@@ -103,6 +103,19 @@
   const catalogEntry = card => entriesByKey.get(card.pokemonKey) ||
     {id:card.pokemonId,key:card.pokemonKey || String(card.pokemonId),sprite:card.pokemonId};
   const binderNumber = id => id<=386 ? 1 : id<=721 ? 2 : 3;
+  function evolutionFamily(key, links = globalThis.POKEDEX_EVOLUTION_LINKS || []) {
+    if (!entriesByKey.has(key)) return null;
+    const parents = new Map(), children = new Map();
+    for (const [from,to] of links) {
+      parents.set(to,from);
+      if (!children.has(from)) children.set(from,[]);
+      children.get(from).push(to);
+    }
+    let root = key;
+    while (parents.has(root)) root = parents.get(root);
+    const branch = key => ({entry:entriesByKey.get(key),children:(children.get(key) || []).map(branch)});
+    return branch(root);
+  }
   function featuredCard(copies, preferredId) {
     return copies.find(card => card.id === preferredId) ||
       copies.find(card => /^(true|t)$/i.test(card.featured)) ||
@@ -183,7 +196,7 @@
   }
 
   if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {inRegion,normalizeSavedVariants,binderNumber,catalogEntry,entryInRegion,tomaPokemonNames,normalizeSearch,featuredCard,chooseFeaturedCard,collectedSpecies,hasOwnedPrint};
+    module.exports = {inRegion,normalizeSavedVariants,binderNumber,catalogEntry,entryInRegion,tomaPokemonNames,normalizeSearch,featuredCard,chooseFeaturedCard,collectedSpecies,hasOwnedPrint,evolutionFamily};
     return;
   }
 
@@ -383,8 +396,10 @@
     return article;
   }
 
-  function showSpecies(entry) {
-    speciesReturn = {search:el('search').value, variant:el('variantFilter').value, limit, scroll:window.scrollY};
+  function showSpecies(entry, historyCardId = null) {
+    if (!speciesFilter) speciesReturn = {view,entryKey:entry.key,historyCardId,
+      search:el('search').value,variant:el('variantFilter').value,limit,scroll:window.scrollY};
+    view = 'cards';
     speciesFilter = entry;
     render();
     el('viewHeading').focus({preventScroll:true});
@@ -393,8 +408,9 @@
 
   function renderSpeciesDetails(entry, copies, preferredId) {
     const name = entryName(entry);
-    const back = button('← Back to Pokédex', () => {
+    const back = button(speciesReturn?.view === 'recent' ? '← Back to History' : '← Back to Pokédex', () => {
       const previous = speciesReturn;
+      view = previous?.view || 'cards';
       speciesFilter = null;
       speciesReturn = null;
       limit = previous?.limit || pageSize;
@@ -402,8 +418,11 @@
       el('variantFilter').value = previous?.variant || '';
       render();
       window.scrollTo(0,previous?.scroll || 0);
+      const origin = entriesByKey.get(previous?.entryKey) || entry;
       [...el('results').querySelectorAll('.species-open')].find(item =>
-        item.getAttribute('aria-label') === 'View registered cards for ' + name)?.focus({preventScroll:true});
+        item.getAttribute('aria-label') === 'View registered cards for ' + entryName(origin))?.focus({preventScroll:true});
+      [...el('results').querySelectorAll('.recent-card')].find(item =>
+        item.dataset.cardId === previous?.historyCardId)?.focus({preventScroll:true});
     });
     back.className = 'species-back';
     el('viewHeading').after(back);
@@ -438,6 +457,7 @@
     info.append(counts);
     if (data.preferences.some(preference => preference.normalOnly && preference.pokemonKey === entry.key))
       info.append(node('small','Normal only'));
+    info.append(renderSpeciesRelations(entry));
 
     const shelf = node('section',null,'species-prints');
     shelf.append(node('h3','Other prints'));
@@ -458,10 +478,61 @@
     grid.append(add);
     shelf.append(grid);
     if (featured) layout.append(cardTile(featured,{style:'featured-print',featured:true}));
+    else {
+      const missing = node('section',null,'card species-missing');
+      missing.append(photo(pokemonSprites+entry.sprite+'.png',''),node('h3',name),
+        node('p','Missing from your collection.','note'),button('＋ Add card',()=>openCardCapture({entry})));
+      layout.append(missing);
+    }
     const side = node('div',null,'species-sidebar');
     side.append(info,shelf);
     layout.append(side);
     el('results').append(layout);
+  }
+
+  function renderSpeciesRelations(selectedEntry) {
+    const section = node('div',null,'species-relations');
+    const owned = new Set(data.cards.map(card=>catalogEntry(card).key));
+    function link(entry) {
+      const item = button(null,()=>{if (entry.key !== selectedEntry.key) showSpecies(entry);});
+      item.className = 'species-relation-link';
+      item.dataset.owned = String(owned.has(entry.key));
+      item.dataset.pokemonKey = entry.key;
+      if (entry.key === selectedEntry.key) item.setAttribute('aria-current','page');
+      item.setAttribute('aria-label',entryName(entry)+(owned.has(entry.key) ? ' · Collected' : ' · Missing'));
+      item.append(photo(pokemonSprites+entry.sprite+'.png',''),node('span',entryName(entry)));
+      return item;
+    }
+    function tree(family) {
+      const branch = node('div',null,'evolution-branch');
+      branch.append(link(family.entry));
+      if (family.children.length) {
+        const arrow = node('span','→','evolution-arrow');
+        arrow.setAttribute('aria-hidden','true');
+        const children = node('div',null,'evolution-children');
+        if (family.children.every(child=>!child.children.length)) children.classList.add('evolution-leaves');
+        children.append(...family.children.map(tree));
+        branch.append(arrow,children);
+      }
+      return branch;
+    }
+    const family = evolutionFamily(selectedEntry.key);
+    if (family) {
+      const evolution = node('section',null,'species-evolutions');
+      evolution.append(node('h3','Evolution line'),tree(family));
+      if (!family.children.length) evolution.append(node('small','No evolutions.','note'));
+      section.append(evolution);
+    }
+    const regional = formEntries.filter(entry=>entry.id===Number(selectedEntry.id) && entry.region);
+    if (regional.length) {
+      const forms = node('section',null,'species-regional-forms');
+      forms.append(node('h3','Regional forms'));
+      const list = node('div',null,'regional-form-links');
+      list.append(...[national[Number(selectedEntry.id)-1],...regional].map(link));
+      forms.append(list);
+      section.append(forms);
+    }
+    return section;
   }
 
   function speciesTile(entry, copies = [], deckNames = new Set(), variantCount = 0, preferredId) {
@@ -540,17 +611,20 @@
     if (!rows.length) { el('results').append(node('p','Dated card additions will appear here.','note')); return; }
     const list = node('div',null,'recent-list');
     for (const {card,destination,time} of rows.slice(0,limit)) {
-      const item = button(null,()=>openEditor(card,null,{destination}));
+      const entry = validSpecies(Number(card.pokemonId)) ? catalogEntry({...card,pokemonId:Number(card.pokemonId)}) :
+        editorNames.get(normalizeSearch(card.name));
+      const item = button(null,()=>entry ? showSpecies(entry,card.id) : openEditor(card,null,{destination}));
       item.className = 'recent-card';
+      item.dataset.cardId = card.id;
       const date = node('time',additionDate.format(time));
       date.dateTime = new Date(time).toISOString();
-      const entry = destination==='cards' && validSpecies(Number(card.pokemonId)) ? catalogEntry(card) : null;
       const print = node('span',null,'recent-print');
       print.append(node('strong',title(card)));
       if (entry) print.append(node('small',dexLabel(entry.id)+' '+entryName(entry)));
       const metadata = node('span',null,'recent-print');
       metadata.append(node('small',[card.set,card.number].filter(Boolean).join(' · ')),variantBadge(card.variant));
-      const location = node('small',entry ? generationLabel(entry.id)+' · Binder '+binderNumber(entry.id) : 'Special Collection');
+      const location = node('small',destination==='cards' && entry ?
+        generationLabel(entry.id)+' · Binder '+binderNumber(entry.id) : 'Special Collection');
       item.append(date,photo(card.image,'No image'),print,metadata,location);
       list.append(item);
     }
@@ -630,6 +704,8 @@
   }
 
   function render() {
+    for (const button of document.querySelectorAll('[data-view]'))
+      button.setAttribute('aria-pressed',String(button.dataset.view === view));
     const owned = ownedSpecies();
     const completion = (owned.size*100/totalSpecies).toFixed(1);
     const remaining = totalSpecies-owned.size;

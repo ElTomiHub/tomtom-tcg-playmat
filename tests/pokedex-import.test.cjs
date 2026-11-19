@@ -1,7 +1,47 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const {inRegion,normalizeSavedVariants,binderNumber,catalogEntry,entryInRegion,tomaPokemonNames,normalizeSearch,featuredCard,chooseFeaturedCard,collectedSpecies,hasOwnedPrint}=require('../assets/pokedex.js');
+const {evolutionFamily}=require('../assets/pokedex.js');
 require('../assets/pokedex-species-names.js');
+require('../assets/pokedex-evolutions.js');
+
+test('evolution families include all stages and retain branching evolutions',()=>{
+  const family=evolutionFamily('2');
+  assert.equal(family.entry.key,'1');
+  assert.equal(family.children[0].entry.key,'2');
+  assert.equal(family.children[0].children[0].entry.key,'3');
+  assert.equal(evolutionFamily('133').children.length,8);
+  assert.equal(evolutionFamily('201').children.length,0);
+});
+
+test('regional evolution families follow their own parent forms',()=>{
+  const meowth=evolutionFamily('52-galarian');
+  assert.equal(meowth.entry.key,'52-galarian');
+  assert.deepEqual(meowth.children.map(child=>child.entry.key),['863']);
+  assert.deepEqual(evolutionFamily('52').children.map(child=>child.entry.key),['53']);
+  const sneasel=evolutionFamily('903');
+  assert.equal(sneasel.entry.key,'215-hisuian');
+  assert.equal(sneasel.children[0].entry.key,'903');
+  const raichu=evolutionFamily('26-alolan');
+  assert.equal(raichu.entry.key,'172');
+  assert.ok(raichu.children[0].children.some(child=>child.entry.key==='26-alolan'));
+});
+
+test('all bundled evolution relationships resolve to catalog entries without cycles',()=>{
+  for(const key of new Set(globalThis.POKEDEX_EVOLUTION_LINKS.flat())) {
+    const family=evolutionFamily(key);
+    assert.ok(family,key);
+    const visited=new Set();
+    function visit(branch) {
+      assert.ok(branch.entry,key);
+      assert.equal(visited.has(branch.entry.key),false);
+      visited.add(branch.entry.key);
+      branch.children.forEach(visit);
+    }
+    visit(family);
+    assert.ok(visited.has(key));
+  }
+});
 
 test('species progress counts a Pokédex number once and ignores invalid saved numbers',()=>{
   const cards=[25,'025',25.5,'25.1','01025',1026,null,164].map(pokemonId=>({pokemonId}));

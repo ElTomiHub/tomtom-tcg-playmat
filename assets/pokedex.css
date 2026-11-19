@@ -153,6 +153,29 @@ input, select, textarea { width: 100%; min-width: 0; }
 .species-localized { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
 .species-overview img { width: 48px; height: 48px; object-fit: contain; }
 .species-info .variant-counts { display: flex; flex-wrap: wrap; gap: 8px; }
+.species-relations { display: grid; gap: 14px; margin-top: 12px; border-top: 1px solid #65829e50; padding-top: 14px; }
+.species-relations h3 { margin: 0 0 10px; font-size: 13px; }
+.evolution-branch { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.evolution-children { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.evolution-leaves, .regional-form-links { display: flex; flex-direction: row; flex-wrap: wrap; gap: 8px; }
+.evolution-arrow { color: #b5c8dc; font-size: 15px; flex: none; }
+.species-relation-link {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px; width: 78px; min-height: 86px; flex: none; padding: 6px 4px;
+  border-color: #65829e60; background: #0b213b; text-align: center;
+}
+.species-relation-link img { width: 38px; height: 38px; object-fit: contain; }
+.species-relation-link span { font-size: 11px; line-height: 1.3; overflow-wrap: anywhere; }
+.species-relation-link[data-owned="false"] img, .species-missing img { filter: grayscale(1); opacity: .55; }
+.species-relation-link[data-owned="true"] { border-color: #6bc4a966; }
+.species-relation-link[aria-current="page"] { border-color: #f5c75c; background: #f5c75c13; }
+.species-relation-link:hover { border-color: #f5c75c; }
+.species-missing { padding: 20px; text-align: center; }
+.species-missing img { height: 150px; }
+@media (max-width: 550px) {
+  .species-relation-link { width: 64px; min-height: 84px; }
+  .evolution-branch { gap: 4px; }
+}
 .recent-list { display: grid; gap: 8px; }
 .recent-card {
   display: grid; grid-template-columns: minmax(105px,.8fr) 42px minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);
