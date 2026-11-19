@@ -12,7 +12,7 @@
   <script defer src="assets/pokedex-evolutions.js?v=1"></script>
   <script defer src="assets/library-sync.js?v=5"></script>
   <script defer src="assets/pokedex-sync.js?v=5"></script>
-  <script defer src="assets/pokedex-scan.js?v=7"></script>
+  <script defer src="assets/pokedex-scan.js?v=8"></script>
   <script defer src="assets/pokedex.js?v=25"></script>
 </head>
 <body>
@@ -128,8 +128,8 @@
     <img id="scannerPhoto" alt="Your card photo" hidden>
     <form id="scannerLookup" autocomplete="off" hidden>
       <div class="inputs">
-        <label>Set code <input name="set" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="24" placeholder="SV2a"></label>
-        <label>Collector number <span class="collector-number-field"><input name="number" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="24" placeholder="025"><span id="scannerSetTotal" aria-label="Set total" hidden></span></span></label>
+        <label>Set code <input name="set" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="24" placeholder="SV2a" enterkeyhint="next" title="Press Space or Enter to move to the collector number"></label>
+        <label>Collector number <span class="collector-number-field"><input name="number" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="24" placeholder="025" enterkeyhint="search"><span id="scannerSetTotal" aria-label="Set total" hidden></span></span></label>
         <label>Variant <select name="variant" id="scanVariant"></select></label>
         <label>Pokémon / printed name <input name="name" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="100" placeholder="Name (EN, FR, JP)"></label>
       </div>

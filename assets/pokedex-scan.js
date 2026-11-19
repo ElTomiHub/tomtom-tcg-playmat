@@ -951,6 +951,37 @@
     };
     for (const key of ['set','number']) form.elements[key].addEventListener('input',refreshReference);
     form.elements.set.addEventListener('input',()=>collector.clearTotal());
+    function focusCollector() {
+      form.elements.set.value = form.elements.set.value.trim();
+      form.elements.number.focus();
+      form.elements.number.select();
+    }
+    function fillReference(value) {
+      const match = value.normalize('NFKC').trim().match(/^([A-Z0-9.-]+)\s+([A-Z0-9-]+(?:\s*\/\s*[A-Z0-9-]+)?)$/i);
+      if (!match || !referencePattern.test(match[1])) return false;
+      form.elements.set.value = match[1];
+      collector.set(match[2].replace(/\s/g,''));
+      refreshReference();
+      focusCollector();
+      return true;
+    }
+    form.elements.set.addEventListener('keydown',event=>{
+      if (event.isComposing || event.ctrlKey || event.altKey || event.metaKey) return;
+      if ((event.key === ' ' || event.key === 'Enter') && form.elements.set.value.trim()) {
+        event.preventDefault();
+        focusCollector();
+      }
+    });
+    form.elements.set.addEventListener('input',event=>{
+      if (event.isComposing) return;
+      const value = form.elements.set.value;
+      if (fillReference(value)) return;
+      if (/\s$/.test(value) && value.trim()) focusCollector();
+    });
+    form.elements.set.addEventListener('paste',event=>{
+      const text = event.clipboardData?.getData('text');
+      if (text && fillReference(text)) event.preventDefault();
+    });
     form.elements.name.addEventListener('input',()=>{
       resolvedDraft = null;
       selectedPokemon = nameSuggestions.resolve(form.elements.name.value);
