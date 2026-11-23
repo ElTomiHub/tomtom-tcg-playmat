@@ -6082,6 +6082,206 @@
     let engineTestHooks = null;
     let librarySync = null;
     let registeredDecks = loadRegisteredDecks();
+    const VERIFIED_HISUI_ELECTRIC_N_PRINTS = [{"id":"verified:ja:S10A:32","name":"Hisuian Growlithe","setCode":"S10A","cardNumber":"32","language":"ja","categoryHint":"Pokemon","meta":{"source":"Limitless","limitlessId":"S10a/32","category":"Pokemon","stage":"Basic","evolveFrom":"","trainerType":"","energyType":"","hp":"70","types":["Fighting"],"retreat":2,"weaknesses":[{"type":"Grass","value":"×2"}],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/S10a/S10a_32_R_JP.png","effect":"","rules":[],"attacks":[{"name":"Singe","cost":[],"damage":"","effect":"Your opponent's Active Pokémon is now Burned.","effectTextStatus":"present"}],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/jp/S10a/32?translate=en","translationSource":"Limitless","translationStatus":"unofficial","language":"ja","attackMetadataStatus":"present"}},{"id":"verified:ja:S9A:47","name":"Hisuian Qwilfish","setCode":"S9A","cardNumber":"47","language":"ja","categoryHint":"Pokemon","meta":{"source":"Limitless","limitlessId":"S9a/47","category":"Pokemon","stage":"Basic","evolveFrom":"","trainerType":"","energyType":"","hp":"80","types":["Darkness"],"retreat":2,"weaknesses":[{"type":"Fighting","value":"×2"}],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/S9a/S9a_47_R_JP.png","effect":"","rules":[],"attacks":[{"name":"Spiny Rush","cost":[],"damage":"10×","effect":"Flip a coin until you get tails. This attack does 10 damage for each heads.","effectTextStatus":"present"}],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/jp/S9a/47?translate=en","translationSource":"Limitless","translationStatus":"unofficial","language":"ja","attackMetadataStatus":"present"}},{"id":"verified:ja:SV5A:42","name":"Hisuian Arcanine","setCode":"SV5A","cardNumber":"42","language":"ja","categoryHint":"Pokemon","meta":{"source":"Limitless","limitlessId":"SV5a/42","category":"Pokemon","stage":"Stage 1","evolveFrom":"Hisuian Growlithe","trainerType":"","energyType":"","hp":"130","types":["Fighting"],"retreat":2,"weaknesses":[{"type":"Grass","value":"×2"}],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/SV5a/SV5a_42_R_JP.png","effect":"","rules":[],"attacks":[{"name":"Proud Fangs","cost":[],"damage":"30+","effect":"If your Benched Pokémon have any damage counters on them, this attack does 90 more damage.","effectTextStatus":"present"},{"name":"Searing Flame","cost":["Fighting","Fighting","Colorless"],"damage":"90","effect":"Your opponent's Active Pokémon is now Burned.","effectTextStatus":"present"}],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/jp/SV5a/42?translate=en","translationSource":"Limitless","translationStatus":"unofficial","language":"ja","attackMetadataStatus":"present"}},{"id":"verified:ja:S9A:48","name":"Hisuian Overqwil","setCode":"S9A","cardNumber":"48","language":"ja","categoryHint":"Pokemon","meta":{"source":"Limitless","limitlessId":"S9a/48","category":"Pokemon","stage":"Stage 1","evolveFrom":"Hisuian Qwilfish","trainerType":"","energyType":"","hp":"130","types":["Darkness"],"retreat":2,"weaknesses":[{"type":"Fighting","value":"×2"}],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/S9a/S9a_48_R_JP.png","effect":"","rules":[],"attacks":[{"name":"Sharp Poison","cost":[],"damage":"","effect":"Your opponent's Active Pokémon is now Poisoned. During Pokémon Checkup, put 5 damage counters on that Pokémon instead of 1.","effectTextStatus":"present"},{"name":"Quill Sting","cost":["Darkness","Colorless"],"damage":"50","effect":"During your opponent's next turn, the Defending Pokémon can't retreat.","effectTextStatus":"present"}],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/jp/S9a/48?translate=en","translationSource":"Limitless","translationStatus":"unofficial","language":"ja","attackMetadataStatus":"present"}},{"id":"verified:ja:S10A:29","name":"Hisuian Zorua","setCode":"S10A","cardNumber":"29","language":"ja","categoryHint":"Pokemon","meta":{"source":"Limitless","limitlessId":"S10a/29","category":"Pokemon","stage":"Basic","evolveFrom":"","trainerType":"","energyType":"","hp":"60","types":["Psychic"],"retreat":1,"weaknesses":[{"type":"Darkness","value":"×2"}],"resistances":[{"type":"Fighting","value":"-30"}],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/S10a/S10a_29_R_JP.png","effect":"","rules":[],"attacks":[{"name":"Collect","cost":[],"damage":"","effect":"Draw a card.","effectTextStatus":"present"},{"name":"Mumble","cost":["Psychic"],"damage":"10","effect":"","effectTextStatus":"explicit-empty"}],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/jp/S10a/29?translate=en","translationSource":"Limitless","translationStatus":"unofficial","language":"ja","attackMetadataStatus":"present"}},{"id":"verified:ja:S12A:238","name":"Grant","setCode":"S12A","cardNumber":"238","language":"ja","categoryHint":"Trainer","meta":{"source":"Limitless","limitlessId":"S12a/238","category":"Trainer","stage":"","evolveFrom":"","trainerType":"Supporter","energyType":"","hp":"","types":[],"retreat":null,"weaknesses":[],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/S12a/S12a_238_R_JP.png","effect":"During this turn, your Fighting Pokémon's attacks do 30 more damage to your opponent's Active Pokémon (before applying Weakness and Resistance) . During your turn, you may discard 2 cards from your hand (except Grant) to put this card from your discard pile back into your hand. (This effect does not count as using your Supporter for turn.)","rules":[],"attacks":[],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/jp/S12a/238?translate=en","translationSource":"Limitless","translationStatus":"unofficial","language":"ja","attackMetadataStatus":"present"}},{"id":"verified:ja:S10A:30","name":"Hisuian Zoroark","setCode":"S10A","cardNumber":"30","language":"ja","categoryHint":"Pokemon","meta":{"source":"Limitless","limitlessId":"S10a/30","category":"Pokemon","stage":"Stage 1","evolveFrom":"Hisuian Zorua","trainerType":"","energyType":"","hp":"120","types":["Psychic"],"retreat":2,"weaknesses":[{"type":"Darkness","value":"×2"}],"resistances":[{"type":"Fighting","value":"-30"}],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/S10a/S10a_30_R_JP.png","effect":"","rules":[],"attacks":[{"name":"Spell of Failure","cost":[],"damage":"","effect":"At the end of your opponent's next turn, the Defending Pokémon will be Knocked Out.","effectTextStatus":"present"},{"name":"Call Home","cost":["Psychic"],"damage":"","effect":"Put a card from your discard pile into your hand.","effectTextStatus":"present"}],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/jp/S10a/30?translate=en","translationSource":"Limitless","translationStatus":"unofficial","language":"ja","attackMetadataStatus":"present"}},{"id":"verified:ja:SP:284","name":"Professor Laventon","setCode":"SP","cardNumber":"284","language":"ja","categoryHint":"Trainer","meta":{"source":"Limitless","limitlessId":"SP/284","category":"Trainer","stage":"","evolveFrom":"","trainerType":"Supporter","energyType":"","hp":"","types":[],"retreat":null,"weaknesses":[],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/SP/SP_284_R_JP.png","effect":"Put up to 3 Pokémon with \"Hisuian\" in their name from your discard pile into your hand.","rules":[],"attacks":[],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/jp/SP/284?translate=en","translationSource":"Limitless","translationStatus":"unofficial","language":"ja","attackMetadataStatus":"present"}},{"id":"verified:ja:SGG:10","name":"Evolution Incense","setCode":"SGG","cardNumber":"10","language":"ja","categoryHint":"Trainer","meta":{"source":"Limitless","limitlessId":"SGG/10","category":"Trainer","stage":"","evolveFrom":"","trainerType":"Item","energyType":"","hp":"","types":[],"retreat":null,"weaknesses":[],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/SGG/SGG_10_R_JP.png","effect":"Search your deck for an evolution card, reveal it and put it into your hand. Then, shuffle your deck.","rules":[],"attacks":[],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/jp/SGG/10?translate=en","translationSource":"Limitless","translationStatus":"unofficial","language":"ja","attackMetadataStatus":"present"}},{"id":"verified:ja:SPZ:12","name":"Choice Belt","setCode":"SPZ","cardNumber":"12","language":"ja","categoryHint":"Trainer","meta":{"source":"Limitless","limitlessId":"SPZ/12","category":"Trainer","stage":"","evolveFrom":"","trainerType":"Tool","energyType":"","hp":"","types":[],"retreat":null,"weaknesses":[],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/SPZ/SPZ_12_R_JP.png","effect":"The attacks of the Pokemon this card is attached to do 30 more damage to your opponent's Active Pokemon V (before applying Weakness and Resistance) .","rules":[],"attacks":[],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/jp/SPZ/12?translate=en","translationSource":"Limitless","translationStatus":"unofficial","language":"ja","attackMetadataStatus":"present"}},{"id":"verified:ja:S10A:85","name":"Iscan","setCode":"S10A","cardNumber":"85","language":"ja","categoryHint":"Trainer","meta":{"source":"Limitless","limitlessId":"S10a/85","category":"Trainer","stage":"","evolveFrom":"","trainerType":"Supporter","energyType":"","hp":"","types":[],"retreat":null,"weaknesses":[],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/S10a/S10a_85_R_JP.png","effect":"Draw 2 cards. If your Active Pokémon has \"Hisuian\" in its name, draw 2 more cards.","rules":[],"attacks":[],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/jp/S10a/85?translate=en","translationSource":"Limitless","translationStatus":"unofficial","language":"ja","attackMetadataStatus":"present"}},{"id":"verified:ja:S12:125","name":"Gapejaw Bog","setCode":"S12","cardNumber":"125","language":"ja","categoryHint":"Trainer","meta":{"source":"Limitless","limitlessId":"S12/125","category":"Trainer","stage":"","evolveFrom":"","trainerType":"Stadium","energyType":"","hp":"","types":[],"retreat":null,"weaknesses":[],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/S12/S12_125_R_JP.png","effect":"Whenever any player puts a Basic Pokémon from their hand onto their Bench, put 2 damage counters on that Pokémon.","rules":[],"attacks":[],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/jp/S12/125?translate=en","translationSource":"Limitless","translationStatus":"unofficial","language":"ja","attackMetadataStatus":"present"}},{"id":"verified:ja:SV2P:71","name":"Reversal Energy","setCode":"SV2P","cardNumber":"71","language":"ja","categoryHint":"Energy","meta":{"source":"Limitless","limitlessId":"SV2P/71","category":"Energy","stage":"","evolveFrom":"","trainerType":"","energyType":"Special","hp":"","types":[],"retreat":null,"weaknesses":[],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/SV2P/SV2P_71_R_JP.png","effect":"As long as this card is attached to a Pokémon, it provides Colorless Energy. If you have more Prize cards remaining than your opponent while this card is attached to an evolved Pokémon (except Pokémon with a Rule Box) , this card provides 3 Energy of any type.","rules":[],"attacks":[],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/jp/SV2P/71?translate=en","translationSource":"Limitless","translationStatus":"unofficial","language":"ja","attackMetadataStatus":"present"}},{"id":"verified:ja:S12:69","name":"Togedemaru","setCode":"S12","cardNumber":"69","language":"ja","categoryHint":"Pokemon","meta":{"source":"Limitless","limitlessId":"S12/69","category":"Pokemon","stage":"Basic","evolveFrom":"","trainerType":"","energyType":"","hp":"80","types":["Metal"],"retreat":2,"weaknesses":[{"type":"Fire","value":"×2"}],"resistances":[{"type":"Grass","value":"-30"}],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/S12/S12_69_R_JP.png","effect":"","rules":[],"attacks":[{"name":"Togedash","cost":["Lightning"],"damage":"10","effect":"Flip a coin. If heads, your opponent doesn't take a prize card if this Pokémon is Knocked Out during their next turn.","effectTextStatus":"present"}],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/jp/S12/69?translate=en","translationSource":"Limitless","translationStatus":"unofficial","language":"ja","attackMetadataStatus":"present"}},{"id":"verified:ja:S12:24","name":"Pikachu","setCode":"S12","cardNumber":"24","language":"ja","categoryHint":"Pokemon","meta":{"source":"Limitless","limitlessId":"S12/24","category":"Pokemon","stage":"Basic","evolveFrom":"","trainerType":"","energyType":"","hp":"70","types":["Lightning"],"retreat":1,"weaknesses":[{"type":"Fighting","value":"×2"}],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/S12/S12_24_R_JP.png","effect":"","rules":[],"attacks":[{"name":"Pikastrike","cost":["Lightning"],"damage":"20+","effect":"If your Dedenne used Dedeshort during your last turn, this attack does 180 more damage.","effectTextStatus":"present"}],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/jp/S12/24?translate=en","translationSource":"Limitless","translationStatus":"unofficial","language":"ja","attackMetadataStatus":"present"}},{"id":"verified:ja:S12:62","name":"Morpeko","setCode":"S12","cardNumber":"62","language":"ja","categoryHint":"Pokemon","meta":{"source":"Limitless","limitlessId":"S12/62","category":"Pokemon","stage":"Basic","evolveFrom":"","trainerType":"","energyType":"","hp":"60","types":["Darkness"],"retreat":1,"weaknesses":[{"type":"Grass","value":"×2"}],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/S12/S12_62_R_JP.png","effect":"","rules":[],"attacks":[{"name":"Pekobomber","cost":["Lightning"],"damage":"","effect":"You can only use this attack if your Dedenne used Dedeshort during your last turn. This attack does 60 damage to all of your opponent's Pokémon. (Don't apply Weakness and Resistance for Benched Pokémon.)","effectTextStatus":"present"}],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/jp/S12/62?translate=en","translationSource":"Limitless","translationStatus":"unofficial","language":"ja","attackMetadataStatus":"present"}},{"id":"verified:ja:S12A:197","name":"Ditto","setCode":"S12A","cardNumber":"197","language":"ja","categoryHint":"Pokemon","meta":{"source":"Limitless","limitlessId":"S12a/197","category":"Pokemon","stage":"Basic","evolveFrom":"","trainerType":"","energyType":"","hp":"70","types":["Colorless"],"retreat":1,"weaknesses":[{"type":"Fighting","value":"×2"}],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/S12a/S12a_197_R_JP.png","effect":"","rules":[],"attacks":[],"abilities":[{"name":"Sudden Change","type":"Ability","effect":"This Pokémon can use the attacks from Basic Pokémon (except Pokémon with a Rule Box) in your discard pile. (You still need the necessary Energy for each attack.)"}],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/jp/S12a/197?translate=en","translationSource":"Limitless","translationStatus":"unofficial","language":"ja","attackMetadataStatus":"present"}},{"id":"verified:ja:S12:45","name":"Dedenne","setCode":"S12","cardNumber":"45","language":"ja","categoryHint":"Pokemon","meta":{"source":"Limitless","limitlessId":"S12/45","category":"Pokemon","stage":"Basic","evolveFrom":"","trainerType":"","energyType":"","hp":"60","types":["Psychic"],"retreat":1,"weaknesses":[{"type":"Metal","value":"×2"}],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/S12/S12_45_R_JP.png","effect":"","rules":[],"attacks":[{"name":"Tail Smack","cost":["Colorless"],"damage":"10","effect":"","effectTextStatus":"explicit-empty"},{"name":"Dedeshort","cost":["Lightning"],"damage":"60","effect":"You can only use this attack if your Togedemaru used Spikedash during your last turn. Your opponent's Active Pokémon is now Paralyzed.","effectTextStatus":"present"}],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/jp/S12/45?translate=en","translationSource":"Limitless","translationStatus":"unofficial","language":"ja","attackMetadataStatus":"present"}},{"id":"verified:ja:S1H:68","name":"Marnie","setCode":"S1H","cardNumber":"68","language":"ja","categoryHint":"Trainer","meta":{"source":"Limitless","limitlessId":"S1H/68","category":"Trainer","stage":"","evolveFrom":"","trainerType":"Supporter","energyType":"","hp":"","types":[],"retreat":null,"weaknesses":[],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/S1H/S1H_68_R_JP.png","effect":"Both players put their hand cards face down, shuffle them and put them on the bottom of their deck. Then, you draw 5 cards and your opponent draws 4 cards.","rules":[],"attacks":[],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/jp/S1H/68?translate=en","translationSource":"Limitless","translationStatus":"unofficial","language":"ja","attackMetadataStatus":"present"}},{"id":"verified:ja:M1L:90","name":"Lt. Surge's Deal","setCode":"M1L","cardNumber":"90","language":"ja","categoryHint":"Trainer","meta":{"source":"Limitless","limitlessId":"M1L/90","category":"Trainer","stage":"","evolveFrom":"","trainerType":"Supporter","energyType":"","hp":"","types":[],"retreat":null,"weaknesses":[],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/M1L/M1L_90_R_JP.png","effect":"Ask your opponent if each player should take a Prize card. If yes, both players take a Prize card. If no, you draw 4 cards.","rules":[],"attacks":[],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/jp/M1L/90?translate=en","translationSource":"Limitless","translationStatus":"unofficial","language":"ja","attackMetadataStatus":"present"}},{"id":"verified:ja:M1S:84","name":"Acerola's Mischief","setCode":"M1S","cardNumber":"84","language":"ja","categoryHint":"Trainer","meta":{"source":"Limitless","limitlessId":"M1S/84","category":"Trainer","stage":"","evolveFrom":"","trainerType":"Supporter","energyType":"","hp":"","types":[],"retreat":null,"weaknesses":[],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/M1S/M1S_84_R_JP.png","effect":"You can use this card only use if your opponent has 2 or fewer Prize cards remaining. Choose 1 of your Pokémon in play. During your opponent's next turn, prevent all damage from and effects of attacks done to this Pokémon by attacks from your opponent's Pokémon ex.","rules":[],"attacks":[],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/jp/M1S/84?translate=en","translationSource":"Limitless","translationStatus":"unofficial","language":"ja","attackMetadataStatus":"present"}},{"id":"verified:ja:SP:245","name":"Escape Rope","setCode":"SP","cardNumber":"245","language":"ja","categoryHint":"Trainer","meta":{"source":"Limitless","limitlessId":"SP/245","category":"Trainer","stage":"","evolveFrom":"","trainerType":"Item","energyType":"","hp":"","types":[],"retreat":null,"weaknesses":[],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/SP/SP_245_R_JP.png","effect":"Each player switches their Active Pokemon with 1 of their Benched Pokemon. Your opponent switches first. (If a player does not have a Benched Pokemon, that player doesn't switch Pokemon.)","rules":[],"attacks":[],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/jp/SP/245?translate=en","translationSource":"Limitless","translationStatus":"unofficial","language":"ja","attackMetadataStatus":"present"}},{"id":"verified:ja:SV1V:69","name":"Electric Generator","setCode":"SV1V","cardNumber":"69","language":"ja","categoryHint":"Trainer","meta":{"source":"Limitless","limitlessId":"SV1V/69","category":"Trainer","stage":"","evolveFrom":"","trainerType":"Item","energyType":"","hp":"","types":[],"retreat":null,"weaknesses":[],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/SV1V/SV1V_69_R_JP.png","effect":"Look at the top 5 cards of your deck and choose up to 2 Basic Lightning Energy you find there. Attach them to your Benched Lightning Pokémon in any way you like, and shuffle the remaining card back into your deck.","rules":[],"attacks":[],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/jp/SV1V/69?translate=en","translationSource":"Limitless","translationStatus":"unofficial","language":"ja","attackMetadataStatus":"present"}},{"id":"verified:ja:S12A:142","name":"Rescue Trolley","setCode":"S12A","cardNumber":"142","language":"ja","categoryHint":"Trainer","meta":{"source":"Limitless","limitlessId":"S12a/142","category":"Trainer","stage":"","evolveFrom":"","trainerType":"Item","energyType":"","hp":"","types":[],"retreat":null,"weaknesses":[],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/S12a/S12a_142_R_JP.png","effect":"Put up to 2 Pokémon with 90 HP or less from your discard pile into your hand.","rules":[],"attacks":[],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/jp/S12a/142?translate=en","translationSource":"Limitless","translationStatus":"unofficial","language":"ja","attackMetadataStatus":"present"}},{"id":"verified:ja:SVP:145","name":"Charm of Courage","setCode":"SVP","cardNumber":"145","language":"ja","categoryHint":"Trainer","meta":{"source":"Limitless","limitlessId":"SVP/145","category":"Trainer","stage":"","evolveFrom":"","trainerType":"Tool","energyType":"","hp":"","types":[],"retreat":null,"weaknesses":[],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/SVP/SVP_145_R_JP.png","effect":"The Basic Pokémon this card is attached to gets +50 HP.","rules":[],"attacks":[],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/jp/SVP/145?translate=en","translationSource":"Limitless","translationStatus":"unofficial","language":"ja","attackMetadataStatus":"present"}},{"id":"verified:en:ASC:32","name":"N's Darumaka","setCode":"ASC","cardNumber":"32","language":"en","categoryHint":"Pokemon","meta":{"source":"Limitless","limitlessId":"ASC/32","category":"Pokemon","stage":"Basic","evolveFrom":"","trainerType":"","energyType":"","hp":"80","types":["Fire"],"retreat":2,"weaknesses":[{"type":"Water","value":"×2"}],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/ASC/ASC_032_R_EN_SM.png","effect":"","rules":[],"attacks":[{"name":"Rolling Tackle","cost":["Colorless","Colorless"],"damage":"20","effect":"","effectTextStatus":"explicit-empty"},{"name":"Flare","cost":["Fire","Fire","Colorless"],"damage":"50","effect":"","effectTextStatus":"explicit-empty"}],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/en/ASC/32","translationSource":"","translationStatus":"","language":"en","attackMetadataStatus":"present"}},{"id":"verified:en:ASC:33","name":"N's Darmanitan","setCode":"ASC","cardNumber":"33","language":"en","categoryHint":"Pokemon","meta":{"source":"Limitless","limitlessId":"ASC/33","category":"Pokemon","stage":"Stage 1","evolveFrom":"N's Darumaka","trainerType":"","energyType":"","hp":"140","types":["Fire"],"retreat":3,"weaknesses":[{"type":"Water","value":"×2"}],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/ASC/ASC_033_R_EN_SM.png","effect":"","rules":[],"attacks":[{"name":"Back Draft","cost":["Colorless","Colorless"],"damage":"30×","effect":"This attack does 30 damage for each Basic Energy card in your opponent's discard pile.","effectTextStatus":"present"},{"name":"Flamebody Cannon","cost":["Fire","Fire","Colorless"],"damage":"90","effect":"Discard all Energy from this Pokémon, and this attack also does 90 damage to 1 of your opponent's Benched Pokémon. (Don't apply Weakness and Resistance for Benched Pokémon.)","effectTextStatus":"present"}],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/en/ASC/33","translationSource":"","translationStatus":"","language":"en","attackMetadataStatus":"present"}},{"id":"verified:en:ASC:154","name":"N's Reshiram","setCode":"ASC","cardNumber":"154","language":"en","categoryHint":"Pokemon","meta":{"source":"Limitless","limitlessId":"ASC/154","category":"Pokemon","stage":"Basic","evolveFrom":"","trainerType":"","energyType":"","hp":"130","types":["Dragon"],"retreat":2,"weaknesses":[],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/ASC/ASC_154_R_EN_SM.png","effect":"","rules":[],"attacks":[{"name":"Powerful Rage","cost":["Fire","Lightning"],"damage":"20×","effect":"This attack does 20 damage for each damage counter on this Pokémon.","effectTextStatus":"present"},{"name":"Virtuous Flame","cost":["Fire","Fire","Lightning","Colorless"],"damage":"170","effect":"","effectTextStatus":"explicit-empty"}],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/en/ASC/154","translationSource":"","translationStatus":"","language":"en","attackMetadataStatus":"present"}},{"id":"verified:ja:SV9:97","name":"N's Castle","setCode":"SV9","cardNumber":"97","language":"ja","categoryHint":"Trainer","meta":{"source":"Limitless","limitlessId":"SV9/97","category":"Trainer","stage":"","evolveFrom":"","trainerType":"Stadium","energyType":"","hp":"","types":[],"retreat":null,"weaknesses":[],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/SV9/SV9_97_R_JP.png","effect":"N's Pokémon in play have no Retreat Cost.","rules":[],"attacks":[],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/jp/SV9/97?translate=en","translationSource":"Limitless","translationStatus":"unofficial","language":"ja","attackMetadataStatus":"present"}},{"id":"verified:en:CEC:200","name":"N's Resolve","setCode":"CEC","cardNumber":"200","language":"en","categoryHint":"Trainer","meta":{"source":"Limitless","limitlessId":"CEC/200","category":"Trainer","stage":"","evolveFrom":"","trainerType":"Supporter","energyType":"","hp":"","types":[],"retreat":null,"weaknesses":[],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CEC/CEC_200_R_EN_SM.png","effect":"Discard the top 6 cards of your deck. If any of those cards are basic Energy cards, attach them to 1 of your Benched Dragon Pokémon.","rules":[],"attacks":[],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/en/CEC/200","translationSource":"","translationStatus":"","language":"en","attackMetadataStatus":"present"}},{"id":"verified:ja:SV11B:86","name":"Prism Energy","setCode":"SV11B","cardNumber":"86","language":"ja","categoryHint":"Energy","meta":{"source":"Limitless","limitlessId":"SV11B/86","category":"Energy","stage":"","evolveFrom":"","trainerType":"","energyType":"Special","hp":"","types":[],"retreat":null,"weaknesses":[],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/SV11B/SV11B_86_R_JP.png","effect":"As long as this card is attached to a Pokémon, it provides Colorless Energy. If this card is attached to a Basic Pokémon, it provides every type of Energy but provides only 1 Energy at a time.","rules":[],"attacks":[],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/jp/SV11B/86?translate=en","translationSource":"Limitless","translationStatus":"unofficial","language":"ja","attackMetadataStatus":"present"}},{"id":"verified:en:LOR:83","name":"Hisuian Growlithe","setCode":"LOR","cardNumber":"83","language":"en","categoryHint":"Pokemon","meta":{"source":"Limitless","limitlessId":"LOR/83","category":"Pokemon","stage":"Basic","evolveFrom":"","trainerType":"","energyType":"","hp":"70","types":["Fighting"],"retreat":2,"weaknesses":[{"type":"Grass","value":"×2"}],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/LOR/LOR_083_R_EN_SM.png","effect":"","rules":[],"attacks":[{"name":"Singe","cost":[],"damage":"","effect":"Your opponent's Active Pokémon is now Burned.","effectTextStatus":"present"}],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/en/LOR/83","translationSource":"","translationStatus":"","language":"en","attackMetadataStatus":"present"}},{"id":"verified:en:LOR:76","name":"Hisuian Zoroark","setCode":"LOR","cardNumber":"76","language":"en","categoryHint":"Pokemon","meta":{"source":"Limitless","limitlessId":"LOR/76","category":"Pokemon","stage":"Stage 1","evolveFrom":"Hisuian Zorua","trainerType":"","energyType":"","hp":"120","types":["Psychic"],"retreat":2,"weaknesses":[{"type":"Darkness","value":"×2"}],"resistances":[{"type":"Fighting","value":"-30"}],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/LOR/LOR_076_R_EN_SM.png","effect":"","rules":[],"attacks":[{"name":"Doom Curse","cost":[],"damage":"","effect":"At the end of your opponent's next turn, the Defending Pokémon will be Knocked Out.","effectTextStatus":"present"},{"name":"Call Back","cost":["Psychic"],"damage":"","effect":"Put a card from your discard pile into your hand.","effectTextStatus":"present"}],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/en/LOR/76","translationSource":"","translationStatus":"","language":"en","attackMetadataStatus":"present"}},{"id":"verified:en:LOR:75","name":"Hisuian Zorua","setCode":"LOR","cardNumber":"75","language":"en","categoryHint":"Pokemon","meta":{"source":"Limitless","limitlessId":"LOR/75","category":"Pokemon","stage":"Basic","evolveFrom":"","trainerType":"","energyType":"","hp":"60","types":["Psychic"],"retreat":1,"weaknesses":[{"type":"Darkness","value":"×2"}],"resistances":[{"type":"Fighting","value":"-30"}],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/LOR/LOR_075_R_EN_SM.png","effect":"","rules":[],"attacks":[{"name":"Collect","cost":[],"damage":"","effect":"Draw a card.","effectTextStatus":"present"},{"name":"Mumble","cost":["Psychic"],"damage":"10","effect":"","effectTextStatus":"explicit-empty"}],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/en/LOR/75","translationSource":"","translationStatus":"","language":"en","attackMetadataStatus":"present"}},{"id":"verified:en:JTG:97","name":"N's Zorua","setCode":"JTG","cardNumber":"97","language":"en","categoryHint":"Pokemon","meta":{"source":"Limitless","limitlessId":"JTG/97","category":"Pokemon","stage":"Basic","evolveFrom":"","trainerType":"","energyType":"","hp":"70","types":["Darkness"],"retreat":1,"weaknesses":[{"type":"Grass","value":"×2"}],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/JTG/JTG_097_R_EN_SM.png","effect":"","rules":[],"attacks":[{"name":"Scratch","cost":["Darkness"],"damage":"20","effect":"","effectTextStatus":"explicit-empty"}],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/en/JTG/97","translationSource":"","translationStatus":"","language":"en","attackMetadataStatus":"present"}},{"id":"verified:en:JTG:98","name":"N's Zoroark ex","setCode":"JTG","cardNumber":"98","language":"en","categoryHint":"Pokemon","meta":{"source":"Limitless","limitlessId":"JTG/98","category":"Pokemon","stage":"Stage 1","evolveFrom":"N's Zorua","trainerType":"","energyType":"","hp":"280","types":["Darkness"],"retreat":2,"weaknesses":[{"type":"Grass","value":"×2"}],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/JTG/JTG_098_R_EN_SM.png","effect":"","rules":[],"attacks":[{"name":"Night Joker","cost":["Darkness","Darkness"],"damage":"","effect":"Choose 1 of your Benched N's Pokémon's attacks and use it as this attack.","effectTextStatus":"present"}],"abilities":[{"name":"Trade","type":"Ability","effect":"You must discard a card from your hand in order to use this Ability. Once during your turn, you may draw 2 cards."}],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/en/JTG/98","translationSource":"","translationStatus":"","language":"en","attackMetadataStatus":"present"}},{"id":"verified:en:JTG:96","name":"N's Purrloin","setCode":"JTG","cardNumber":"96","language":"en","categoryHint":"Pokemon","meta":{"source":"Limitless","limitlessId":"JTG/96","category":"Pokemon","stage":"Basic","evolveFrom":"","trainerType":"","energyType":"","hp":"70","types":["Darkness"],"retreat":1,"weaknesses":[{"type":"Grass","value":"×2"}],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/JTG/JTG_096_R_EN_SM.png","effect":"","rules":[],"attacks":[{"name":"Thieving Swipe","cost":["Darkness","Colorless"],"damage":"30","effect":"Your opponent reveals their hand, and you choose a card you find there and put it on the bottom of their deck.","effectTextStatus":"present"}],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/en/JTG/96","translationSource":"","translationStatus":"","language":"en","attackMetadataStatus":"present"}},{"id":"verified:en:ASC:155","name":"N's Zekrom","setCode":"ASC","cardNumber":"155","language":"en","categoryHint":"Pokemon","meta":{"source":"Limitless","limitlessId":"ASC/155","category":"Pokemon","stage":"Basic","evolveFrom":"","trainerType":"","energyType":"","hp":"130","types":["Dragon"],"retreat":2,"weaknesses":[],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/ASC/ASC_155_R_EN_SM.png","effect":"","rules":[],"attacks":[{"name":"Shred","cost":["Colorless","Colorless","Colorless"],"damage":"70","effect":"This attack's damage isn't affected by any effects on your opponent's Active Pokémon.","effectTextStatus":"present"},{"name":"Rampaging Thunder","cost":["Fire","Lightning","Lightning","Colorless"],"damage":"250","effect":"During your next turn, this Pokémon can't use attacks.","effectTextStatus":"present"}],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/en/ASC/155","translationSource":"","translationStatus":"","language":"en","attackMetadataStatus":"present"}},{"id":"verified:en:TWM:100","name":"Hisuian Arcanine","setCode":"TWM","cardNumber":"100","language":"en","categoryHint":"Pokemon","meta":{"source":"Limitless","limitlessId":"TWM/100","category":"Pokemon","stage":"Stage 1","evolveFrom":"Hisuian Growlithe","trainerType":"","energyType":"","hp":"130","types":["Fighting"],"retreat":2,"weaknesses":[{"type":"Grass","value":"×2"}],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/TWM/TWM_100_R_EN_SM.png","effect":"","rules":[],"attacks":[{"name":"Proud Fangs","cost":[],"damage":"30+","effect":"If your Benched Pokémon have any damage counters on them, this attack does 90 more damage.","effectTextStatus":"present"},{"name":"Searing Flame","cost":["Fighting","Fighting","Colorless"],"damage":"90","effect":"Your opponent's Active Pokémon is now Burned.","effectTextStatus":"present"}],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/en/TWM/100","translationSource":"","translationStatus":"","language":"en","attackMetadataStatus":"present"}},{"id":"verified:en:ASR:89","name":"Hisuian Qwilfish","setCode":"ASR","cardNumber":"89","language":"en","categoryHint":"Pokemon","meta":{"source":"Limitless","limitlessId":"ASR/89","category":"Pokemon","stage":"Basic","evolveFrom":"","trainerType":"","energyType":"","hp":"80","types":["Darkness"],"retreat":2,"weaknesses":[{"type":"Fighting","value":"×2"}],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/ASR/ASR_089_R_EN_SM.png","effect":"","rules":[],"attacks":[{"name":"Spiny Rush","cost":[],"damage":"10×","effect":"Flip a coin until you get tails. This attack does 10 damage for each heads.","effectTextStatus":"present"}],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/en/ASR/89","translationSource":"","translationStatus":"","language":"en","attackMetadataStatus":"present"}},{"id":"verified:en:BLK:83","name":"N's Plan","setCode":"BLK","cardNumber":"83","language":"en","categoryHint":"Trainer","meta":{"source":"Limitless","limitlessId":"BLK/83","category":"Trainer","stage":"","evolveFrom":"","trainerType":"Supporter","energyType":"","hp":"","types":[],"retreat":null,"weaknesses":[],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/BLK/BLK_083_R_EN_SM.png","effect":"Move up to 2 Energy from your Benched Pokémon to your Active Pokémon.","rules":[],"attacks":[],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/en/BLK/83","translationSource":"","translationStatus":"","language":"en","attackMetadataStatus":"present"}},{"id":"verified:en:ASC:195","name":"N's PP Up","setCode":"ASC","cardNumber":"195","language":"en","categoryHint":"Trainer","meta":{"source":"Limitless","limitlessId":"ASC/195","category":"Trainer","stage":"","evolveFrom":"","trainerType":"Item","energyType":"","hp":"","types":[],"retreat":null,"weaknesses":[],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/ASC/ASC_195_R_EN_SM.png","effect":"Attach a Basic Energy card from your discard pile to 1 of your Benched N's Pokémon.","rules":[],"attacks":[],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/en/ASC/195","translationSource":"","translationStatus":"","language":"en","attackMetadataStatus":"present"}},{"id":"verified:en:SSH:163","name":"Evolution Incense","setCode":"SSH","cardNumber":"163","language":"en","categoryHint":"Trainer","meta":{"source":"Limitless","limitlessId":"SSH/163","category":"Trainer","stage":"","evolveFrom":"","trainerType":"Item","energyType":"","hp":"","types":[],"retreat":null,"weaknesses":[],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/SSH/SSH_163_R_EN_SM.png","effect":"Search your deck for an Evolution Pokémon, reveal it, and put it into your hand. Then, shuffle your deck.","rules":[],"attacks":[],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/en/SSH/163","translationSource":"","translationStatus":"","language":"en","attackMetadataStatus":"present"}},{"id":"verified:en:ASR:142","name":"Gapejaw Bog","setCode":"ASR","cardNumber":"142","language":"en","categoryHint":"Trainer","meta":{"source":"Limitless","limitlessId":"ASR/142","category":"Trainer","stage":"","evolveFrom":"","trainerType":"Stadium","energyType":"","hp":"","types":[],"retreat":null,"weaknesses":[],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/ASR/ASR_142_R_EN_SM.png","effect":"Whenever either player puts a Basic Pokémon from their hand onto their Bench, put 2 damage counters on that Pokémon.","rules":[],"attacks":[],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/en/ASR/142","translationSource":"","translationStatus":"","language":"en","attackMetadataStatus":"present"}},{"id":"verified:en:PAL:192","name":"Reversal Energy","setCode":"PAL","cardNumber":"192","language":"en","categoryHint":"Energy","meta":{"source":"Limitless","limitlessId":"PAL/192","category":"Energy","stage":"","evolveFrom":"","trainerType":"","energyType":"Special","hp":"","types":[],"retreat":null,"weaknesses":[],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/PAL/PAL_192_R_EN_SM.png","effect":"As long as this card is attached to a Pokémon, it provides Colorless Energy. If you have more Prize cards remaining than your opponent, and if this card is attached to an Evolution Pokémon that doesn't have a Rule Box (Pokémon ex, Pokémon V, etc. have Rule Boxes) , this card provides every type of Energy but provides only 3 Energy at a time.","rules":[],"attacks":[],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/en/PAL/192","translationSource":"","translationStatus":"","language":"en","attackMetadataStatus":"present"}},{"id":"verified:en:ASR:90","name":"Hisuian Overqwil","setCode":"ASR","cardNumber":"90","language":"en","categoryHint":"Pokemon","meta":{"source":"Limitless","limitlessId":"ASR/90","category":"Pokemon","stage":"Stage 1","evolveFrom":"Hisuian Qwilfish","trainerType":"","energyType":"","hp":"130","types":["Darkness"],"retreat":2,"weaknesses":[{"type":"Fighting","value":"×2"}],"resistances":[],"image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/ASR/ASR_090_R_EN_SM.png","effect":"","rules":[],"attacks":[{"name":"Tormenting Poison","cost":[],"damage":"","effect":"Your opponent's Active Pokémon is now Poisoned. During Pokémon Checkup, put 5 damage counters on that Pokémon instead of 1.","effectTextStatus":"present"},{"name":"Pinning","cost":["Darkness","Colorless"],"damage":"50","effect":"During your opponent's next turn, the Defending Pokémon can't retreat.","effectTextStatus":"present"}],"abilities":[],"textLanguage":"en","sourceUrl":"https://limitlesstcg.com/cards/en/ASR/90","translationSource":"","translationStatus":"","language":"en","attackMetadataStatus":"present"}},{"id":"verified:ja:SPZ:11","name":"Level Ball","setCode":"SPZ","cardNumber":"11","language":"ja","categoryHint":"Trainer","meta":{"category":"Trainer","language":"ja","source":"Pokémon official card image","sourceUrl":"https://www.pokemon-card.com/card-search/details.php/card/41915","image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/SPZ/SPZ_11_R_JP_LG.png","trainerType":"Item","effect":"Search your deck for a Pokémon with 90 HP or less, reveal it, and put it into your hand. Then, shuffle your deck.","attacks":[],"abilities":[],"rules":[],"attackMetadataStatus":"present","textLanguage":"en","translationSource":"Verified Japanese card text","translationStatus":"unofficial"}}];
+    VERIFIED_NEW_PRINT_DETAILS.push(...VERIFIED_HISUI_ELECTRIC_N_PRINTS);
+    VERIFIED_UNNAMED_JAPANESE_PRINTS.push(...VERIFIED_HISUI_ELECTRIC_N_PRINTS.filter(card=>card.setCode==='SPZ' && card.cardNumber==='11'));
+    VERIFIED_EFFECT_FREE_ATTACKS.push(...[{"cardName":"hisuian zorua","setCode":"S10A","cardNumber":"29","language":"ja","attackName":"mumble","cost":["psychic"],"damage":10},{"cardName":"dedenne","setCode":"S12","cardNumber":"45","language":"ja","attackName":"tail smack","cost":["colorless"],"damage":10},{"cardName":"n s darumaka","setCode":"ASC","cardNumber":"32","language":"en","attackName":"rolling tackle","cost":["colorless","colorless"],"damage":20},{"cardName":"n s darumaka","setCode":"ASC","cardNumber":"32","language":"en","attackName":"flare","cost":["fire","fire","colorless"],"damage":50},{"cardName":"n s reshiram","setCode":"ASC","cardNumber":"154","language":"en","attackName":"virtuous flame","cost":["fire","fire","lightning","colorless"],"damage":170},{"cardName":"hisuian zorua","setCode":"LOR","cardNumber":"75","language":"en","attackName":"mumble","cost":["psychic"],"damage":10},{"cardName":"n s zorua","setCode":"JTG","cardNumber":"97","language":"en","attackName":"scratch","cost":["darkness"],"damage":20}]);
+    CARD_EFFECT_REGISTRY.attacks.push(...[{"cardName":"Hisuian Growlithe","setCode":"S10A","cardNumber":"32","language":"ja","attackName":"Singe","costExact":[],"damageExact":"","effectTextExact":"Your opponent's Active Pokémon is now Burned.","effect":{"type":"inflict_burn"}},{"cardName":"Hisuian Qwilfish","setCode":"S9A","cardNumber":"47","language":"ja","attackName":"Spiny Rush","costExact":[],"damageExact":"10×","effectTextExact":"Flip a coin until you get tails. This attack does 10 damage for each heads.","effect":{"type":"coin_until_tails_damage","damagePerHead":10}},{"cardName":"Hisuian Arcanine","setCode":"SV5A","cardNumber":"42","language":"ja","attackName":"Proud Fangs","costExact":[],"damageExact":"30+","effectTextExact":"If your Benched Pokémon have any damage counters on them, this attack does 90 more damage.","effect":{"type":"bench_damage_bonus","amount":90}},{"cardName":"Hisuian Arcanine","setCode":"SV5A","cardNumber":"42","language":"ja","attackName":"Searing Flame","costExact":["Fighting","Fighting","Colorless"],"damageExact":"90","effectTextExact":"Your opponent's Active Pokémon is now Burned.","effect":{"type":"inflict_burn"}},{"cardName":"Hisuian Overqwil","setCode":"S9A","cardNumber":"48","language":"ja","attackName":"Sharp Poison","costExact":[],"damageExact":"","effectTextExact":"Your opponent's Active Pokémon is now Poisoned. During Pokémon Checkup, put 5 damage counters on that Pokémon instead of 1.","effect":{"type":"inflict_poison","poisonDamage":50}},{"cardName":"Hisuian Overqwil","setCode":"S9A","cardNumber":"48","language":"ja","attackName":"Quill Sting","costExact":["Darkness","Colorless"],"damageExact":"50","effectTextExact":"During your opponent's next turn, the Defending Pokémon can't retreat.","effect":{"type":"lock_defender_retreat"}},{"cardName":"Hisuian Zorua","setCode":"S10A","cardNumber":"29","language":"ja","attackName":"Collect","costExact":[],"damageExact":"","effectTextExact":"Draw a card.","effect":{"type":"draw_cards","count":1}},{"cardName":"Hisuian Zoroark","setCode":"S10A","cardNumber":"30","language":"ja","attackName":"Spell of Failure","costExact":[],"damageExact":"","effectTextExact":"At the end of your opponent's next turn, the Defending Pokémon will be Knocked Out.","effect":{"type":"doom_curse"}},{"cardName":"Hisuian Zoroark","setCode":"S10A","cardNumber":"30","language":"ja","attackName":"Call Home","costExact":["Psychic"],"damageExact":"","effectTextExact":"Put a card from your discard pile into your hand.","effect":{"type":"recover_discard_card","count":1}},{"cardName":"Togedemaru","setCode":"S12","cardNumber":"69","language":"ja","attackName":"Togedash","costExact":["Lightning"],"damageExact":"10","effectTextExact":"Flip a coin. If heads, your opponent doesn't take a prize card if this Pokémon is Knocked Out during their next turn.","effect":{"type":"coin_no_prizes"}},{"cardName":"Pikachu","setCode":"S12","cardNumber":"24","language":"ja","attackName":"Pikastrike","costExact":["Lightning"],"damageExact":"20+","effectTextExact":"If your Dedenne used Dedeshort during your last turn, this attack does 180 more damage.","effect":{"type":"combo_bonus","previous":"dedenne","amount":180}},{"cardName":"Morpeko","setCode":"S12","cardNumber":"62","language":"ja","attackName":"Pekobomber","costExact":["Lightning"],"damageExact":"","effectTextExact":"You can only use this attack if your Dedenne used Dedeshort during your last turn. This attack does 60 damage to all of your opponent's Pokémon. (Don't apply Weakness and Resistance for Benched Pokémon.)","effect":{"type":"combo_spread","previous":"dedenne","amount":60}},{"cardName":"Dedenne","setCode":"S12","cardNumber":"45","language":"ja","attackName":"Dedeshort","costExact":["Lightning"],"damageExact":"60","effectTextExact":"You can only use this attack if your Togedemaru used Spikedash during your last turn. Your opponent's Active Pokémon is now Paralyzed.","effect":{"type":"combo_paralysis","previous":"togedemaru"}},{"cardName":"N's Darmanitan","setCode":"ASC","cardNumber":"33","language":"en","attackName":"Back Draft","costExact":["Colorless","Colorless"],"damageExact":"30×","effectTextExact":"This attack does 30 damage for each Basic Energy card in your opponent's discard pile.","effect":{"type":"opponent_discard_energy_damage","amount":30}},{"cardName":"N's Darmanitan","setCode":"ASC","cardNumber":"33","language":"en","attackName":"Flamebody Cannon","costExact":["Fire","Fire","Colorless"],"damageExact":"90","effectTextExact":"Discard all Energy from this Pokémon, and this attack also does 90 damage to 1 of your opponent's Benched Pokémon. (Don't apply Weakness and Resistance for Benched Pokémon.)","effect":{"type":"also_damage_bench","amount":90,"discardAllEnergy":true}},{"cardName":"N's Reshiram","setCode":"ASC","cardNumber":"154","language":"en","attackName":"Powerful Rage","costExact":["Fire","Lightning"],"damageExact":"20×","effectTextExact":"This attack does 20 damage for each damage counter on this Pokémon.","effect":{"type":"damage_per_self_counter","amount":20}},{"cardName":"Hisuian Growlithe","setCode":"LOR","cardNumber":"83","language":"en","attackName":"Singe","costExact":[],"damageExact":"","effectTextExact":"Your opponent's Active Pokémon is now Burned.","effect":{"type":"inflict_burn"}},{"cardName":"Hisuian Zoroark","setCode":"LOR","cardNumber":"76","language":"en","attackName":"Doom Curse","costExact":[],"damageExact":"","effectTextExact":"At the end of your opponent's next turn, the Defending Pokémon will be Knocked Out.","effect":{"type":"doom_curse"}},{"cardName":"Hisuian Zoroark","setCode":"LOR","cardNumber":"76","language":"en","attackName":"Call Back","costExact":["Psychic"],"damageExact":"","effectTextExact":"Put a card from your discard pile into your hand.","effect":{"type":"recover_discard_card","count":1}},{"cardName":"Hisuian Zorua","setCode":"LOR","cardNumber":"75","language":"en","attackName":"Collect","costExact":[],"damageExact":"","effectTextExact":"Draw a card.","effect":{"type":"draw_cards","count":1}},{"cardName":"N's Zoroark ex","setCode":"JTG","cardNumber":"98","language":"en","attackName":"Night Joker","costExact":["Darkness","Darkness"],"damageExact":"","effectTextExact":"Choose 1 of your Benched N's Pokémon's attacks and use it as this attack.","effect":{"type":"copy_n_bench_attack"}},{"cardName":"N's Purrloin","setCode":"JTG","cardNumber":"96","language":"en","attackName":"Thieving Swipe","costExact":["Darkness","Colorless"],"damageExact":"30","effectTextExact":"Your opponent reveals their hand, and you choose a card you find there and put it on the bottom of their deck.","effect":{"type":"opponent_hand_to_bottom"}},{"cardName":"N's Zekrom","setCode":"ASC","cardNumber":"155","language":"en","attackName":"Shred","costExact":["Colorless","Colorless","Colorless"],"damageExact":"70","effectTextExact":"This attack's damage isn't affected by any effects on your opponent's Active Pokémon.","effect":{"type":"ignore_defender_effects"}},{"cardName":"N's Zekrom","setCode":"ASC","cardNumber":"155","language":"en","attackName":"Rampaging Thunder","costExact":["Fire","Lightning","Lightning","Colorless"],"damageExact":"250","effectTextExact":"During your next turn, this Pokémon can't use attacks.","effect":{"type":"attack_lock_next_turn"}},{"cardName":"Hisuian Arcanine","setCode":"TWM","cardNumber":"100","language":"en","attackName":"Proud Fangs","costExact":[],"damageExact":"30+","effectTextExact":"If your Benched Pokémon have any damage counters on them, this attack does 90 more damage.","effect":{"type":"bench_damage_bonus","amount":90}},{"cardName":"Hisuian Arcanine","setCode":"TWM","cardNumber":"100","language":"en","attackName":"Searing Flame","costExact":["Fighting","Fighting","Colorless"],"damageExact":"90","effectTextExact":"Your opponent's Active Pokémon is now Burned.","effect":{"type":"inflict_burn"}},{"cardName":"Hisuian Qwilfish","setCode":"ASR","cardNumber":"89","language":"en","attackName":"Spiny Rush","costExact":[],"damageExact":"10×","effectTextExact":"Flip a coin until you get tails. This attack does 10 damage for each heads.","effect":{"type":"coin_until_tails_damage","damagePerHead":10}},{"cardName":"Hisuian Overqwil","setCode":"ASR","cardNumber":"90","language":"en","attackName":"Tormenting Poison","costExact":[],"damageExact":"","effectTextExact":"Your opponent's Active Pokémon is now Poisoned. During Pokémon Checkup, put 5 damage counters on that Pokémon instead of 1.","effect":{"type":"inflict_poison","poisonDamage":50}},{"cardName":"Hisuian Overqwil","setCode":"ASR","cardNumber":"90","language":"en","attackName":"Pinning","costExact":["Darkness","Colorless"],"damageExact":"50","effectTextExact":"During your opponent's next turn, the Defending Pokémon can't retreat.","effect":{"type":"lock_defender_retreat"}}]);
+    CARD_EFFECT_REGISTRY.abilities.push(...[{"cardName":"Ditto","setCode":"S12A","cardNumber":"197","language":"ja","abilityName":"Sudden Change","effectTextExact":"This Pokémon can use the attacks from Basic Pokémon (except Pokémon with a Rule Box) in your discard pile. (You still need the necessary Energy for each attack.)","effect":{"type":"copy_discard_basic_attacks"}},{"cardName":"N's Zoroark ex","setCode":"JTG","cardNumber":"98","language":"en","abilityName":"Trade","effectTextExact":"You must discard a card from your hand in order to use this Ability. Once during your turn, you may draw 2 cards.","effect":{"type":"discard_hand_draw_cards","count":2}}]);
+    CARD_EFFECT_REGISTRY.supporters.push(...[{"cardName":"Grant","setCode":"S12A","cardNumber":"238","language":"ja","effectTextExact":"During this turn, your Fighting Pokémon's attacks do 30 more damage to your opponent's Active Pokémon (before applying Weakness and Resistance) . During your turn, you may discard 2 cards from your hand (except Grant) to put this card from your discard pile back into your hand. (This effect does not count as using your Supporter for turn.)","effect":{"type":"grant_fighting_boost","amount":30}},{"cardName":"Professor Laventon","setCode":"SP","cardNumber":"284","language":"ja","effectTextExact":"Put up to 3 Pokémon with \"Hisuian\" in their name from your discard pile into your hand.","effect":{"type":"recover_matching_discard","count":3,"filter":"hisuian"}},{"cardName":"Iscan","setCode":"S10A","cardNumber":"85","language":"ja","effectTextExact":"Draw 2 cards. If your Active Pokémon has \"Hisuian\" in its name, draw 2 more cards.","effect":{"type":"draw_hisuian_active","count":2,"bonus":2}},{"cardName":"Marnie","setCode":"S1H","cardNumber":"68","language":"ja","effectTextExact":"Both players put their hand cards face down, shuffle them and put them on the bottom of their deck. Then, you draw 5 cards and your opponent draws 4 cards.","effect":{"type":"bottom_hands_draw_asymmetric","count":5,"opponentCount":4}},{"cardName":"Lt. Surge's Deal","setCode":"M1L","cardNumber":"90","language":"ja","effectTextExact":"Ask your opponent if each player should take a Prize card. If yes, both players take a Prize card. If no, you draw 4 cards.","effect":{"type":"offer_prize_or_draw","count":4}},{"cardName":"Acerola's Mischief","setCode":"M1S","cardNumber":"84","language":"ja","effectTextExact":"You can use this card only use if your opponent has 2 or fewer Prize cards remaining. Choose 1 of your Pokémon in play. During your opponent's next turn, prevent all damage from and effects of attacks done to this Pokémon by attacks from your opponent's Pokémon ex.","effect":{"type":"protect_from_ex_attacks"}},{"cardName":"N's Resolve","setCode":"CEC","cardNumber":"200","language":"en","effectTextExact":"Discard the top 6 cards of your deck. If any of those cards are basic Energy cards, attach them to 1 of your Benched Dragon Pokémon.","effect":{"type":"discard_top_attach_to_bench","count":6,"targetType":"dragon"}},{"cardName":"N's Plan","setCode":"BLK","cardNumber":"83","language":"en","effectTextExact":"Move up to 2 Energy from your Benched Pokémon to your Active Pokémon.","effect":{"type":"move_bench_energy_to_active","count":2}}]);
+    CARD_EFFECT_REGISTRY.items.push(...[{"cardName":"Evolution Incense","setCode":"SGG","cardNumber":"10","language":"ja","effectTextExact":"Search your deck for an evolution card, reveal it and put it into your hand. Then, shuffle your deck.","effect":{"type":"filtered_deck_search","count":1,"filter":"evolution"}},{"cardName":"Escape Rope","setCode":"SP","cardNumber":"245","language":"ja","effectTextExact":"Each player switches their Active Pokemon with 1 of their Benched Pokemon. Your opponent switches first. (If a player does not have a Benched Pokemon, that player doesn't switch Pokemon.)","effect":{"type":"both_switch_opponent_first"}},{"cardName":"Electric Generator","setCode":"SV1V","cardNumber":"69","language":"ja","effectTextExact":"Look at the top 5 cards of your deck and choose up to 2 Basic Lightning Energy you find there. Attach them to your Benched Lightning Pokémon in any way you like, and shuffle the remaining card back into your deck.","effect":{"type":"electric_generator","count":2,"look":5}},{"cardName":"Rescue Trolley","setCode":"S12A","cardNumber":"142","language":"ja","effectTextExact":"Put up to 2 Pokémon with 90 HP or less from your discard pile into your hand.","effect":{"type":"recover_matching_discard","count":2,"maxHp":90}},{"cardName":"N's PP Up","setCode":"ASC","cardNumber":"195","language":"en","effectTextExact":"Attach a Basic Energy card from your discard pile to 1 of your Benched N's Pokémon.","effect":{"type":"attach_discard_basic_named_bench","owner":"n"}},{"cardName":"Evolution Incense","setCode":"SSH","cardNumber":"163","language":"en","effectTextExact":"Search your deck for an Evolution Pokémon, reveal it, and put it into your hand. Then, shuffle your deck.","effect":{"type":"filtered_deck_search","count":1,"filter":"evolution"}},{"cardName":"Level Ball","setCode":"SPZ","cardNumber":"11","language":"ja","translationSource":"Verified Japanese card text","translationUrl":"https://www.pokemon-card.com/card-search/details.php/card/41915","effectTextExact":"Search your deck for a Pokémon with 90 HP or less, reveal it, and put it into your hand. Then, shuffle your deck.","effect":{"type":"filtered_deck_search","count":1,"filter":"pokemon_hp","maxHp":90}}]);
+    CARD_EFFECT_REGISTRY.tools.push(...[{"cardName":"Choice Belt","setCode":"SPZ","cardNumber":"12","language":"ja","effectTextExact":"The attacks of the Pokemon this card is attached to do 30 more damage to your opponent's Active Pokemon V (before applying Weakness and Resistance) .","effect":{"type":"active_damage_bonus","amount":30,"targetPokemonV":true}},{"cardName":"Charm of Courage","setCode":"SVP","cardNumber":"145","language":"ja","effectTextExact":"The Basic Pokémon this card is attached to gets +50 HP.","effect":{"type":"basic_hp_bonus","amount":50}}]);
+    CARD_EFFECT_REGISTRY.stadiums.push(...[{"cardName":"Gapejaw Bog","setCode":"S12","cardNumber":"125","language":"ja","effectTextExact":"Whenever any player puts a Basic Pokémon from their hand onto their Bench, put 2 damage counters on that Pokémon.","effect":{"type":"damage_hand_bench","amount":20}},{"cardName":"N's Castle","setCode":"SV9","cardNumber":"97","language":"ja","effectTextExact":"N's Pokémon in play have no Retreat Cost.","effect":{"type":"free_retreat_named","owner":"n"}},{"cardName":"Gapejaw Bog","setCode":"ASR","cardNumber":"142","language":"en","effectTextExact":"Whenever either player puts a Basic Pokémon from their hand onto their Bench, put 2 damage counters on that Pokémon.","effect":{"type":"damage_hand_bench","amount":20}}]);
+    CARD_EFFECT_REGISTRY.energy.push(...[{"cardName":"Reversal Energy","setCode":"SV2P","cardNumber":"71","language":"ja","effectTextExact":"As long as this card is attached to a Pokémon, it provides Colorless Energy. If you have more Prize cards remaining than your opponent while this card is attached to an evolved Pokémon (except Pokémon with a Rule Box) , this card provides 3 Energy of any type.","effect":{"type":"reversal_energy"}},{"cardName":"Prism Energy","setCode":"SV11B","cardNumber":"86","language":"ja","effectTextExact":"As long as this card is attached to a Pokémon, it provides Colorless Energy. If this card is attached to a Basic Pokémon, it provides every type of Energy but provides only 1 Energy at a time.","effect":{"type":"prism_energy"}},{"cardName":"Reversal Energy","setCode":"PAL","cardNumber":"192","language":"en","effectTextExact":"As long as this card is attached to a Pokémon, it provides Colorless Energy. If you have more Prize cards remaining than your opponent, and if this card is attached to an Evolution Pokémon that doesn't have a Rule Box (Pokémon ex, Pokémon V, etc. have Rule Boxes) , this card provides every type of Energy but provides only 3 Energy at a time.","effect":{"type":"reversal_energy"}},{"cardName":"Reversal Energy","setCode":"PAL","cardNumber":"192","language":"en","effectTextExact":"As long as this card is attached to a Pokémon, it provides {C} Energy.\n\nIf you have more Prize cards remaining than your opponent, and if this card is attached to an Evolution Pokémon that doesn't have a Rule Box (Pokémon ex, Pokémon V, etc. have Rule Boxes), this card provides every type of Energy but provides only 3 Energy at a time.","effect":{"type":"reversal_energy"}}]);
+
+    function isNsPokemon(card) { return card?.meta?.category==='Pokemon' && cleanCardKey(card.name).startsWith('n s '); }
+    function newDeckPromoAlias(card) {
+      const suffix=String(card?.name || '').trim().match(/^(Professor Laventon|Escape Rope)\s+PR-SW\s+(284|245)$/i);
+      const name=suffix?suffix[1]:card?.name,number=suffix?suffix[2]:normalizeCollectorNumber(card?.cardNumber);
+      const set=String(card?.setCode || '').toUpperCase();
+      if(suffix && (set && !['PR-SW','SP'].includes(set) || card.cardNumber && normalizeCollectorNumber(card.cardNumber)!==number))return null;
+      if(!suffix && set!=='PR-SW')return null;
+      const match=VERIFIED_HISUI_ELECTRIC_N_PRINTS.find(row=>row.setCode==='SP' && row.cardNumber===number && cleanCardKey(row.name)===cleanCardKey(name));
+      return match && (!card.categoryHint || ['Unknown','Trainer'].includes(card.categoryHint)) ? {name:match.name,setCode:'SP',cardNumber:number,language:'ja'} : null;
+    }
+    function repairHisuiElectricNMetadata(card) {
+      const alias=newDeckPromoAlias(card);if(alias)Object.assign(card,alias);
+      const detail=VERIFIED_HISUI_ELECTRIC_N_PRINTS.find(row=>row.setCode===String(card?.setCode || '').toUpperCase() && row.cardNumber===normalizeCollectorNumber(card.cardNumber) &&
+        (cleanCardKey(row.name)===cleanCardKey(card.name) || row.setCode==='SPZ' && row.cardNumber==='11' && cleanCardKey(card.name)==='null') &&
+        (!card.language || ['en','ja','jp'].includes(card.language.toLowerCase())) && (!card.categoryHint || ['Unknown',row.meta.category].includes(card.categoryHint)));
+      if(!detail)return !!alias;
+      if(!card.meta || !Object.keys(card.meta).length) {
+        card.name=detail.name;card.language=detail.language;card.category=card.categoryHint=detail.meta.category;
+        saveCardMetadata(card,{...structuredClone(detail.meta),name:detail.name});return true;
+      }
+      let changed=!!alias;
+      for(const attack of card.meta.attacks || []) {
+        const verified=detail.meta.attacks.find(row=>row.name===attack.name && JSON.stringify(row.cost)===JSON.stringify(attack.cost) && String(row.damage)===String(attack.damage));
+        if(verified && verified.effect==='' && (attack.effect==null || attack.effect==='' && attack.effectTextStatus==='missing')) {
+          attack.effect='';attack.effectTextStatus='explicit-empty';card.meta.attackMetadataStatus='present';changed=true;
+        }
+      }
+      return changed;
+    }
+    function hisuiDiscardMatches(card,effect) {
+      return card?.meta?.category==='Pokemon' && (!effect.filter || effect.filter==='hisuian' && cleanCardKey(card.name).startsWith('hisuian ')) &&
+        (!effect.maxHp || Number(card.meta.hp)<=effect.maxHp);
+    }
+    function newDeckTrainerCanPlay(card,side,effect) {
+      const p=player(side);if(!p || !effect)return null;
+      if(effect.type==='recover_matching_discard')return p.discard.some(row=>hisuiDiscardMatches(row,effect));
+      if(effect.type==='attach_discard_basic_named_bench')return p.discard.some(isBasicEnergyCard) && p.bench.some(isNsPokemon);
+      if(effect.type==='move_bench_energy_to_active')return !!p.active && p.bench.some(row=>row.energy?.length);
+      if(effect.type==='discard_top_attach_to_bench')return !!p.deck.length;
+      if(['draw_hisuian_active','bottom_hands_draw_asymmetric','offer_prize_or_draw','grant_fighting_boost'].includes(effect.type))return true;
+      return null;
+    }
+    async function resolveNewDeckTrainer(card,side,effect) {
+      const p=player(side),foe=player(oppositeSide(side)),ai=side==='codex' && localAiEnabled;
+      if(effect.type==='grant_fighting_boost') {
+        game.damageBonuses ||= [];game.damageBonuses.push({side,type:'boost_fighting_attacks',amount:effect.amount,turnNumber:game.turnNumber,source:card.name});
+        logEvent(p.name+' used Grant: Fighting attacks do 30 more damage to the opposing Active this turn.');return true;
+      }
+      if(effect.type==='draw_hisuian_active') {drawCards(side,effect.count+(cleanCardKey(p.active?.name).startsWith('hisuian ')?effect.bonus:0));return true;}
+      if(effect.type==='bottom_hands_draw_asymmetric') {
+        for(const ownerSide of [side,oppositeSide(side)]) {const owner=player(ownerSide),hand=owner.hand.filter(row=>row!==card);owner.hand=owner.hand.filter(row=>row===card);owner.deck.unshift(...shuffled(hand));}
+        drawCards(side,effect.count);if(game.phase!=='finished')drawCards(oppositeSide(side),effect.opponentCount);
+        logEvent(card.name+': hands were shuffled to the bottom; drew '+effect.count+' and '+effect.opponentCount+'.');return true;
+      }
+      if(effect.type==='offer_prize_or_draw') {
+        const opponent=oppositeSide(side),scripted=engineTestChoice('confirm',{side:opponent,title:card.name,defaultValue:false});
+        const accept=scripted.handled?!!scripted.value:opponent==='codex' && localAiEnabled ? foe.prizes.length===1 && p.prizes.length>1 :
+          await confirmInPlaymat({title:card.name,message:p.name+' proposes that each player take a Prize card.',accept:'Both take a Prize',cancel:p.name+' draws 4 cards'});
+        if(!accept){drawCards(side,effect.count);logEvent(foe.name+' declined '+card.name+'; '+p.name+' drew '+effect.count+'.');return true;}
+        for(const ownerSide of [side,opponent]){const owner=player(ownerSide);if(owner.prizes.length){const prize=owner.prizes.pop();owner.hand.push(prize);queuePrizeMovement(ownerSide,1,[prize]);}}
+        logEvent(card.name+': each player took a Prize card.');
+        if(!p.prizes.length || !foe.prizes.length)finishMatch(!p.prizes.length && !foe.prizes.length?null:!p.prizes.length?side:opponent,'Prize cards taken with '+card.name);
+        return true;
+      }
+      if(effect.type==='recover_matching_discard') {
+        const candidates=p.discard.filter(row=>hisuiDiscardMatches(row,effect));
+        const chosen=await chooseUpToEffectCards(side,card.name+': choose Pokémon to recover.',candidates,effect.count);
+        if(!chosen || chosen.some(row=>!p.discard.includes(row) || !hisuiDiscardMatches(row,effect)))return false;
+        p.discard=p.discard.filter(row=>!chosen.includes(row));chosen.forEach(resetRecoveredPokemon);p.hand.push(...chosen);logEvent(card.name+' recovered '+chosen.map(row=>row.name).join(', ')+'.');return true;
+      }
+      if(effect.type==='attach_discard_basic_named_bench') {
+        const energy=await pickEffectCard(side,card.name+': choose Basic Energy from the discard pile.',p.discard.filter(isBasicEnergyCard));
+        const target=energy && await choosePokemonOnBoard(side,card.name+': choose a Benched N’s Pokémon.',p.bench.filter(isNsPokemon),list=>list.slice().sort((a,b)=>aiEnergyPlacementScore(energy,b)-aiEnergyPlacementScore(energy,a))[0]);
+        if(!energy || !target || !p.discard.includes(energy) || !isBasicEnergyCard(energy) || !p.bench.includes(target) || !isNsPokemon(target))return false;
+        p.discard.splice(p.discard.indexOf(energy),1);target.energy.push(energy);recordMatchActivity('energy',side,energy);queueCardMovement(side,energy,'pokemon',target,'discard',card.name);logEvent(card.name+' attached '+energy.name+' to '+target.name+'.');return true;
+      }
+      if(effect.type==='move_bench_energy_to_active') {
+        const active=p.active,hosts=new Map(p.bench.flatMap(host=>(host.energy || []).map(energy=>[energy,host])));
+        const chosen=await chooseUpToEffectCards(side,card.name+': choose up to 2 Energy cards from the Bench.',[...hosts.keys()],effect.count);
+        if(!chosen || p.active!==active || chosen.length>effect.count || chosen.some(energy=>!p.bench.includes(hosts.get(energy)) || !hosts.get(energy).energy.includes(energy)))return false;
+        for(const energy of chosen){const host=hosts.get(energy);host.energy.splice(host.energy.indexOf(energy),1);active.energy.push(energy);queueCardMovement(side,energy,'pokemon',active,host,card.name);}
+        discardInvalidDragonEnergy(p,active);logEvent(card.name+' moved '+chosen.length+' Energy card(s) to '+active.name+'.');return true;
+      }
+      if(effect.type==='discard_top_attach_to_bench') {
+        const top=p.deck.slice(-effect.count),targets=p.bench.filter(row=>pokemonHasType(row,effect.targetType)),energies=top.filter(isBasicEnergyCard);
+        if(top.length)markDeckInformationRevealed(side);
+        const chosen=await chooseCardsInApp(side,card.name+': discard the top cards; attach all Basic Energy if a Benched Dragon is available.',targets.length?energies:[],targets.length?energies.length:0,targets.length?energies.length:0,top,{required:true});
+        const target=chosen?.length?await choosePokemonOnBoard(side,card.name+': choose one Benched Dragon Pokémon.',targets,null,{required:true}):null;
+        if(!chosen || chosen.length!==(targets.length?energies.length:0) || top.some((row,index)=>p.deck.at(index-top.length)!==row) || target && (!p.bench.includes(target) || !pokemonHasType(target,effect.targetType)))return false;
+        p.deck.splice(p.deck.length-top.length,top.length);p.discard.push(...top.filter(row=>!chosen.includes(row)));
+        if(target)for(const energy of chosen){target.energy.push(energy);recordMatchActivity('energy',side,energy);queueCardMovement(side,energy,'pokemon',target,'deck',card.name);}
+        logEvent(card.name+' discarded '+top.length+' top cards and attached '+chosen.length+' Basic Energy.');return true;
+      }
+      return null;
+    }
+    function comboAttackWasUsed(side,previous) {
+      const last=game.lastComboAttacks?.[side];
+      return last?.turnNumber===game.turnNumber-2 && last.pokemonName===previous && last.chain===previous;
+    }
+    function newDeckAttackDamage(side,pokemon,attack,effect) {
+      if(effect?.type==='bench_damage_bonus')return (attackBaseDamage(attack)?.amount || 0)+(player(side).bench.some(row=>row.damage>0)?effect.amount:0);
+      if(effect?.type==='combo_bonus')return (attackBaseDamage(attack)?.amount || 0)+(comboAttackWasUsed(side,effect.previous)?effect.amount:0);
+      if(effect?.type==='combo_spread')return effect.amount;
+      if(effect?.type==='opponent_discard_energy_damage')return effect.amount*player(oppositeSide(side)).discard.filter(isBasicEnergyCard).length;
+      if(effect?.type==='damage_per_self_counter')return effect.amount*Math.floor(Number(pokemon.damage || 0)/10);
+      return null;
+    }
+    async function resolveNewDeckAttack(side,pokemon,attack,effect,choices) {
+      const p=player(side),foeSide=oppositeSide(side),foe=player(foeSide),target=choices.defendingPokemon;
+      const protectedTarget=target && preventAttackEffect(side,pokemon,target,attack);
+      if(effect.type==='coin_no_prizes') {
+        const heads=await flipEffectCoin(attack.name);
+        if(![p.active,...p.bench].includes(pokemon) || attackEffectRuleFor(pokemon,attack)?.effect!==effect)return false;
+        if(heads){pokemon.noPrizeAttackProtection={side,expiresTurn:game.turnNumber+1};logEvent(pokemon.name+' gives no Prize cards if Knocked Out during the opponent’s next turn.');}return true;
+      }
+      if(effect.type==='combo_paralysis') {if(foe.active===target && !protectedTarget)applyPokemonCondition(target,{type:'paralyzed',appliedTurn:game.turnNumber,source:attack.name});return true;}
+      if(effect.type==='doom_curse') {
+        if(foe.active===target && !protectedTarget){target.doomCurseUntilTurn=game.turnNumber+1;target.doomCurseAttackerSide=side;logEvent(target.name+' will be Knocked Out at the end of its next turn unless it leaves the Active Spot or evolves.');}return true;
+      }
+      if(effect.type==='recover_discard_card') {
+        const chosen=p.discard.length ? await pickEffectCard(side,attack.name+': recover a card from your discard pile.',p.discard.slice()) : null;
+        const picked=chosen?[chosen]:[];
+        if(!picked || picked.some(card=>!p.discard.includes(card)))return false;
+        for(const card of picked){p.discard.splice(p.discard.indexOf(card),1);resetRecoveredPokemon(card);p.hand.push(card);logEvent(attack.name+' recovered '+card.name+' from the discard pile.');}return true;
+      }
+      if(effect.type==='opponent_hand_to_bottom') {
+        if(!foe.hand.length)return true;markDeckInformationRevealed(side);
+        const card=await pickEffectCard(side,attack.name+': choose a card from the revealed opposing hand.',foe.hand,list=>list.slice().sort((a,b)=>aiCardKeepScore(b)-aiCardKeepScore(a))[0],foe.hand);
+        if(!card || !foe.hand.includes(card))return false;foe.hand.splice(foe.hand.indexOf(card),1);foe.deck.unshift(card);logEvent(attack.name+' put '+card.name+' on the bottom of the opposing deck.');return true;
+      }
+      if(effect.type==='combo_spread') {
+        for(const benched of foe.bench.slice()){
+          await applyDamageToPokemon(side,foeSide,benched,'bench',effect.amount,false,attack.name,true,true,true,pokemon);
+          if(benched.damage>=effectivePokemonHp(benched))resolveBenchKnockout(side,foeSide,benched.id,true,pokemon,{deferCheckupFlow:true});
+        }
+        return true;
+      }
+      return null;
+    }
+    function canRecoverGrant(side,card) {
+      const p=player(side);return !!(game?.phase==='play' && game.turn===side && !game.pendingPromotion && !game.pendingCheckup &&
+        supporterEffectRuleFor(card)?.effect?.type==='grant_fighting_boost' && p?.discard.includes(card) && p.hand.filter(row=>cleanCardKey(row.name)!=='grant').length>=2);
+    }
+    async function recoverGrant(side,card) {
+      if(!canRecoverGrant(side,card) || window.effectResolutionPending || attackResolutionPending)return false;
+      window.effectResolutionPending=true;
+      try{return await runEffectTransaction(async()=>{
+        const p=player(side),eligible=p.hand.filter(row=>cleanCardKey(row.name)!=='grant');
+        const cost=await pickEffectCards(side,card.name+': discard 2 cards other than any Grant.',eligible,2);
+        if(!cost || !canRecoverGrant(side,card) || cost.some(row=>!p.hand.includes(row) || cleanCardKey(row.name)==='grant'))return false;
+        p.hand=p.hand.filter(row=>!cost.includes(row));p.discard.push(...cost);p.discard.splice(p.discard.indexOf(card),1);p.hand.push(card);
+        logEvent(p.name+' recovered Grant by discarding '+cost.map(row=>row.name).join(', ')+'. Supporter use is unchanged.');return true;
+      },{label:'Recover Grant'});}finally{window.effectResolutionPending=false;render();}
+    }
+    function copiedAttackIsLive(owner,attack,source) {
+      if(source.owner!==owner || player(source.side)?.active!==owner || !source.card.meta.attacks?.includes(source.originalAttack))return false;
+      if(JSON.stringify({...source.originalAttack,cost:source.costOverride || source.originalAttack.cost})!==JSON.stringify(attack))return false;
+      if(source.fromTool)return owner.tools?.includes(source.card) && ['technical_machine_evolution','devolve_opponent_board'].includes(toolEffectRuleFor(source.card)?.effect?.type);
+      if(source.fromDiscard)return player(source.side).discard.includes(source.card) && basicPokemon(source.card) && withoutRuleBox(source.card) &&
+        livePokemonAbilities(owner).some(ability=>abilityEffectRuleFor(owner,ability)?.effect?.type==='copy_discard_basic_attacks');
+      if(!player(source.side).bench.includes(source.card))return false;
+      if(source.copyCostSource)return isNsPokemon(source.card) && owner.meta.attacks.includes(source.copyCostSource) &&
+        attackEffectRuleFor(owner,source.copyCostSource)?.effect?.type==='copy_n_bench_attack';
+      return livePokemonAbilities(owner).some(ability=>abilityEffectRuleFor(owner,ability)?.effect?.type==='copy_benched_attacks');
+    }
+
+    async function resolveDoomEndTurn(endingSide) {
+      const active=player(endingSide)?.active;
+      if(!active || active.doomCurseUntilTurn!==game.turnNumber-1)return false;
+      const attackerSide=active.doomCurseAttackerSide;
+      delete active.doomCurseUntilTurn;delete active.doomCurseAttackerSide;
+      active.damage=effectivePokemonHp(active);
+      logEvent(active.name+' was Knocked Out by Doom Curse at the end of its turn.');
+      await resolveKnockout(attackerSide,endingSide,false,{deferCheckupFlow:true});
+      const result=checkupWinner();
+      if(result!==undefined){finishMatch(result,'End-of-turn Knockout');return true;}
+      if(!player(endingSide).active && player(endingSide).bench.length){
+        if(endingSide==='codex')promoteCodexAfterKnockout();
+        else {game.pendingCheckup.promotions=[endingSide];game.pendingCheckup.resumeCheckupAfterCurse=true;return advanceCheckupPromotions();}
+      }
+      return false;
+    }
+    async function resumeDoomCheckup(endingSide) {
+      const needsPromotion=await resolveBetweenTurns(endingSide);
+      if(game?.phase==='play' && !needsPromotion)completePendingCheckupTransition();
+      render();
+    }
+
     let registeredCards = loadRegisteredCards();
     let deckStats = loadDeckStats();
     let fontSizeSettings = loadFontSizeSettings();
@@ -6333,6 +6533,8 @@
           issues.push(`Line ${i + 1}: use “4 Card name” or “Card name x4”.`);
           return;
         }
+        const newPromo=typeof newDeckPromoAlias==='function' ? newDeckPromoAlias({name,categoryHint}) : null;
+        if(newPromo)name=newPromo.name+' '+newPromo.setCode+' '+newPromo.cardNumber;
         if (typeof hidingDarknessPromoAlias === 'function' && hidingDarknessPromoAlias({name,categoryHint})) name = 'Hiding Darkness Energy SP 154';
         const printed = name.trim().match(/^(.*?)\s+([A-Z0-9]{2,5}|PR-SV)\s+([A-Z0-9-]+)$/i);
         const setCode = printed ? printed[2].toUpperCase().replace(/^PR-SV$/, 'SVP') : null;
@@ -10495,6 +10697,11 @@
       if (target !== 'stadium' && game.phase === 'play' && typeof recordMatchActivity === 'function') recordMatchActivity('pokemon', controlSide, card);
       if (game.phase === 'play' && typeof recordPlayedCard === 'function') recordPlayedCard(controlSide,card,target === 'stadium' ? 'Stadium played' : 'Played to Bench',target === 'stadium' ? null : card,target === 'stadium' ? 'stadium' : 'bench');
       logEvent(`${p.name} placed ${openingCardIsHidden(controlSide) ? 'a face-down Pokémon' : card.name} in the ${target === 'stadium' ? 'Stadium' : target === 'active' ? 'Active Spot' : 'Bench'}.`);
+      const bog=stadiumEffectRuleFor(game.stadium?.card)?.effect;
+      if(game.phase==='play' && target==='bench' && basicPokemon(card) && bog?.type==='damage_hand_bench'){
+        card.damage=Number(card.damage || 0)+bog.amount;logEvent(game.stadium.card.name+' placed '+bog.amount+' damage on '+card.name+'.');
+        if(card.damage>=effectivePokemonHp(card))resolveBenchKnockout(oppositeSide(controlSide),controlSide,card.id);
+      }
       selected = null; render();
     }
     async function playGravityMountain(side,card) {
@@ -10658,6 +10865,11 @@
       Object.assign(handlers.ability, {attach_top_basic_on_evolve:['count'], buzzap_generator:['count']});
       Object.assign(handlers.attack, {also_damage_bench:['amount'], coin_chain_discard_energy:[],
         return_defender_energy:['count'], damage_per_self_energy:['amount'], random_hand_discard:[], requires_previous_attack:[]});
+      Object.assign(handlers.attack,{bench_damage_bonus:['amount'],doom_curse:[],recover_discard_card:['count'],coin_no_prizes:[],combo_paralysis:[],combo_bonus:['amount'],combo_spread:['amount'],copy_n_bench_attack:[],opponent_hand_to_bottom:[],opponent_discard_energy_damage:['amount'],damage_per_self_counter:['amount']});
+      Object.assign(handlers.supporter,{grant_fighting_boost:['amount'],recover_matching_discard:['count'],draw_hisuian_active:['count','bonus'],bottom_hands_draw_asymmetric:['count','opponentCount'],offer_prize_or_draw:['count'],move_bench_energy_to_active:['count'],discard_top_attach_to_bench:['count']});
+      Object.assign(handlers.item,{recover_matching_discard:['count'],attach_discard_basic_named_bench:[]});
+      Object.assign(handlers.ability,{copy_discard_basic_attacks:[]});
+      Object.assign(handlers.stadium,{damage_hand_bench:['amount'],free_retreat_named:[]});
       const required = handlers[kind]?.[effect.type];
       if (!required) return false;
       return required.every(key => Number.isFinite(Number(effect[key])) && Number(effect[key]) > 0);
@@ -10750,7 +10962,7 @@
           typeof isLuminousEnergyCard === 'function' && isLuminousEnergyCard(card))) return 'automatic';
       if (meta.category === 'Energy' && typeof isTelepathicPsychicEnergy === 'function' && isTelepathicPsychicEnergy(card)) return 'automatic';
       if (meta.category==='Energy' && typeof registeredEnergyType==='function' &&
-          ['ignition','rocket_energy','hiding_darkness'].includes(registeredEnergyType(card))) return 'automatic';
+          ['ignition','rocket_energy','hiding_darkness','reversal_energy'].includes(registeredEnergyType(card))) return 'automatic';
       return 'manual';
     }
     function effectResolutionFor(card) {
@@ -10777,7 +10989,7 @@
         (!card.categoryHint || ['Unknown',detail.meta.category].includes(card.categoryHint))) || null;
     }
     function repairNewPrintMetadata(card) {
-      let changed = false;
+      let changed = typeof repairHisuiElectricNMetadata==='function' && card ? repairHisuiElectricNMetadata(card) : false;
       const alias = !Object.keys(card?.meta || {}).length && card && hidingDarknessPromoAlias(card);
       if (alias) Object.assign(card,alias,{id:cardCatalogKey(alias)});
       const japanese = verifiedJapaneseDetailsFor(card);
@@ -11194,7 +11406,7 @@
     function resetRecoveredPokemon(card) {
       if(card.meta?.category!=='Pokemon')return;
       card.energy=[];card.tools=[];card.evolutionStack=[];card.conditions=[];card.damage=0;card.enteredTurn=0;card.evolvedTurn=-1;
-      for(const key of ['cannotAttackUntilTurn','attackLockSource','retreatLockUntilTurn','noWeaknessUntilTurn','attackDamageReduction','attackDamagePenalty','attackDamageImmunityUntilTurn','basicAttackProtectionUntilTurn','exAttackProtectionUntilTurn','namedAttackLock','nextTurnAttackBonus','abilityUses','growlReduction','prerequisiteAttackTurn'])delete card[key];
+      for(const key of ['cannotAttackUntilTurn','attackLockSource','retreatLockUntilTurn','noWeaknessUntilTurn','attackDamageReduction','attackDamagePenalty','attackDamageImmunityUntilTurn','basicAttackProtectionUntilTurn','exAttackProtectionUntilTurn','namedAttackLock','nextTurnAttackBonus','abilityUses','growlReduction','prerequisiteAttackTurn','doomCurseUntilTurn','doomCurseAttackerSide','noPrizeAttackProtection'])delete card[key];
       clearGrowlForPokemon(card.id);
     }
     async function resolveFireItem(card,side,effect) {
@@ -11325,6 +11537,8 @@
         if (effect.filter === 'basic_psychic_or_energy') return basicEnergyHasType(item, 'psychic') || basicPokemon(item) && pokemonHasType(item, 'psychic');
         if (effect.filter === 'basic_fighting_or_energy') return basicEnergyHasType(item,'fighting') || basicPokemon(item) && pokemonHasType(item,'fighting');
         if (effect.filter==='rocket_supporter') return isRocketSupporter(item);
+        if (effect.filter==='evolution')return item.meta?.category==='Pokemon' && !basicPokemon(item);
+        if (effect.filter==='pokemon_hp')return item.meta?.category==='Pokemon' && Number(item.meta.hp)>0 && Number(item.meta.hp)<=effect.maxHp;
         if (effect.filter === 'basic_energy') return isBasicEnergyCard(item);
         if (effect.filter === 'no_rulebox') return withoutRuleBox(item);
         if (effect.filter === 'mega_ex') return isPokemonEx(item) && /^mega .+ ex$/.test(cleanCardKey(item.name));
@@ -11632,6 +11846,7 @@
     }
     async function resolveBuiltInSupporter(card, side, targetId = null) {
       const newRule = supporterEffectRuleFor(card)?.effect, owner = player(side);
+      if(typeof newDeckTrainerCanPlay==='function' && newDeckTrainerCanPlay(card,side,newRule)!==null)return resolveNewDeckTrainer(card,side,newRule);
       if (newRule?.type === 'exchange_prizes_with_hand') {
         const prizes = owner.prizes.slice();
         const slots = prizes.map((_,index)=>({id:'prize-slot:'+index,name:'Face-down Prize '+(index+1),
@@ -12929,6 +13144,7 @@
     }
     async function resolveBuiltInItem(card, side, targetId = null) {
       const effect = itemEffectRuleFor(card)?.effect;
+      if(typeof newDeckTrainerCanPlay==='function' && newDeckTrainerCanPlay(card,side,effect)!==null)return resolveNewDeckTrainer(card,side,effect);
       if (effect?.type === 'opponent_bottom_draw') {
         if (!canPlayTrainerEffect(card,side)) return false;
         const foe = oppositeSide(side);
@@ -13203,6 +13419,7 @@
       if (type === 'supporter') {
         if (p?.supporterPlayedThisTurn || side === game.firstPlayer && p.turnsTaken === 0 && !supporterEffectRuleFor(card)?.effect?.firstTurn) return false;
         const effect = supporterEffectRuleFor(card)?.effect;
+        if(typeof newDeckTrainerCanPlay==='function'){const result=newDeckTrainerCanPlay(card,side,effect);if(result!==null)return result;}
         if (effect?.type==='search_deck_groups') return !!p.deck.length;
         if (effect?.type==='evolve_from_deck_no_ability') return !!p.deck.length && !!(p.active || p.bench.length);
         if (effect?.type==='heal_typed_pokemon') return [p.active,...p.bench].some(item=>item?.damage>0 && pokemonHasType(item,effect.pokemonType));
@@ -13239,6 +13456,7 @@
       if (type !== 'item' || p.itemLockTurn === game.turnNumber) return false;
       const effect = itemEffectRuleFor(card)?.effect;
       if (!effect) return true;
+      if(typeof newDeckTrainerCanPlay==='function'){const result=newDeckTrainerCanPlay(card,side,effect);if(result!==null)return result;}
       if (effect.type === 'both_switch_opponent_first') return [p,player(oppositeSide(side))].some(owner=>owner.active && owner.bench.length);
       if (effect.type==='opponent_bottom_draw') {
         const foe = player(oppositeSide(side));
@@ -13860,6 +14078,7 @@
       return ['you', 'codex'].find(side => player(side)?.active?.id === pokemon.id || player(side)?.bench.some(card => card.id === pokemon.id)) || controlSide;
     }
     function retreatCostForPokemon(pokemon) {
+      if(typeof isNsPokemon==='function' && isNsPokemon(pokemon) && stadiumEffectRuleFor(game?.stadium?.card)?.effect?.type==='free_retreat_named')return 0;
       if (typeof registeredEnergyType==='function' && pokemon?.energy?.some(card=>registeredEnergyType(card)==='hiding_darkness') &&
           pokemonHasType(pokemon,'darkness')) return 0;
       if (!(pokemon?.energy || []).length && (typeof livePokemonAbilities === 'function' ? livePokemonAbilities(pokemon) : []).some(ability=>
@@ -13889,7 +14108,7 @@
       pokemon.growlReduction = null;
       for (const field of ['attackRetaliation','basicAttackProtectionUntilTurn','exAttackProtectionUntilTurn',
         'retreatLockUntilTurn','noWeaknessUntilTurn','attackDamageReduction','attackDamagePenalty',
-        'attackDamageImmunityUntilTurn','namedAttackLock','attackLockSource','cannotAttackUntilTurn']) delete pokemon[field];
+        'attackDamageImmunityUntilTurn','namedAttackLock','attackLockSource','cannotAttackUntilTurn','doomCurseUntilTurn','doomCurseAttackerSide','noPrizeAttackProtection']) delete pokemon[field];
     }
     function applyPokemonCondition(pokemon, condition) {
       if (typeof isOpeningDoll === 'function' && isOpeningDoll(pokemon)) return false;
@@ -13907,6 +14126,11 @@
         return [(pokemon?.energy || []).some(other => other.id !== energy.id && !isBasicEnergyCard(other)) ? 'colorless' : 'any'];
       }
       const special = typeof registeredEnergyType==='function' ? registeredEnergyType(energy) : null;
+      if(special==='reversal_energy') {
+        const side=sideForPokemon(pokemon),owner=player(side),foe=player(oppositeSide(side));
+        return !basicPokemon(pokemon) && withoutRuleBox(pokemon) && owner && foe && owner.prizes.length>foe.prizes.length ? ['any','any','any'] : ['colorless'];
+      }
+      if(cleanCardKey(energy?.name)==='reversal energy')return [];
       if (special==='hiding_darkness') return ['darkness'];
       if (special==='ignition') return /^stage [12]$|^vmax$|^vstar$/.test(normalizePokemonStage(pokemon?.meta?.stage)) ||
         pokemon?.meta?.evolveFrom ? ['colorless','colorless','colorless'] : ['colorless'];
@@ -13924,6 +14148,7 @@
       return type && type !== 'special' ? [type] : [];
     }
     function retreatEnergyUnits(energy, pokemon) {
+      if(typeof registeredEnergyType==='function' && registeredEnergyType(energy)==='reversal_energy')return energyUnitsForPokemon(energy,pokemon).length;
       if (basicEnergyHasType(energy,'grass')) return energyUnitsForPokemon(energy,pokemon).length;
       if (isDoubleDragonEnergyCard(energy)) return (pokemon?.meta?.types || []).some(type => normalizedEnergyType(type) === 'dragon') ? 2 : 0;
       return energy?.meta?.category === 'Energy' || isBasicEnergy(energy?.name) ? 1 : 0;
@@ -13946,13 +14171,8 @@
     function attackEffectRuleFor(card, attack) {
       const source = typeof grantedAttackSources !== 'undefined' ? grantedAttackSources.get(attack) : null;
       if (source) {
-        if (source.owner !== card || player(source.side)?.active !== card ||
-            !source.card.meta.attacks?.includes(source.originalAttack) ||
-            JSON.stringify(source.originalAttack) !== JSON.stringify(attack)) return null;
-        if (source.fromTool ? !card.tools?.includes(source.card) || toolEffectRuleFor(source.card)?.effect?.type !== 'technical_machine_evolution' :
-            !player(source.side).bench.includes(source.card) ||
-            !livePokemonAbilities(card).some(ability=>abilityEffectRuleFor(card,ability)?.effect?.type === 'copy_benched_attacks')) return null;
-        card = source.card;
+        if(!copiedAttackIsLive(card,attack,source))return null;
+        card=source.card;attack=source.originalAttack;
       }
       if (typeof attack?.effect !== 'string') return null;
       if (!attack.effect.trim() && typeof verifiedJapaneseDetailsFor === 'function' && verifiedJapaneseDetailsFor(card) &&
@@ -13972,7 +14192,7 @@
       return match ? { amount: Number(match[1]), modifier: match[2] === 'x' ? '×' : (match[2] || ''), conditional: match[2] === '+' } : null;
     }
     function attackDamageBonusBeforeWeakness(side, pokemon, attack, target = player(oppositeSide(side))?.active) {
-      const dealsDamage = attackBaseDamage(attack)?.amount > 0 || attackEffectRuleFor(pokemon,attack)?.effect?.type === 'discard_energy_multi_damage';
+      const dealsDamage = attackBaseDamage(attack)?.amount > 0 || ['discard_energy_multi_damage','combo_spread'].includes(attackEffectRuleFor(pokemon,attack)?.effect?.type);
       if (!game || !pokemon || !target || !dealsDamage) return 0;
       let bonus = 0;
       const owner = player(side), attackerTypes = (pokemon.meta?.types || []).map(normalizedEnergyType);
@@ -13988,7 +14208,8 @@
         const effect = toolEffectRuleFor(tool)?.effect;
         if (effect?.type === 'active_damage_bonus' &&
             (!effect.attackerWithoutRuleBox || withoutRuleBox(pokemon)) &&
-            (!effect.targetPokemonEx || sunnyDayApplies && isPokemonEx(target))) bonus += Number(effect.amount || 0);
+            (!effect.targetPokemonEx || sunnyDayApplies && isPokemonEx(target)) &&
+            (!effect.targetPokemonV || sunnyDayApplies && / (v|vmax|vstar|v union)$/.test(cleanCardKey(target.name)))) bonus += Number(effect.amount || 0);
       }
       if (sunnyDayApplies && attackerTypes.includes('fighting')) bonus += (game.damageBonuses || [])
         .filter(item=>item.side===side && item.turnNumber===game.turnNumber && item.type==='boost_fighting_attacks')
@@ -14005,7 +14226,9 @@
     function attackDamageValue(attack, pokemon) {
       const base = attackBaseDamage(attack), rule = attackEffectRuleFor(pokemon, attack);
       if (!rule) return null;
-      if (!base && ['search_stadium','discard_energy_multi_damage','search_attach_basic_energy','devolve_opponent_board','both_discard_one','gust_then_damage','active_counters','place_bench_damage_counters'].includes(rule.effect.type)) return 0;
+      if(rule.effect.type==='combo_spread' && !game)return rule.effect.amount;
+      if(typeof newDeckAttackDamage==='function' && game){const value=newDeckAttackDamage(sideForPokemon(pokemon),pokemon,attack,rule.effect);if(value!==null)return value>0?value+attackDamageBonusBeforeWeakness(sideForPokemon(pokemon),pokemon,attack):0;}
+      if (!base && ['inflict_burn','doom_curse','recover_discard_card','copy_n_bench_attack','search_stadium','discard_energy_multi_damage','search_attach_basic_energy','devolve_opponent_board','both_discard_one','gust_then_damage','active_counters','place_bench_damage_counters'].includes(rule.effect.type)) return 0;
       if (!base) return ['search_grass_stadium','lower_defending_attack','draw_cards','search_pokemon_type','move_bench_damage_counters','recover_basic_energy','heal_and_retreat_lock','discard_hand_card_draw','selected_opponent_damage', 'search_basic_energy', 'defender_damage_reduction', 'search_attach_basic_water_to_basic', 'return_attacker_to_hand', 'shuffle_hand_draw', 'recover_supporter', 'search_basic_pokemon_to_bench', 'inflict_poison', 'inflict_sleep', 'coin_discard_opponent_energy', 'discard_opponent_special_energy', 'coin_discard_energy_per_tails', 'heal_attacker', 'attack_lock_next_turn','search_attach_each_bench','coin_heal_attacker','search_pokemon_to_hand','gust_and_confuse','attach_discard_basic_to_one','look_attach_then_order','technical_machine_evolution'].includes(rule.effect.type) ? 0 : null;
       let damage = base.amount;
       if (['rocket_feather','rocket_discard_damage','defender_counter_damage','rocket_energy_bonus'].includes(rule.effect.type) && game) {
@@ -14063,11 +14286,13 @@
     function energyProvidesType(energy, pokemon, type) {
       if (isDoubleDragonEnergyCard(energy)) return (pokemon?.meta?.types || []).some(item => normalizedEnergyType(item) === 'dragon');
       const units = energyUnitsForPokemon(energy, pokemon);
-      return units.includes(type) || units.includes('psychic-darkness') && ['psychic','darkness'].includes(type) || typeof isLuminousEnergyCard === 'function' && isLuminousEnergyCard(energy) && units.includes('any');
+      return units.includes(type) || units.includes('any') || units.includes('psychic-darkness') && ['psychic','darkness'].includes(type) || typeof isLuminousEnergyCard === 'function' && isLuminousEnergyCard(energy) && units.includes('any');
     }
     function attackEffectRequirementsMet(pokemon, attack) {
       const rule = attackEffectRuleFor(pokemon, attack);
       if (!rule) return false;
+      if(rule.effect.type==='copy_n_bench_attack')return false;
+      if(['combo_paralysis','combo_spread'].includes(rule.effect.type) && !comboAttackWasUsed(sideForPokemon(pokemon),rule.effect.previous))return false;
       if (rule.effect.type === 'discard_energy_multi_damage') return pokemonEnergyCount(pokemon) >= rule.effect.count;
       if (rule.effect.type === 'chaos_crawler' && game.chaosCrawlerTurns?.[sideForPokemon(pokemon)] === game.turnNumber - 2) return false;
       if (rule.effect.type === 'requires_previous_attack' && pokemon.prerequisiteAttackTurn !== game.turnNumber - 2) return false;
@@ -14309,6 +14534,7 @@
       const attackedTarget = choices.defendingPokemon;
       const preventEffectOn = target => typeof preventAttackEffect === 'function' ? preventAttackEffect(side,pokemon,target,attack) : protectedFromExAttack(pokemon,target);
       const foeSide = oppositeSide(side), foe = player(foeSide);
+      if(typeof resolveNewDeckAttack==='function' && ['coin_no_prizes','combo_paralysis','doom_curse','recover_discard_card','opponent_hand_to_bottom','combo_spread'].includes(effect?.type))return resolveNewDeckAttack(side,pokemon,attack,effect,choices);
       if (effect?.type === 'torment_attack') {
         if (foe.active === attackedTarget && !preventEffectOn(attackedTarget) && choices.tormentMove) {
           foe.active.namedAttackLock = {name:choices.tormentMove,turn:game.turnNumber+1};
@@ -14357,6 +14583,7 @@
         'lower_defending_attack','defender_damage_reduction','coin_paralysis','inflict_burn','inflict_poison',
         'inflict_sleep','inflict_confusion','coin_discard_opponent_energy','discard_opponent_special_energy',
         'force_opponent_switch'].includes(effect?.type) && preventEffectOn(attackedTarget)) return true;
+      if(effect?.type==='also_damage_bench' && effect.discardAllEnergy){const energies=pokemon.energy.splice(0);p.discard.push(...energies);logEvent(attack.name+' discarded all '+energies.length+' attached Energy cards.');}
       if (['also_damage_bench','coin_chain_discard_energy','return_defender_energy','random_hand_discard'].includes(effect?.type)) {
         return resolveSecondaryDamageAttack(side,pokemon,attack,effect,choices.defendingPokemon);
       }
@@ -14590,7 +14817,7 @@
       }
       if (['inflict_poison', 'inflict_sleep', 'inflict_confusion'].includes(effect?.type) && defender.active?.id === attackedDefender?.id) {
         const conditionType = effect.type === 'inflict_poison' ? 'poisoned' : effect.type === 'inflict_sleep' ? 'asleep' : 'confused';
-        if (applyPokemonCondition(defender.active, { type:conditionType, appliedTurn:game.turnNumber, source:attack.name })) logEvent(`${defender.active.name} is now ${conditionType[0].toUpperCase()+conditionType.slice(1)}.`);
+        if (applyPokemonCondition(defender.active, { type:conditionType, appliedTurn:game.turnNumber, source:attack.name, ...(conditionType==='poisoned' ? {damage:effect.poisonDamage || 10} : {}) })) logEvent(`${defender.active.name} is now ${conditionType[0].toUpperCase()+conditionType.slice(1)}.`);
       }
       if (effect?.type === 'heal_attacker') {
         const healed = Math.min(Number(effect.amount || 30), Number(pokemon.damage || 0));
@@ -14686,6 +14913,7 @@
       const effect = attackEffectRuleFor(pokemon, attack)?.effect;
       const base = attackBaseDamage(attack);
       let damage = base?.amount || 0;
+      if(typeof newDeckAttackDamage==='function'){const value=newDeckAttackDamage(side,pokemon,attack,effect);if(value!==null)damage=value;}
       if (effect?.type==='assault_gate' && pokemon.benchToActiveTurn!==game.turnNumber) return 0;
       if (effect?.type === 'lunatone_cosmo_beam' && !player(side).bench.some(card=>cleanCardKey(card.name)==='lunatone')) return 0;
       if (effect?.type === 'discard_stadium' && game.stadium) damage += effect.bonus || 0;
@@ -14897,9 +15125,10 @@
       if (p?.active !== pokemon) return p?.bench.includes(pokemon) ?
         printed.filter(({attack})=>attackEffectRuleFor(pokemon,attack)?.effect?.type === 'bench_attack') : [];
       const entries = [...printed];
-      const add = (card, attack, fromTool = false) => {
-        const granted = {...attack,cost:Array.isArray(attack.cost) ? [...attack.cost] : attack.cost};
-        grantedAttackSources.set(granted,{owner:pokemon,card,side,originalAttack:attack,fromTool});
+      const add = (card, attack, fromTool = false, options={}) => {
+        const cost=options.costOverride || attack.cost;
+        const granted = {...attack,cost:Array.isArray(cost) ? [...cost] : cost};
+        grantedAttackSources.set(granted,{owner:pokemon,card,side,originalAttack:attack,fromTool,...options});
         entries.push({attack:granted,index:entries.length,pokemon,sourceId:card.id,sourceName:card.name});
       };
       for (const tool of pokemon?.tools || []) {
@@ -14911,6 +15140,14 @@
           if (effectHandlerIsImplemented('attack',attackEffectRuleFor(source,attack)?.effect)) add(source,attack);
         }
       }
+      const joker=printed.find(({attack})=>attackEffectRuleFor(pokemon,attack)?.effect?.type==='copy_n_bench_attack');
+      if(joker)for(const source of p.bench.filter(isNsPokemon))for(const attack of source.meta.attacks || []) {
+        const rule=attackEffectRuleFor(source,attack);
+        if(rule?.effect.type!=='copy_n_bench_attack' && effectHandlerIsImplemented('attack',rule?.effect))add(source,attack,false,{costOverride:joker.attack.cost,copyCostSource:joker.attack});
+      }
+      if(livePokemonAbilities(pokemon).some(ability=>abilityEffectRuleFor(pokemon,ability)?.effect?.type==='copy_discard_basic_attacks'))
+        for(const source of p.discard.filter(card=>basicPokemon(card) && withoutRuleBox(card)))for(const attack of source.meta.attacks || [])
+          if(effectHandlerIsImplemented('attack',attackEffectRuleFor(source,attack)?.effect))add(source,attack,false,{fromDiscard:true});
       return entries;
     }
     function playableAttacks(side, allowManual = false, pokemon = player(side)?.active) {
@@ -14937,6 +15174,8 @@
       return amount ? Number(amount[0]) : 30;
     }
     function prizeCountFor(pokemon) {
+      const protection=pokemon?.noPrizeAttackProtection;
+      if(protection && game && !game.pendingCheckup && game.turn===oppositeSide(protection.side) && game.turnNumber<=protection.expiresTurn)return 0;
       if (typeof isOpeningDoll === 'function' && isOpeningDoll(pokemon)) return 0;
       const rule = (pokemon.meta?.rules || []).join(' ');
       const stated = rule.match(/(?:take|draw)\s+(\d+)\s+Prize/i);
@@ -15553,7 +15792,7 @@
         } else {
           logEvent(`${p.name} used ${option.attack.name} with ${attacker.name}${['selected_opponent_damage','discard_energy_multi_damage','gust_then_damage','active_counters','both_discard_one'].includes(effect?.type) ? '.' : ` for ${damage} damage.`}`, true, typeof publicActionReference === 'function' ? publicActionReference(side, attacker) : null);
           const deferredKnockouts = (effect?.type !== 'none' && typeof rocketResistVeil === 'function' && rocketResistVeil(defenderSide,target)) || ['self_damage','place_bench_damage_counters','also_damage_bench',
-            'coin_chain_discard_energy','return_defender_energy','random_hand_discard','attach_discard_fighting_to_bench','discard_stadium'].includes(effect?.type);
+            'combo_spread','coin_chain_discard_energy','return_defender_energy','random_hand_discard','attach_discard_fighting_to_bench','discard_stadium'].includes(effect?.type);
           if (typeof recordMasteryAttack==='function') recordMasteryAttack(side,attacker,option.attack,target,damage,effect);
           const damageOutcome=damage>0?await applyDamageToPokemon(side,defenderSide,target,'active',damage,true,option.attack.name,effect?.type!=='ignore_defender_effects',true,deferredKnockouts,attacker,effect?.type==='lunatone_cosmo_beam' || effect?.ignoreWeaknessResistance ? true : effect?.type==='assault_gate' ? 'weakness' : false):null;
           const effectResolved = await resolveAttackEffect(side, attacker, option.attack, choices);
@@ -15569,6 +15808,8 @@
           const prerequisite = attackEffectRuleFor(attacker, attack)?.effect;
           return prerequisite?.type === 'requires_previous_attack' && prerequisite.attackName === option.attack.name;
         })) attacker.prerequisiteAttackTurn = game.turnNumber;
+        game.lastComboAttacks ||= {};
+        game.lastComboAttacks[side]={pokemonName:cleanCardKey(attacker.name),chain:effect?.type==='coin_no_prizes'?'togedemaru':effect?.type==='combo_paralysis'?'dedenne':null,turnNumber:game.turnNumber};
         p.attackedThisTurn = true;
         recordDeckCardStat(side, attacker, 'used');
         return true;
@@ -17364,6 +17605,17 @@
     function aiAttackScore(pokemon,attack,target=player('you')?.active) {
       if (!canUseAttack(pokemon,attack)) return -1;
       const effect=attackEffectRuleFor(pokemon,attack)?.effect, gen = genAiProfile();
+      if(['doom_curse','recover_discard_card','coin_no_prizes','combo_paralysis','combo_bonus','combo_spread','bench_damage_bonus','opponent_hand_to_bottom','opponent_discard_energy_damage','damage_per_self_counter'].includes(effect?.type)) {
+        const foe=player('you'),own=player('codex'),damage=aiExpectedAttackDamage(pokemon,attack,target),remaining=target?effectivePokemonHp(target)-Number(target.damage || 0):Infinity;
+        let value=damage+(damage>=remaining?1000:0);
+        if(effect.type==='doom_curse' && target && !preventAttackEffect('codex',pokemon,target,attack))value+=target.doomCurseUntilTurn===game.turnNumber+1?0:85;
+        if(effect.type==='recover_discard_card')value+=own.discard.length?35:0;
+        if(effect.type==='opponent_hand_to_bottom')value+=Math.min(30,foe.hand.length*6);
+        if(effect.type==='combo_paralysis' && target && !preventAttackEffect('codex',pokemon,target,attack))value+=game.yamiStyle==='control'?45:25;
+        if(effect.type==='combo_spread')value+=foe.bench.reduce((sum,card)=>sum+genAiBenchDamageValue(pokemon,card,effect.amount),0);
+        if(game.yamiDifficulty!=='casual' && effect.type==='coin_no_prizes' && [own.active,...own.bench,...own.hand].some(card=>cleanCardKey(card?.name)==='dedenne'))value+=35;
+        return value;
+      }
       if (hasSkeleridgeStrategy() && effect && ['none','ignore_defender_effects','attach_discard_fire_to_distinct_bench',
         'attack_lock_next_turn','self_damage','return_attached_energy_to_hand','draw_cards'].includes(effect.type)) {
         return skeleridgeAttackScore(pokemon,attack,target,effect);
@@ -17418,7 +17670,8 @@
       return (pokemon?.meta?.attacks || []).some(attack => canUseAttack(pokemon,attack) && Number(attackBaseDamage(attack)?.amount) > 0);
     }
     function aiBestAttackScore(pokemon,target) {
-      return Math.max(0,...(pokemon?.meta?.attacks || []).map(attack=>aiAttackScore(pokemon,attack,target)));
+      const attacks=typeof attackEntries==='function' && player('codex')?.active===pokemon ? attackEntries('codex',pokemon).map(entry=>entry.attack) : pokemon?.meta?.attacks || [];
+      return Math.max(0,...attacks.map(attack=>aiAttackScore(pokemon,attack,target)));
     }
     function aiEnergyDeficit(pokemon,attack,cost = attackCostForPokemon(pokemon,attack)) {
       const available=(pokemon.energy || []).flatMap(energy=>energyUnitsForPokemon(energy,pokemon)).slice();let missing=0;
@@ -18155,6 +18408,13 @@
     function aiSupporterScore(card) {
       const p=player('codex'), foe=player('you'), effect=supporterEffectRuleFor(card)?.effect, left=p.hand.filter(item=>item!==card), count=left.length;
       if (!effect) return -1;
+      if(effect.type==='draw_hisuian_active')return Math.min(p.deck.length,effect.count+(cleanCardKey(p.active?.name).startsWith('hisuian ')?effect.bonus:0))*14;
+      if(effect.type==='bottom_hands_draw_asymmetric')return (effect.count-count)*12+Math.max(0,foe.hand.length-effect.opponentCount)*6;
+      if(effect.type==='grant_fighting_boost')return pokemonHasType(p.active,'fighting') && aiBestAttackScore(p.active)>0 ? 45 : -1;
+      if(effect.type==='recover_matching_discard')return p.discard.some(row=>hisuiDiscardMatches(row,effect))?30:-1;
+      if(effect.type==='move_bench_energy_to_active')return p.active && p.bench.some(row=>row.energy?.length) ? 35 : -1;
+      if(effect.type==='discard_top_attach_to_bench')return p.deck.length>effect.count && p.bench.some(row=>pokemonHasType(row,effect.targetType)) ? 38 : -1;
+      if(effect.type==='offer_prize_or_draw')return p.prizes.length===1 && foe.prizes.length>1 ? -1 : Math.min(p.deck.length,effect.count)*12;
       if (effect.type==='exchange_prizes_with_hand') return stageTwoAiProfile()==='future_princess' ?
         futureAiPeoniaScore() : p.prizes.length ? (left.length<4 ? 16 : 5) : -1;
       const chien = hasChienPaoStrategy(), ethan = hasEthanSkeledirgeStrategy(), stageTwo = stageTwoAiProfile();
@@ -18743,6 +19003,10 @@
       const skeleridge = typeof hasSkeleridgeStrategy==='function' && hasSkeleridgeStrategy();
       const prizeLine = (game.yamiDifficulty !== 'casual' || skeleridge) && typeof chooseAiPrizeLine === 'function' ? chooseAiPrizeLine() : null;
       if (game.yamiDifficulty==='master' && prizeLine?.type==='attack' && prizeLine.guaranteedKnockout) return prizeLine;
+      if(typeof canRecoverGrant==='function' && !codex.supporterPlayedThisTurn && !hand.some(card=>supporterEffectRuleFor(card)?.effect?.type==='grant_fighting_boost') && [codex.active,...codex.bench].some(card=>pokemonHasType(card,'fighting'))){
+        const grant=codex.discard.find(card=>canRecoverGrant('codex',card));
+        if(grant && hand.filter(card=>cleanCardKey(card.name)!=='grant').filter(card=>aiCardKeepScore(card)<35).length>=2)return {type:'recover_grant',card:grant};
+      }
       if (skeleridge) {
         const setup = skeleridgeSetupAction(prizeLine);
         if (setup) return setup;
@@ -19228,6 +19492,7 @@
         controlSide = 'codex'; await endTurn(); return;
       }
       const action = chooseLocalAiAction();
+      if(action.type==='recover_grant'){await recoverGrant('codex',action.card);scheduleLocalAiTurn();return;}
       if (action.type === 'end_turn') {
         $('localAiStatus').textContent = 'Yami ended its turn.';
         announceMatchActivity('Yami finished its turn.');
@@ -19832,6 +20097,7 @@
     function completePendingCheckupTransition() {
       if (!game || game.phase !== 'play' || !game.pendingCheckup || game.pendingPromotion) return false;
       const { endingSide } = game.pendingCheckup;
+      if(game.pendingCheckup.resumeCheckupAfterCurse){delete game.pendingCheckup.resumeCheckupAfterCurse;void resumeDoomCheckup(endingSide);return true;}
       const drawSide = game.pendingStartDrawSide;
       game.pendingCheckup = null;
       game.pendingStartDrawSide = null;
@@ -19848,6 +20114,7 @@
     async function resolveBetweenTurns(endingSide) {
       game.pendingAttackTurn = null;
       game.pendingCheckup = { endingSide, incomingSide: game.turn, promotions: [] };
+      if(typeof resolveDoomEndTurn==='function' && await resolveDoomEndTurn(endingSide))return true;
       const activeAtCheck = {};
       for (const side of ['you', 'codex']) {
         const active = player(side)?.active;
@@ -19860,8 +20127,9 @@
           const active = activeAtCheck[side];
           if (!active || player(side)?.active?.id !== active.id || !hasCondition(active, condition)) continue;
           if (condition === 'poisoned') {
-            active.damage = Number(active.damage || 0) + 10;
-            logEvent(`${active.name} took 10 Poison damage.`);
+            const poisonDamage=(active.conditions || []).find(item=>item.type==='poisoned')?.damage || 10;
+            active.damage = Number(active.damage || 0) + poisonDamage;
+            logEvent(active.name+' took '+poisonDamage+' Poison damage.');
           } else if (condition === 'burned') {
             active.damage = Number(active.damage || 0) + 20;
             const removed = typeof flipEffectCoin === 'function' ? await flipEffectCoin(`${active.name} · Burn check`) : randomCoin();
@@ -20255,7 +20523,8 @@
       const live=!!game && [player(selected.side)?.active,...(player(selected.side)?.bench || [])].includes(card);
       const owner=selected.zone==='history'?'Match history':selected.zone==='attached-tool'?'Attached Pokémon Tool':selected.zone==='discard' ? `${selected.side==='you'?'Your':'Yami’s'} discard pile` : selected.side==='you'?'Your card':'Yami’s card';
       const reference=[card.setCode,card.cardNumber].filter(Boolean).join(' ');
-      const heading=`<div class="inspector-card-heading"><div class="inspector-owner">${escapeHtml(owner)}</div><strong class="inspector-name">${escapeHtml(card.name)}</strong><small>${escapeHtml([reference,meta.stage || meta.trainerType || meta.category].filter(Boolean).join(' · '))}</small></div>`;
+      const grantRecovery=typeof canRecoverGrant==='function' && selected.zone==='discard' && canRecoverGrant(selected.side,card) ? '<button class="btn small" data-recover-grant>Recover Grant · discard 2 cards</button>' : '';
+      const heading=`<div class="inspector-card-heading"><div class="inspector-owner">${escapeHtml(owner)}</div><strong class="inspector-name">${escapeHtml(card.name)}</strong><small>${escapeHtml([reference,meta.stage || meta.trainerType || meta.category].filter(Boolean).join(' · '))}</small>${grantRecovery}</div>`;
       let vitals='';
       if(meta.category==='Pokemon') {
         const hp=effectivePokemonHp(card), damage=Math.max(0,Number(card.damage || 0)),remaining=Math.max(0,hp-damage),groups=new Map();
@@ -21852,6 +22121,7 @@
       render();
     });
     $('cardInspector').addEventListener('click', event => {
+      if(event.target.closest('[data-recover-grant]')){void recoverGrant(selected.side,findSelected());return;}
       const flip = event.target.closest('[data-inspector-face]');
       if (flip) {
         const card = flip.closest('.inspector-flip');

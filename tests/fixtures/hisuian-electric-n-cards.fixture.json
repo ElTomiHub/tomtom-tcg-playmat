@@ -1,0 +1,2930 @@
+{
+  "description": "Verified Japanese and English prints for Hisuian, Electric combo, and N decks; exact source URLs and artwork retained.",
+  "cards": [
+    {
+      "id": "verified:ja:S10A:32",
+      "name": "Hisuian Growlithe",
+      "setCode": "S10A",
+      "cardNumber": "32",
+      "language": "ja",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "S10a/32",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "energyType": "",
+        "hp": "70",
+        "types": [
+          "Fighting"
+        ],
+        "retreat": 2,
+        "weaknesses": [
+          {
+            "type": "Grass",
+            "value": "×2"
+          }
+        ],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/S10a/S10a_32_R_JP.png",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Singe",
+            "cost": [],
+            "damage": "",
+            "effect": "Your opponent's Active Pokémon is now Burned.",
+            "effectTextStatus": "present"
+          }
+        ],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/jp/S10a/32?translate=en",
+        "translationSource": "Limitless",
+        "translationStatus": "unofficial",
+        "language": "ja",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:ja:S9A:47",
+      "name": "Hisuian Qwilfish",
+      "setCode": "S9A",
+      "cardNumber": "47",
+      "language": "ja",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "S9a/47",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "energyType": "",
+        "hp": "80",
+        "types": [
+          "Darkness"
+        ],
+        "retreat": 2,
+        "weaknesses": [
+          {
+            "type": "Fighting",
+            "value": "×2"
+          }
+        ],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/S9a/S9a_47_R_JP.png",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Spiny Rush",
+            "cost": [],
+            "damage": "10×",
+            "effect": "Flip a coin until you get tails. This attack does 10 damage for each heads.",
+            "effectTextStatus": "present"
+          }
+        ],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/jp/S9a/47?translate=en",
+        "translationSource": "Limitless",
+        "translationStatus": "unofficial",
+        "language": "ja",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:ja:SV5A:42",
+      "name": "Hisuian Arcanine",
+      "setCode": "SV5A",
+      "cardNumber": "42",
+      "language": "ja",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "SV5a/42",
+        "category": "Pokemon",
+        "stage": "Stage 1",
+        "evolveFrom": "Hisuian Growlithe",
+        "trainerType": "",
+        "energyType": "",
+        "hp": "130",
+        "types": [
+          "Fighting"
+        ],
+        "retreat": 2,
+        "weaknesses": [
+          {
+            "type": "Grass",
+            "value": "×2"
+          }
+        ],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/SV5a/SV5a_42_R_JP.png",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Proud Fangs",
+            "cost": [],
+            "damage": "30+",
+            "effect": "If your Benched Pokémon have any damage counters on them, this attack does 90 more damage.",
+            "effectTextStatus": "present"
+          },
+          {
+            "name": "Searing Flame",
+            "cost": [
+              "Fighting",
+              "Fighting",
+              "Colorless"
+            ],
+            "damage": "90",
+            "effect": "Your opponent's Active Pokémon is now Burned.",
+            "effectTextStatus": "present"
+          }
+        ],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/jp/SV5a/42?translate=en",
+        "translationSource": "Limitless",
+        "translationStatus": "unofficial",
+        "language": "ja",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:ja:S9A:48",
+      "name": "Hisuian Overqwil",
+      "setCode": "S9A",
+      "cardNumber": "48",
+      "language": "ja",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "S9a/48",
+        "category": "Pokemon",
+        "stage": "Stage 1",
+        "evolveFrom": "Hisuian Qwilfish",
+        "trainerType": "",
+        "energyType": "",
+        "hp": "130",
+        "types": [
+          "Darkness"
+        ],
+        "retreat": 2,
+        "weaknesses": [
+          {
+            "type": "Fighting",
+            "value": "×2"
+          }
+        ],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/S9a/S9a_48_R_JP.png",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Sharp Poison",
+            "cost": [],
+            "damage": "",
+            "effect": "Your opponent's Active Pokémon is now Poisoned. During Pokémon Checkup, put 5 damage counters on that Pokémon instead of 1.",
+            "effectTextStatus": "present"
+          },
+          {
+            "name": "Quill Sting",
+            "cost": [
+              "Darkness",
+              "Colorless"
+            ],
+            "damage": "50",
+            "effect": "During your opponent's next turn, the Defending Pokémon can't retreat.",
+            "effectTextStatus": "present"
+          }
+        ],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/jp/S9a/48?translate=en",
+        "translationSource": "Limitless",
+        "translationStatus": "unofficial",
+        "language": "ja",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:ja:S10A:29",
+      "name": "Hisuian Zorua",
+      "setCode": "S10A",
+      "cardNumber": "29",
+      "language": "ja",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "S10a/29",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "energyType": "",
+        "hp": "60",
+        "types": [
+          "Psychic"
+        ],
+        "retreat": 1,
+        "weaknesses": [
+          {
+            "type": "Darkness",
+            "value": "×2"
+          }
+        ],
+        "resistances": [
+          {
+            "type": "Fighting",
+            "value": "-30"
+          }
+        ],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/S10a/S10a_29_R_JP.png",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Collect",
+            "cost": [],
+            "damage": "",
+            "effect": "Draw a card.",
+            "effectTextStatus": "present"
+          },
+          {
+            "name": "Mumble",
+            "cost": [
+              "Psychic"
+            ],
+            "damage": "10",
+            "effect": "",
+            "effectTextStatus": "explicit-empty"
+          }
+        ],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/jp/S10a/29?translate=en",
+        "translationSource": "Limitless",
+        "translationStatus": "unofficial",
+        "language": "ja",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:ja:S12A:238",
+      "name": "Grant",
+      "setCode": "S12A",
+      "cardNumber": "238",
+      "language": "ja",
+      "categoryHint": "Trainer",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "S12a/238",
+        "category": "Trainer",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "Supporter",
+        "energyType": "",
+        "hp": "",
+        "types": [],
+        "retreat": null,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/S12a/S12a_238_R_JP.png",
+        "effect": "During this turn, your Fighting Pokémon's attacks do 30 more damage to your opponent's Active Pokémon (before applying Weakness and Resistance) . During your turn, you may discard 2 cards from your hand (except Grant) to put this card from your discard pile back into your hand. (This effect does not count as using your Supporter for turn.)",
+        "rules": [],
+        "attacks": [],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/jp/S12a/238?translate=en",
+        "translationSource": "Limitless",
+        "translationStatus": "unofficial",
+        "language": "ja",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:ja:S10A:30",
+      "name": "Hisuian Zoroark",
+      "setCode": "S10A",
+      "cardNumber": "30",
+      "language": "ja",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "S10a/30",
+        "category": "Pokemon",
+        "stage": "Stage 1",
+        "evolveFrom": "Hisuian Zorua",
+        "trainerType": "",
+        "energyType": "",
+        "hp": "120",
+        "types": [
+          "Psychic"
+        ],
+        "retreat": 2,
+        "weaknesses": [
+          {
+            "type": "Darkness",
+            "value": "×2"
+          }
+        ],
+        "resistances": [
+          {
+            "type": "Fighting",
+            "value": "-30"
+          }
+        ],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/S10a/S10a_30_R_JP.png",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Spell of Failure",
+            "cost": [],
+            "damage": "",
+            "effect": "At the end of your opponent's next turn, the Defending Pokémon will be Knocked Out.",
+            "effectTextStatus": "present"
+          },
+          {
+            "name": "Call Home",
+            "cost": [
+              "Psychic"
+            ],
+            "damage": "",
+            "effect": "Put a card from your discard pile into your hand.",
+            "effectTextStatus": "present"
+          }
+        ],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/jp/S10a/30?translate=en",
+        "translationSource": "Limitless",
+        "translationStatus": "unofficial",
+        "language": "ja",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:ja:SP:284",
+      "name": "Professor Laventon",
+      "setCode": "SP",
+      "cardNumber": "284",
+      "language": "ja",
+      "categoryHint": "Trainer",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "SP/284",
+        "category": "Trainer",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "Supporter",
+        "energyType": "",
+        "hp": "",
+        "types": [],
+        "retreat": null,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/SP/SP_284_R_JP.png",
+        "effect": "Put up to 3 Pokémon with \"Hisuian\" in their name from your discard pile into your hand.",
+        "rules": [],
+        "attacks": [],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/jp/SP/284?translate=en",
+        "translationSource": "Limitless",
+        "translationStatus": "unofficial",
+        "language": "ja",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:ja:SGG:10",
+      "name": "Evolution Incense",
+      "setCode": "SGG",
+      "cardNumber": "10",
+      "language": "ja",
+      "categoryHint": "Trainer",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "SGG/10",
+        "category": "Trainer",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "Item",
+        "energyType": "",
+        "hp": "",
+        "types": [],
+        "retreat": null,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/SGG/SGG_10_R_JP.png",
+        "effect": "Search your deck for an evolution card, reveal it and put it into your hand. Then, shuffle your deck.",
+        "rules": [],
+        "attacks": [],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/jp/SGG/10?translate=en",
+        "translationSource": "Limitless",
+        "translationStatus": "unofficial",
+        "language": "ja",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:ja:SPZ:12",
+      "name": "Choice Belt",
+      "setCode": "SPZ",
+      "cardNumber": "12",
+      "language": "ja",
+      "categoryHint": "Trainer",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "SPZ/12",
+        "category": "Trainer",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "Tool",
+        "energyType": "",
+        "hp": "",
+        "types": [],
+        "retreat": null,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/SPZ/SPZ_12_R_JP.png",
+        "effect": "The attacks of the Pokemon this card is attached to do 30 more damage to your opponent's Active Pokemon V (before applying Weakness and Resistance) .",
+        "rules": [],
+        "attacks": [],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/jp/SPZ/12?translate=en",
+        "translationSource": "Limitless",
+        "translationStatus": "unofficial",
+        "language": "ja",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:ja:S10A:85",
+      "name": "Iscan",
+      "setCode": "S10A",
+      "cardNumber": "85",
+      "language": "ja",
+      "categoryHint": "Trainer",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "S10a/85",
+        "category": "Trainer",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "Supporter",
+        "energyType": "",
+        "hp": "",
+        "types": [],
+        "retreat": null,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/S10a/S10a_85_R_JP.png",
+        "effect": "Draw 2 cards. If your Active Pokémon has \"Hisuian\" in its name, draw 2 more cards.",
+        "rules": [],
+        "attacks": [],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/jp/S10a/85?translate=en",
+        "translationSource": "Limitless",
+        "translationStatus": "unofficial",
+        "language": "ja",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:ja:S12:125",
+      "name": "Gapejaw Bog",
+      "setCode": "S12",
+      "cardNumber": "125",
+      "language": "ja",
+      "categoryHint": "Trainer",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "S12/125",
+        "category": "Trainer",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "Stadium",
+        "energyType": "",
+        "hp": "",
+        "types": [],
+        "retreat": null,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/S12/S12_125_R_JP.png",
+        "effect": "Whenever any player puts a Basic Pokémon from their hand onto their Bench, put 2 damage counters on that Pokémon.",
+        "rules": [],
+        "attacks": [],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/jp/S12/125?translate=en",
+        "translationSource": "Limitless",
+        "translationStatus": "unofficial",
+        "language": "ja",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:ja:SV2P:71",
+      "name": "Reversal Energy",
+      "setCode": "SV2P",
+      "cardNumber": "71",
+      "language": "ja",
+      "categoryHint": "Energy",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "SV2P/71",
+        "category": "Energy",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "",
+        "energyType": "Special",
+        "hp": "",
+        "types": [],
+        "retreat": null,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/SV2P/SV2P_71_R_JP.png",
+        "effect": "As long as this card is attached to a Pokémon, it provides Colorless Energy. If you have more Prize cards remaining than your opponent while this card is attached to an evolved Pokémon (except Pokémon with a Rule Box) , this card provides 3 Energy of any type.",
+        "rules": [],
+        "attacks": [],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/jp/SV2P/71?translate=en",
+        "translationSource": "Limitless",
+        "translationStatus": "unofficial",
+        "language": "ja",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:ja:S12:69",
+      "name": "Togedemaru",
+      "setCode": "S12",
+      "cardNumber": "69",
+      "language": "ja",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "S12/69",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "energyType": "",
+        "hp": "80",
+        "types": [
+          "Metal"
+        ],
+        "retreat": 2,
+        "weaknesses": [
+          {
+            "type": "Fire",
+            "value": "×2"
+          }
+        ],
+        "resistances": [
+          {
+            "type": "Grass",
+            "value": "-30"
+          }
+        ],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/S12/S12_69_R_JP.png",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Togedash",
+            "cost": [
+              "Lightning"
+            ],
+            "damage": "10",
+            "effect": "Flip a coin. If heads, your opponent doesn't take a prize card if this Pokémon is Knocked Out during their next turn.",
+            "effectTextStatus": "present"
+          }
+        ],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/jp/S12/69?translate=en",
+        "translationSource": "Limitless",
+        "translationStatus": "unofficial",
+        "language": "ja",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:ja:S12:24",
+      "name": "Pikachu",
+      "setCode": "S12",
+      "cardNumber": "24",
+      "language": "ja",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "S12/24",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "energyType": "",
+        "hp": "70",
+        "types": [
+          "Lightning"
+        ],
+        "retreat": 1,
+        "weaknesses": [
+          {
+            "type": "Fighting",
+            "value": "×2"
+          }
+        ],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/S12/S12_24_R_JP.png",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Pikastrike",
+            "cost": [
+              "Lightning"
+            ],
+            "damage": "20+",
+            "effect": "If your Dedenne used Dedeshort during your last turn, this attack does 180 more damage.",
+            "effectTextStatus": "present"
+          }
+        ],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/jp/S12/24?translate=en",
+        "translationSource": "Limitless",
+        "translationStatus": "unofficial",
+        "language": "ja",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:ja:S12:62",
+      "name": "Morpeko",
+      "setCode": "S12",
+      "cardNumber": "62",
+      "language": "ja",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "S12/62",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "energyType": "",
+        "hp": "60",
+        "types": [
+          "Darkness"
+        ],
+        "retreat": 1,
+        "weaknesses": [
+          {
+            "type": "Grass",
+            "value": "×2"
+          }
+        ],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/S12/S12_62_R_JP.png",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Pekobomber",
+            "cost": [
+              "Lightning"
+            ],
+            "damage": "",
+            "effect": "You can only use this attack if your Dedenne used Dedeshort during your last turn. This attack does 60 damage to all of your opponent's Pokémon. (Don't apply Weakness and Resistance for Benched Pokémon.)",
+            "effectTextStatus": "present"
+          }
+        ],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/jp/S12/62?translate=en",
+        "translationSource": "Limitless",
+        "translationStatus": "unofficial",
+        "language": "ja",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:ja:S12A:197",
+      "name": "Ditto",
+      "setCode": "S12A",
+      "cardNumber": "197",
+      "language": "ja",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "S12a/197",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "energyType": "",
+        "hp": "70",
+        "types": [
+          "Colorless"
+        ],
+        "retreat": 1,
+        "weaknesses": [
+          {
+            "type": "Fighting",
+            "value": "×2"
+          }
+        ],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/S12a/S12a_197_R_JP.png",
+        "effect": "",
+        "rules": [],
+        "attacks": [],
+        "abilities": [
+          {
+            "name": "Sudden Change",
+            "type": "Ability",
+            "effect": "This Pokémon can use the attacks from Basic Pokémon (except Pokémon with a Rule Box) in your discard pile. (You still need the necessary Energy for each attack.)"
+          }
+        ],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/jp/S12a/197?translate=en",
+        "translationSource": "Limitless",
+        "translationStatus": "unofficial",
+        "language": "ja",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:ja:S12:45",
+      "name": "Dedenne",
+      "setCode": "S12",
+      "cardNumber": "45",
+      "language": "ja",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "S12/45",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "energyType": "",
+        "hp": "60",
+        "types": [
+          "Psychic"
+        ],
+        "retreat": 1,
+        "weaknesses": [
+          {
+            "type": "Metal",
+            "value": "×2"
+          }
+        ],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/S12/S12_45_R_JP.png",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Tail Smack",
+            "cost": [
+              "Colorless"
+            ],
+            "damage": "10",
+            "effect": "",
+            "effectTextStatus": "explicit-empty"
+          },
+          {
+            "name": "Dedeshort",
+            "cost": [
+              "Lightning"
+            ],
+            "damage": "60",
+            "effect": "You can only use this attack if your Togedemaru used Spikedash during your last turn. Your opponent's Active Pokémon is now Paralyzed.",
+            "effectTextStatus": "present"
+          }
+        ],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/jp/S12/45?translate=en",
+        "translationSource": "Limitless",
+        "translationStatus": "unofficial",
+        "language": "ja",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:ja:S1H:68",
+      "name": "Marnie",
+      "setCode": "S1H",
+      "cardNumber": "68",
+      "language": "ja",
+      "categoryHint": "Trainer",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "S1H/68",
+        "category": "Trainer",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "Supporter",
+        "energyType": "",
+        "hp": "",
+        "types": [],
+        "retreat": null,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/S1H/S1H_68_R_JP.png",
+        "effect": "Both players put their hand cards face down, shuffle them and put them on the bottom of their deck. Then, you draw 5 cards and your opponent draws 4 cards.",
+        "rules": [],
+        "attacks": [],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/jp/S1H/68?translate=en",
+        "translationSource": "Limitless",
+        "translationStatus": "unofficial",
+        "language": "ja",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:ja:M1L:90",
+      "name": "Lt. Surge's Deal",
+      "setCode": "M1L",
+      "cardNumber": "90",
+      "language": "ja",
+      "categoryHint": "Trainer",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "M1L/90",
+        "category": "Trainer",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "Supporter",
+        "energyType": "",
+        "hp": "",
+        "types": [],
+        "retreat": null,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/M1L/M1L_90_R_JP.png",
+        "effect": "Ask your opponent if each player should take a Prize card. If yes, both players take a Prize card. If no, you draw 4 cards.",
+        "rules": [],
+        "attacks": [],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/jp/M1L/90?translate=en",
+        "translationSource": "Limitless",
+        "translationStatus": "unofficial",
+        "language": "ja",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:ja:M1S:84",
+      "name": "Acerola's Mischief",
+      "setCode": "M1S",
+      "cardNumber": "84",
+      "language": "ja",
+      "categoryHint": "Trainer",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "M1S/84",
+        "category": "Trainer",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "Supporter",
+        "energyType": "",
+        "hp": "",
+        "types": [],
+        "retreat": null,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/M1S/M1S_84_R_JP.png",
+        "effect": "You can use this card only use if your opponent has 2 or fewer Prize cards remaining. Choose 1 of your Pokémon in play. During your opponent's next turn, prevent all damage from and effects of attacks done to this Pokémon by attacks from your opponent's Pokémon ex.",
+        "rules": [],
+        "attacks": [],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/jp/M1S/84?translate=en",
+        "translationSource": "Limitless",
+        "translationStatus": "unofficial",
+        "language": "ja",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:ja:SP:245",
+      "name": "Escape Rope",
+      "setCode": "SP",
+      "cardNumber": "245",
+      "language": "ja",
+      "categoryHint": "Trainer",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "SP/245",
+        "category": "Trainer",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "Item",
+        "energyType": "",
+        "hp": "",
+        "types": [],
+        "retreat": null,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/SP/SP_245_R_JP.png",
+        "effect": "Each player switches their Active Pokemon with 1 of their Benched Pokemon. Your opponent switches first. (If a player does not have a Benched Pokemon, that player doesn't switch Pokemon.)",
+        "rules": [],
+        "attacks": [],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/jp/SP/245?translate=en",
+        "translationSource": "Limitless",
+        "translationStatus": "unofficial",
+        "language": "ja",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:ja:SV1V:69",
+      "name": "Electric Generator",
+      "setCode": "SV1V",
+      "cardNumber": "69",
+      "language": "ja",
+      "categoryHint": "Trainer",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "SV1V/69",
+        "category": "Trainer",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "Item",
+        "energyType": "",
+        "hp": "",
+        "types": [],
+        "retreat": null,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/SV1V/SV1V_69_R_JP.png",
+        "effect": "Look at the top 5 cards of your deck and choose up to 2 Basic Lightning Energy you find there. Attach them to your Benched Lightning Pokémon in any way you like, and shuffle the remaining card back into your deck.",
+        "rules": [],
+        "attacks": [],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/jp/SV1V/69?translate=en",
+        "translationSource": "Limitless",
+        "translationStatus": "unofficial",
+        "language": "ja",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:ja:S12A:142",
+      "name": "Rescue Trolley",
+      "setCode": "S12A",
+      "cardNumber": "142",
+      "language": "ja",
+      "categoryHint": "Trainer",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "S12a/142",
+        "category": "Trainer",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "Item",
+        "energyType": "",
+        "hp": "",
+        "types": [],
+        "retreat": null,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/S12a/S12a_142_R_JP.png",
+        "effect": "Put up to 2 Pokémon with 90 HP or less from your discard pile into your hand.",
+        "rules": [],
+        "attacks": [],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/jp/S12a/142?translate=en",
+        "translationSource": "Limitless",
+        "translationStatus": "unofficial",
+        "language": "ja",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:ja:SVP:145",
+      "name": "Charm of Courage",
+      "setCode": "SVP",
+      "cardNumber": "145",
+      "language": "ja",
+      "categoryHint": "Trainer",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "SVP/145",
+        "category": "Trainer",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "Tool",
+        "energyType": "",
+        "hp": "",
+        "types": [],
+        "retreat": null,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/SVP/SVP_145_R_JP.png",
+        "effect": "The Basic Pokémon this card is attached to gets +50 HP.",
+        "rules": [],
+        "attacks": [],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/jp/SVP/145?translate=en",
+        "translationSource": "Limitless",
+        "translationStatus": "unofficial",
+        "language": "ja",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:en:ASC:32",
+      "name": "N's Darumaka",
+      "setCode": "ASC",
+      "cardNumber": "32",
+      "language": "en",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "ASC/32",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "energyType": "",
+        "hp": "80",
+        "types": [
+          "Fire"
+        ],
+        "retreat": 2,
+        "weaknesses": [
+          {
+            "type": "Water",
+            "value": "×2"
+          }
+        ],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/ASC/ASC_032_R_EN_SM.png",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Rolling Tackle",
+            "cost": [
+              "Colorless",
+              "Colorless"
+            ],
+            "damage": "20",
+            "effect": "",
+            "effectTextStatus": "explicit-empty"
+          },
+          {
+            "name": "Flare",
+            "cost": [
+              "Fire",
+              "Fire",
+              "Colorless"
+            ],
+            "damage": "50",
+            "effect": "",
+            "effectTextStatus": "explicit-empty"
+          }
+        ],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/en/ASC/32",
+        "translationSource": "",
+        "translationStatus": "",
+        "language": "en",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:en:ASC:33",
+      "name": "N's Darmanitan",
+      "setCode": "ASC",
+      "cardNumber": "33",
+      "language": "en",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "ASC/33",
+        "category": "Pokemon",
+        "stage": "Stage 1",
+        "evolveFrom": "N's Darumaka",
+        "trainerType": "",
+        "energyType": "",
+        "hp": "140",
+        "types": [
+          "Fire"
+        ],
+        "retreat": 3,
+        "weaknesses": [
+          {
+            "type": "Water",
+            "value": "×2"
+          }
+        ],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/ASC/ASC_033_R_EN_SM.png",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Back Draft",
+            "cost": [
+              "Colorless",
+              "Colorless"
+            ],
+            "damage": "30×",
+            "effect": "This attack does 30 damage for each Basic Energy card in your opponent's discard pile.",
+            "effectTextStatus": "present"
+          },
+          {
+            "name": "Flamebody Cannon",
+            "cost": [
+              "Fire",
+              "Fire",
+              "Colorless"
+            ],
+            "damage": "90",
+            "effect": "Discard all Energy from this Pokémon, and this attack also does 90 damage to 1 of your opponent's Benched Pokémon. (Don't apply Weakness and Resistance for Benched Pokémon.)",
+            "effectTextStatus": "present"
+          }
+        ],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/en/ASC/33",
+        "translationSource": "",
+        "translationStatus": "",
+        "language": "en",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:en:ASC:154",
+      "name": "N's Reshiram",
+      "setCode": "ASC",
+      "cardNumber": "154",
+      "language": "en",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "ASC/154",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "energyType": "",
+        "hp": "130",
+        "types": [
+          "Dragon"
+        ],
+        "retreat": 2,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/ASC/ASC_154_R_EN_SM.png",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Powerful Rage",
+            "cost": [
+              "Fire",
+              "Lightning"
+            ],
+            "damage": "20×",
+            "effect": "This attack does 20 damage for each damage counter on this Pokémon.",
+            "effectTextStatus": "present"
+          },
+          {
+            "name": "Virtuous Flame",
+            "cost": [
+              "Fire",
+              "Fire",
+              "Lightning",
+              "Colorless"
+            ],
+            "damage": "170",
+            "effect": "",
+            "effectTextStatus": "explicit-empty"
+          }
+        ],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/en/ASC/154",
+        "translationSource": "",
+        "translationStatus": "",
+        "language": "en",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:ja:SV9:97",
+      "name": "N's Castle",
+      "setCode": "SV9",
+      "cardNumber": "97",
+      "language": "ja",
+      "categoryHint": "Trainer",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "SV9/97",
+        "category": "Trainer",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "Stadium",
+        "energyType": "",
+        "hp": "",
+        "types": [],
+        "retreat": null,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/SV9/SV9_97_R_JP.png",
+        "effect": "N's Pokémon in play have no Retreat Cost.",
+        "rules": [],
+        "attacks": [],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/jp/SV9/97?translate=en",
+        "translationSource": "Limitless",
+        "translationStatus": "unofficial",
+        "language": "ja",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:en:CEC:200",
+      "name": "N's Resolve",
+      "setCode": "CEC",
+      "cardNumber": "200",
+      "language": "en",
+      "categoryHint": "Trainer",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "CEC/200",
+        "category": "Trainer",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "Supporter",
+        "energyType": "",
+        "hp": "",
+        "types": [],
+        "retreat": null,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CEC/CEC_200_R_EN_SM.png",
+        "effect": "Discard the top 6 cards of your deck. If any of those cards are basic Energy cards, attach them to 1 of your Benched Dragon Pokémon.",
+        "rules": [],
+        "attacks": [],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/en/CEC/200",
+        "translationSource": "",
+        "translationStatus": "",
+        "language": "en",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:ja:SV11B:86",
+      "name": "Prism Energy",
+      "setCode": "SV11B",
+      "cardNumber": "86",
+      "language": "ja",
+      "categoryHint": "Energy",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "SV11B/86",
+        "category": "Energy",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "",
+        "energyType": "Special",
+        "hp": "",
+        "types": [],
+        "retreat": null,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/SV11B/SV11B_86_R_JP.png",
+        "effect": "As long as this card is attached to a Pokémon, it provides Colorless Energy. If this card is attached to a Basic Pokémon, it provides every type of Energy but provides only 1 Energy at a time.",
+        "rules": [],
+        "attacks": [],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/jp/SV11B/86?translate=en",
+        "translationSource": "Limitless",
+        "translationStatus": "unofficial",
+        "language": "ja",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:en:LOR:83",
+      "name": "Hisuian Growlithe",
+      "setCode": "LOR",
+      "cardNumber": "83",
+      "language": "en",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "LOR/83",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "energyType": "",
+        "hp": "70",
+        "types": [
+          "Fighting"
+        ],
+        "retreat": 2,
+        "weaknesses": [
+          {
+            "type": "Grass",
+            "value": "×2"
+          }
+        ],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/LOR/LOR_083_R_EN_SM.png",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Singe",
+            "cost": [],
+            "damage": "",
+            "effect": "Your opponent's Active Pokémon is now Burned.",
+            "effectTextStatus": "present"
+          }
+        ],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/en/LOR/83",
+        "translationSource": "",
+        "translationStatus": "",
+        "language": "en",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:en:LOR:76",
+      "name": "Hisuian Zoroark",
+      "setCode": "LOR",
+      "cardNumber": "76",
+      "language": "en",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "LOR/76",
+        "category": "Pokemon",
+        "stage": "Stage 1",
+        "evolveFrom": "Hisuian Zorua",
+        "trainerType": "",
+        "energyType": "",
+        "hp": "120",
+        "types": [
+          "Psychic"
+        ],
+        "retreat": 2,
+        "weaknesses": [
+          {
+            "type": "Darkness",
+            "value": "×2"
+          }
+        ],
+        "resistances": [
+          {
+            "type": "Fighting",
+            "value": "-30"
+          }
+        ],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/LOR/LOR_076_R_EN_SM.png",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Doom Curse",
+            "cost": [],
+            "damage": "",
+            "effect": "At the end of your opponent's next turn, the Defending Pokémon will be Knocked Out.",
+            "effectTextStatus": "present"
+          },
+          {
+            "name": "Call Back",
+            "cost": [
+              "Psychic"
+            ],
+            "damage": "",
+            "effect": "Put a card from your discard pile into your hand.",
+            "effectTextStatus": "present"
+          }
+        ],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/en/LOR/76",
+        "translationSource": "",
+        "translationStatus": "",
+        "language": "en",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:en:LOR:75",
+      "name": "Hisuian Zorua",
+      "setCode": "LOR",
+      "cardNumber": "75",
+      "language": "en",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "LOR/75",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "energyType": "",
+        "hp": "60",
+        "types": [
+          "Psychic"
+        ],
+        "retreat": 1,
+        "weaknesses": [
+          {
+            "type": "Darkness",
+            "value": "×2"
+          }
+        ],
+        "resistances": [
+          {
+            "type": "Fighting",
+            "value": "-30"
+          }
+        ],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/LOR/LOR_075_R_EN_SM.png",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Collect",
+            "cost": [],
+            "damage": "",
+            "effect": "Draw a card.",
+            "effectTextStatus": "present"
+          },
+          {
+            "name": "Mumble",
+            "cost": [
+              "Psychic"
+            ],
+            "damage": "10",
+            "effect": "",
+            "effectTextStatus": "explicit-empty"
+          }
+        ],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/en/LOR/75",
+        "translationSource": "",
+        "translationStatus": "",
+        "language": "en",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:en:JTG:97",
+      "name": "N's Zorua",
+      "setCode": "JTG",
+      "cardNumber": "97",
+      "language": "en",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "JTG/97",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "energyType": "",
+        "hp": "70",
+        "types": [
+          "Darkness"
+        ],
+        "retreat": 1,
+        "weaknesses": [
+          {
+            "type": "Grass",
+            "value": "×2"
+          }
+        ],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/JTG/JTG_097_R_EN_SM.png",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Scratch",
+            "cost": [
+              "Darkness"
+            ],
+            "damage": "20",
+            "effect": "",
+            "effectTextStatus": "explicit-empty"
+          }
+        ],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/en/JTG/97",
+        "translationSource": "",
+        "translationStatus": "",
+        "language": "en",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:en:JTG:98",
+      "name": "N's Zoroark ex",
+      "setCode": "JTG",
+      "cardNumber": "98",
+      "language": "en",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "JTG/98",
+        "category": "Pokemon",
+        "stage": "Stage 1",
+        "evolveFrom": "N's Zorua",
+        "trainerType": "",
+        "energyType": "",
+        "hp": "280",
+        "types": [
+          "Darkness"
+        ],
+        "retreat": 2,
+        "weaknesses": [
+          {
+            "type": "Grass",
+            "value": "×2"
+          }
+        ],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/JTG/JTG_098_R_EN_SM.png",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Night Joker",
+            "cost": [
+              "Darkness",
+              "Darkness"
+            ],
+            "damage": "",
+            "effect": "Choose 1 of your Benched N's Pokémon's attacks and use it as this attack.",
+            "effectTextStatus": "present"
+          }
+        ],
+        "abilities": [
+          {
+            "name": "Trade",
+            "type": "Ability",
+            "effect": "You must discard a card from your hand in order to use this Ability. Once during your turn, you may draw 2 cards."
+          }
+        ],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/en/JTG/98",
+        "translationSource": "",
+        "translationStatus": "",
+        "language": "en",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:en:JTG:96",
+      "name": "N's Purrloin",
+      "setCode": "JTG",
+      "cardNumber": "96",
+      "language": "en",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "JTG/96",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "energyType": "",
+        "hp": "70",
+        "types": [
+          "Darkness"
+        ],
+        "retreat": 1,
+        "weaknesses": [
+          {
+            "type": "Grass",
+            "value": "×2"
+          }
+        ],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/JTG/JTG_096_R_EN_SM.png",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Thieving Swipe",
+            "cost": [
+              "Darkness",
+              "Colorless"
+            ],
+            "damage": "30",
+            "effect": "Your opponent reveals their hand, and you choose a card you find there and put it on the bottom of their deck.",
+            "effectTextStatus": "present"
+          }
+        ],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/en/JTG/96",
+        "translationSource": "",
+        "translationStatus": "",
+        "language": "en",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:en:ASC:155",
+      "name": "N's Zekrom",
+      "setCode": "ASC",
+      "cardNumber": "155",
+      "language": "en",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "ASC/155",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "energyType": "",
+        "hp": "130",
+        "types": [
+          "Dragon"
+        ],
+        "retreat": 2,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/ASC/ASC_155_R_EN_SM.png",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Shred",
+            "cost": [
+              "Colorless",
+              "Colorless",
+              "Colorless"
+            ],
+            "damage": "70",
+            "effect": "This attack's damage isn't affected by any effects on your opponent's Active Pokémon.",
+            "effectTextStatus": "present"
+          },
+          {
+            "name": "Rampaging Thunder",
+            "cost": [
+              "Fire",
+              "Lightning",
+              "Lightning",
+              "Colorless"
+            ],
+            "damage": "250",
+            "effect": "During your next turn, this Pokémon can't use attacks.",
+            "effectTextStatus": "present"
+          }
+        ],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/en/ASC/155",
+        "translationSource": "",
+        "translationStatus": "",
+        "language": "en",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:en:TWM:100",
+      "name": "Hisuian Arcanine",
+      "setCode": "TWM",
+      "cardNumber": "100",
+      "language": "en",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "TWM/100",
+        "category": "Pokemon",
+        "stage": "Stage 1",
+        "evolveFrom": "Hisuian Growlithe",
+        "trainerType": "",
+        "energyType": "",
+        "hp": "130",
+        "types": [
+          "Fighting"
+        ],
+        "retreat": 2,
+        "weaknesses": [
+          {
+            "type": "Grass",
+            "value": "×2"
+          }
+        ],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/TWM/TWM_100_R_EN_SM.png",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Proud Fangs",
+            "cost": [],
+            "damage": "30+",
+            "effect": "If your Benched Pokémon have any damage counters on them, this attack does 90 more damage.",
+            "effectTextStatus": "present"
+          },
+          {
+            "name": "Searing Flame",
+            "cost": [
+              "Fighting",
+              "Fighting",
+              "Colorless"
+            ],
+            "damage": "90",
+            "effect": "Your opponent's Active Pokémon is now Burned.",
+            "effectTextStatus": "present"
+          }
+        ],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/en/TWM/100",
+        "translationSource": "",
+        "translationStatus": "",
+        "language": "en",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:en:ASR:89",
+      "name": "Hisuian Qwilfish",
+      "setCode": "ASR",
+      "cardNumber": "89",
+      "language": "en",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "ASR/89",
+        "category": "Pokemon",
+        "stage": "Basic",
+        "evolveFrom": "",
+        "trainerType": "",
+        "energyType": "",
+        "hp": "80",
+        "types": [
+          "Darkness"
+        ],
+        "retreat": 2,
+        "weaknesses": [
+          {
+            "type": "Fighting",
+            "value": "×2"
+          }
+        ],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/ASR/ASR_089_R_EN_SM.png",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Spiny Rush",
+            "cost": [],
+            "damage": "10×",
+            "effect": "Flip a coin until you get tails. This attack does 10 damage for each heads.",
+            "effectTextStatus": "present"
+          }
+        ],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/en/ASR/89",
+        "translationSource": "",
+        "translationStatus": "",
+        "language": "en",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:en:BLK:83",
+      "name": "N's Plan",
+      "setCode": "BLK",
+      "cardNumber": "83",
+      "language": "en",
+      "categoryHint": "Trainer",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "BLK/83",
+        "category": "Trainer",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "Supporter",
+        "energyType": "",
+        "hp": "",
+        "types": [],
+        "retreat": null,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/BLK/BLK_083_R_EN_SM.png",
+        "effect": "Move up to 2 Energy from your Benched Pokémon to your Active Pokémon.",
+        "rules": [],
+        "attacks": [],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/en/BLK/83",
+        "translationSource": "",
+        "translationStatus": "",
+        "language": "en",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:en:ASC:195",
+      "name": "N's PP Up",
+      "setCode": "ASC",
+      "cardNumber": "195",
+      "language": "en",
+      "categoryHint": "Trainer",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "ASC/195",
+        "category": "Trainer",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "Item",
+        "energyType": "",
+        "hp": "",
+        "types": [],
+        "retreat": null,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/ASC/ASC_195_R_EN_SM.png",
+        "effect": "Attach a Basic Energy card from your discard pile to 1 of your Benched N's Pokémon.",
+        "rules": [],
+        "attacks": [],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/en/ASC/195",
+        "translationSource": "",
+        "translationStatus": "",
+        "language": "en",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:en:SSH:163",
+      "name": "Evolution Incense",
+      "setCode": "SSH",
+      "cardNumber": "163",
+      "language": "en",
+      "categoryHint": "Trainer",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "SSH/163",
+        "category": "Trainer",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "Item",
+        "energyType": "",
+        "hp": "",
+        "types": [],
+        "retreat": null,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/SSH/SSH_163_R_EN_SM.png",
+        "effect": "Search your deck for an Evolution Pokémon, reveal it, and put it into your hand. Then, shuffle your deck.",
+        "rules": [],
+        "attacks": [],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/en/SSH/163",
+        "translationSource": "",
+        "translationStatus": "",
+        "language": "en",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:en:ASR:142",
+      "name": "Gapejaw Bog",
+      "setCode": "ASR",
+      "cardNumber": "142",
+      "language": "en",
+      "categoryHint": "Trainer",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "ASR/142",
+        "category": "Trainer",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "Stadium",
+        "energyType": "",
+        "hp": "",
+        "types": [],
+        "retreat": null,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/ASR/ASR_142_R_EN_SM.png",
+        "effect": "Whenever either player puts a Basic Pokémon from their hand onto their Bench, put 2 damage counters on that Pokémon.",
+        "rules": [],
+        "attacks": [],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/en/ASR/142",
+        "translationSource": "",
+        "translationStatus": "",
+        "language": "en",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:en:PAL:192",
+      "name": "Reversal Energy",
+      "setCode": "PAL",
+      "cardNumber": "192",
+      "language": "en",
+      "categoryHint": "Energy",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "PAL/192",
+        "category": "Energy",
+        "stage": "",
+        "evolveFrom": "",
+        "trainerType": "",
+        "energyType": "Special",
+        "hp": "",
+        "types": [],
+        "retreat": null,
+        "weaknesses": [],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/PAL/PAL_192_R_EN_SM.png",
+        "effect": "As long as this card is attached to a Pokémon, it provides Colorless Energy. If you have more Prize cards remaining than your opponent, and if this card is attached to an Evolution Pokémon that doesn't have a Rule Box (Pokémon ex, Pokémon V, etc. have Rule Boxes) , this card provides every type of Energy but provides only 3 Energy at a time.",
+        "rules": [],
+        "attacks": [],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/en/PAL/192",
+        "translationSource": "",
+        "translationStatus": "",
+        "language": "en",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:en:ASR:90",
+      "name": "Hisuian Overqwil",
+      "setCode": "ASR",
+      "cardNumber": "90",
+      "language": "en",
+      "categoryHint": "Pokemon",
+      "meta": {
+        "source": "Limitless",
+        "limitlessId": "ASR/90",
+        "category": "Pokemon",
+        "stage": "Stage 1",
+        "evolveFrom": "Hisuian Qwilfish",
+        "trainerType": "",
+        "energyType": "",
+        "hp": "130",
+        "types": [
+          "Darkness"
+        ],
+        "retreat": 2,
+        "weaknesses": [
+          {
+            "type": "Fighting",
+            "value": "×2"
+          }
+        ],
+        "resistances": [],
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/ASR/ASR_090_R_EN_SM.png",
+        "effect": "",
+        "rules": [],
+        "attacks": [
+          {
+            "name": "Tormenting Poison",
+            "cost": [],
+            "damage": "",
+            "effect": "Your opponent's Active Pokémon is now Poisoned. During Pokémon Checkup, put 5 damage counters on that Pokémon instead of 1.",
+            "effectTextStatus": "present"
+          },
+          {
+            "name": "Pinning",
+            "cost": [
+              "Darkness",
+              "Colorless"
+            ],
+            "damage": "50",
+            "effect": "During your opponent's next turn, the Defending Pokémon can't retreat.",
+            "effectTextStatus": "present"
+          }
+        ],
+        "abilities": [],
+        "textLanguage": "en",
+        "sourceUrl": "https://limitlesstcg.com/cards/en/ASR/90",
+        "translationSource": "",
+        "translationStatus": "",
+        "language": "en",
+        "attackMetadataStatus": "present"
+      }
+    },
+    {
+      "id": "verified:ja:SPZ:11",
+      "name": "Level Ball",
+      "setCode": "SPZ",
+      "cardNumber": "11",
+      "language": "ja",
+      "categoryHint": "Trainer",
+      "meta": {
+        "category": "Trainer",
+        "language": "ja",
+        "source": "Pokémon official card image",
+        "sourceUrl": "https://www.pokemon-card.com/card-search/details.php/card/41915",
+        "image": "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/SPZ/SPZ_11_R_JP_LG.png",
+        "trainerType": "Item",
+        "effect": "Search your deck for a Pokémon with 90 HP or less, reveal it, and put it into your hand. Then, shuffle your deck.",
+        "attacks": [],
+        "abilities": [],
+        "rules": [],
+        "attackMetadataStatus": "present",
+        "textLanguage": "en",
+        "translationSource": "Verified Japanese card text",
+        "translationStatus": "unofficial"
+      }
+    }
+  ],
+  "rules": {
+    "attacks": [
+      {
+        "cardName": "Hisuian Growlithe",
+        "setCode": "S10A",
+        "cardNumber": "32",
+        "language": "ja",
+        "attackName": "Singe",
+        "costExact": [],
+        "damageExact": "",
+        "effectTextExact": "Your opponent's Active Pokémon is now Burned.",
+        "effect": {
+          "type": "inflict_burn"
+        }
+      },
+      {
+        "cardName": "Hisuian Qwilfish",
+        "setCode": "S9A",
+        "cardNumber": "47",
+        "language": "ja",
+        "attackName": "Spiny Rush",
+        "costExact": [],
+        "damageExact": "10×",
+        "effectTextExact": "Flip a coin until you get tails. This attack does 10 damage for each heads.",
+        "effect": {
+          "type": "coin_until_tails_damage",
+          "damagePerHead": 10
+        }
+      },
+      {
+        "cardName": "Hisuian Arcanine",
+        "setCode": "SV5A",
+        "cardNumber": "42",
+        "language": "ja",
+        "attackName": "Proud Fangs",
+        "costExact": [],
+        "damageExact": "30+",
+        "effectTextExact": "If your Benched Pokémon have any damage counters on them, this attack does 90 more damage.",
+        "effect": {
+          "type": "bench_damage_bonus",
+          "amount": 90
+        }
+      },
+      {
+        "cardName": "Hisuian Arcanine",
+        "setCode": "SV5A",
+        "cardNumber": "42",
+        "language": "ja",
+        "attackName": "Searing Flame",
+        "costExact": [
+          "Fighting",
+          "Fighting",
+          "Colorless"
+        ],
+        "damageExact": "90",
+        "effectTextExact": "Your opponent's Active Pokémon is now Burned.",
+        "effect": {
+          "type": "inflict_burn"
+        }
+      },
+      {
+        "cardName": "Hisuian Overqwil",
+        "setCode": "S9A",
+        "cardNumber": "48",
+        "language": "ja",
+        "attackName": "Sharp Poison",
+        "costExact": [],
+        "damageExact": "",
+        "effectTextExact": "Your opponent's Active Pokémon is now Poisoned. During Pokémon Checkup, put 5 damage counters on that Pokémon instead of 1.",
+        "effect": {
+          "type": "inflict_poison",
+          "poisonDamage": 50
+        }
+      },
+      {
+        "cardName": "Hisuian Overqwil",
+        "setCode": "S9A",
+        "cardNumber": "48",
+        "language": "ja",
+        "attackName": "Quill Sting",
+        "costExact": [
+          "Darkness",
+          "Colorless"
+        ],
+        "damageExact": "50",
+        "effectTextExact": "During your opponent's next turn, the Defending Pokémon can't retreat.",
+        "effect": {
+          "type": "lock_defender_retreat"
+        }
+      },
+      {
+        "cardName": "Hisuian Zorua",
+        "setCode": "S10A",
+        "cardNumber": "29",
+        "language": "ja",
+        "attackName": "Collect",
+        "costExact": [],
+        "damageExact": "",
+        "effectTextExact": "Draw a card.",
+        "effect": {
+          "type": "draw_cards",
+          "count": 1
+        }
+      },
+      {
+        "cardName": "Hisuian Zoroark",
+        "setCode": "S10A",
+        "cardNumber": "30",
+        "language": "ja",
+        "attackName": "Spell of Failure",
+        "costExact": [],
+        "damageExact": "",
+        "effectTextExact": "At the end of your opponent's next turn, the Defending Pokémon will be Knocked Out.",
+        "effect": {
+          "type": "doom_curse"
+        }
+      },
+      {
+        "cardName": "Hisuian Zoroark",
+        "setCode": "S10A",
+        "cardNumber": "30",
+        "language": "ja",
+        "attackName": "Call Home",
+        "costExact": [
+          "Psychic"
+        ],
+        "damageExact": "",
+        "effectTextExact": "Put a card from your discard pile into your hand.",
+        "effect": {
+          "type": "recover_discard_card",
+          "count": 1
+        }
+      },
+      {
+        "cardName": "Togedemaru",
+        "setCode": "S12",
+        "cardNumber": "69",
+        "language": "ja",
+        "attackName": "Togedash",
+        "costExact": [
+          "Lightning"
+        ],
+        "damageExact": "10",
+        "effectTextExact": "Flip a coin. If heads, your opponent doesn't take a prize card if this Pokémon is Knocked Out during their next turn.",
+        "effect": {
+          "type": "coin_no_prizes"
+        }
+      },
+      {
+        "cardName": "Pikachu",
+        "setCode": "S12",
+        "cardNumber": "24",
+        "language": "ja",
+        "attackName": "Pikastrike",
+        "costExact": [
+          "Lightning"
+        ],
+        "damageExact": "20+",
+        "effectTextExact": "If your Dedenne used Dedeshort during your last turn, this attack does 180 more damage.",
+        "effect": {
+          "type": "combo_bonus",
+          "previous": "dedenne",
+          "amount": 180
+        }
+      },
+      {
+        "cardName": "Morpeko",
+        "setCode": "S12",
+        "cardNumber": "62",
+        "language": "ja",
+        "attackName": "Pekobomber",
+        "costExact": [
+          "Lightning"
+        ],
+        "damageExact": "",
+        "effectTextExact": "You can only use this attack if your Dedenne used Dedeshort during your last turn. This attack does 60 damage to all of your opponent's Pokémon. (Don't apply Weakness and Resistance for Benched Pokémon.)",
+        "effect": {
+          "type": "combo_spread",
+          "previous": "dedenne",
+          "amount": 60
+        }
+      },
+      {
+        "cardName": "Dedenne",
+        "setCode": "S12",
+        "cardNumber": "45",
+        "language": "ja",
+        "attackName": "Dedeshort",
+        "costExact": [
+          "Lightning"
+        ],
+        "damageExact": "60",
+        "effectTextExact": "You can only use this attack if your Togedemaru used Spikedash during your last turn. Your opponent's Active Pokémon is now Paralyzed.",
+        "effect": {
+          "type": "combo_paralysis",
+          "previous": "togedemaru"
+        }
+      },
+      {
+        "cardName": "N's Darmanitan",
+        "setCode": "ASC",
+        "cardNumber": "33",
+        "language": "en",
+        "attackName": "Back Draft",
+        "costExact": [
+          "Colorless",
+          "Colorless"
+        ],
+        "damageExact": "30×",
+        "effectTextExact": "This attack does 30 damage for each Basic Energy card in your opponent's discard pile.",
+        "effect": {
+          "type": "opponent_discard_energy_damage",
+          "amount": 30
+        }
+      },
+      {
+        "cardName": "N's Darmanitan",
+        "setCode": "ASC",
+        "cardNumber": "33",
+        "language": "en",
+        "attackName": "Flamebody Cannon",
+        "costExact": [
+          "Fire",
+          "Fire",
+          "Colorless"
+        ],
+        "damageExact": "90",
+        "effectTextExact": "Discard all Energy from this Pokémon, and this attack also does 90 damage to 1 of your opponent's Benched Pokémon. (Don't apply Weakness and Resistance for Benched Pokémon.)",
+        "effect": {
+          "type": "also_damage_bench",
+          "amount": 90,
+          "discardAllEnergy": true
+        }
+      },
+      {
+        "cardName": "N's Reshiram",
+        "setCode": "ASC",
+        "cardNumber": "154",
+        "language": "en",
+        "attackName": "Powerful Rage",
+        "costExact": [
+          "Fire",
+          "Lightning"
+        ],
+        "damageExact": "20×",
+        "effectTextExact": "This attack does 20 damage for each damage counter on this Pokémon.",
+        "effect": {
+          "type": "damage_per_self_counter",
+          "amount": 20
+        }
+      },
+      {
+        "cardName": "Hisuian Growlithe",
+        "setCode": "LOR",
+        "cardNumber": "83",
+        "language": "en",
+        "attackName": "Singe",
+        "costExact": [],
+        "damageExact": "",
+        "effectTextExact": "Your opponent's Active Pokémon is now Burned.",
+        "effect": {
+          "type": "inflict_burn"
+        }
+      },
+      {
+        "cardName": "Hisuian Zoroark",
+        "setCode": "LOR",
+        "cardNumber": "76",
+        "language": "en",
+        "attackName": "Doom Curse",
+        "costExact": [],
+        "damageExact": "",
+        "effectTextExact": "At the end of your opponent's next turn, the Defending Pokémon will be Knocked Out.",
+        "effect": {
+          "type": "doom_curse"
+        }
+      },
+      {
+        "cardName": "Hisuian Zoroark",
+        "setCode": "LOR",
+        "cardNumber": "76",
+        "language": "en",
+        "attackName": "Call Back",
+        "costExact": [
+          "Psychic"
+        ],
+        "damageExact": "",
+        "effectTextExact": "Put a card from your discard pile into your hand.",
+        "effect": {
+          "type": "recover_discard_card",
+          "count": 1
+        }
+      },
+      {
+        "cardName": "Hisuian Zorua",
+        "setCode": "LOR",
+        "cardNumber": "75",
+        "language": "en",
+        "attackName": "Collect",
+        "costExact": [],
+        "damageExact": "",
+        "effectTextExact": "Draw a card.",
+        "effect": {
+          "type": "draw_cards",
+          "count": 1
+        }
+      },
+      {
+        "cardName": "N's Zoroark ex",
+        "setCode": "JTG",
+        "cardNumber": "98",
+        "language": "en",
+        "attackName": "Night Joker",
+        "costExact": [
+          "Darkness",
+          "Darkness"
+        ],
+        "damageExact": "",
+        "effectTextExact": "Choose 1 of your Benched N's Pokémon's attacks and use it as this attack.",
+        "effect": {
+          "type": "copy_n_bench_attack"
+        }
+      },
+      {
+        "cardName": "N's Purrloin",
+        "setCode": "JTG",
+        "cardNumber": "96",
+        "language": "en",
+        "attackName": "Thieving Swipe",
+        "costExact": [
+          "Darkness",
+          "Colorless"
+        ],
+        "damageExact": "30",
+        "effectTextExact": "Your opponent reveals their hand, and you choose a card you find there and put it on the bottom of their deck.",
+        "effect": {
+          "type": "opponent_hand_to_bottom"
+        }
+      },
+      {
+        "cardName": "N's Zekrom",
+        "setCode": "ASC",
+        "cardNumber": "155",
+        "language": "en",
+        "attackName": "Shred",
+        "costExact": [
+          "Colorless",
+          "Colorless",
+          "Colorless"
+        ],
+        "damageExact": "70",
+        "effectTextExact": "This attack's damage isn't affected by any effects on your opponent's Active Pokémon.",
+        "effect": {
+          "type": "ignore_defender_effects"
+        }
+      },
+      {
+        "cardName": "N's Zekrom",
+        "setCode": "ASC",
+        "cardNumber": "155",
+        "language": "en",
+        "attackName": "Rampaging Thunder",
+        "costExact": [
+          "Fire",
+          "Lightning",
+          "Lightning",
+          "Colorless"
+        ],
+        "damageExact": "250",
+        "effectTextExact": "During your next turn, this Pokémon can't use attacks.",
+        "effect": {
+          "type": "attack_lock_next_turn"
+        }
+      },
+      {
+        "cardName": "Hisuian Arcanine",
+        "setCode": "TWM",
+        "cardNumber": "100",
+        "language": "en",
+        "attackName": "Proud Fangs",
+        "costExact": [],
+        "damageExact": "30+",
+        "effectTextExact": "If your Benched Pokémon have any damage counters on them, this attack does 90 more damage.",
+        "effect": {
+          "type": "bench_damage_bonus",
+          "amount": 90
+        }
+      },
+      {
+        "cardName": "Hisuian Arcanine",
+        "setCode": "TWM",
+        "cardNumber": "100",
+        "language": "en",
+        "attackName": "Searing Flame",
+        "costExact": [
+          "Fighting",
+          "Fighting",
+          "Colorless"
+        ],
+        "damageExact": "90",
+        "effectTextExact": "Your opponent's Active Pokémon is now Burned.",
+        "effect": {
+          "type": "inflict_burn"
+        }
+      },
+      {
+        "cardName": "Hisuian Qwilfish",
+        "setCode": "ASR",
+        "cardNumber": "89",
+        "language": "en",
+        "attackName": "Spiny Rush",
+        "costExact": [],
+        "damageExact": "10×",
+        "effectTextExact": "Flip a coin until you get tails. This attack does 10 damage for each heads.",
+        "effect": {
+          "type": "coin_until_tails_damage",
+          "damagePerHead": 10
+        }
+      },
+      {
+        "cardName": "Hisuian Overqwil",
+        "setCode": "ASR",
+        "cardNumber": "90",
+        "language": "en",
+        "attackName": "Tormenting Poison",
+        "costExact": [],
+        "damageExact": "",
+        "effectTextExact": "Your opponent's Active Pokémon is now Poisoned. During Pokémon Checkup, put 5 damage counters on that Pokémon instead of 1.",
+        "effect": {
+          "type": "inflict_poison",
+          "poisonDamage": 50
+        }
+      },
+      {
+        "cardName": "Hisuian Overqwil",
+        "setCode": "ASR",
+        "cardNumber": "90",
+        "language": "en",
+        "attackName": "Pinning",
+        "costExact": [
+          "Darkness",
+          "Colorless"
+        ],
+        "damageExact": "50",
+        "effectTextExact": "During your opponent's next turn, the Defending Pokémon can't retreat.",
+        "effect": {
+          "type": "lock_defender_retreat"
+        }
+      }
+    ],
+    "abilities": [
+      {
+        "cardName": "Ditto",
+        "setCode": "S12A",
+        "cardNumber": "197",
+        "language": "ja",
+        "abilityName": "Sudden Change",
+        "effectTextExact": "This Pokémon can use the attacks from Basic Pokémon (except Pokémon with a Rule Box) in your discard pile. (You still need the necessary Energy for each attack.)",
+        "effect": {
+          "type": "copy_discard_basic_attacks"
+        }
+      },
+      {
+        "cardName": "N's Zoroark ex",
+        "setCode": "JTG",
+        "cardNumber": "98",
+        "language": "en",
+        "abilityName": "Trade",
+        "effectTextExact": "You must discard a card from your hand in order to use this Ability. Once during your turn, you may draw 2 cards.",
+        "effect": {
+          "type": "discard_hand_draw_cards",
+          "count": 2
+        }
+      }
+    ],
+    "supporters": [
+      {
+        "cardName": "Grant",
+        "setCode": "S12A",
+        "cardNumber": "238",
+        "language": "ja",
+        "effectTextExact": "During this turn, your Fighting Pokémon's attacks do 30 more damage to your opponent's Active Pokémon (before applying Weakness and Resistance) . During your turn, you may discard 2 cards from your hand (except Grant) to put this card from your discard pile back into your hand. (This effect does not count as using your Supporter for turn.)",
+        "effect": {
+          "type": "grant_fighting_boost",
+          "amount": 30
+        }
+      },
+      {
+        "cardName": "Professor Laventon",
+        "setCode": "SP",
+        "cardNumber": "284",
+        "language": "ja",
+        "effectTextExact": "Put up to 3 Pokémon with \"Hisuian\" in their name from your discard pile into your hand.",
+        "effect": {
+          "type": "recover_matching_discard",
+          "count": 3,
+          "filter": "hisuian"
+        }
+      },
+      {
+        "cardName": "Iscan",
+        "setCode": "S10A",
+        "cardNumber": "85",
+        "language": "ja",
+        "effectTextExact": "Draw 2 cards. If your Active Pokémon has \"Hisuian\" in its name, draw 2 more cards.",
+        "effect": {
+          "type": "draw_hisuian_active",
+          "count": 2,
+          "bonus": 2
+        }
+      },
+      {
+        "cardName": "Marnie",
+        "setCode": "S1H",
+        "cardNumber": "68",
+        "language": "ja",
+        "effectTextExact": "Both players put their hand cards face down, shuffle them and put them on the bottom of their deck. Then, you draw 5 cards and your opponent draws 4 cards.",
+        "effect": {
+          "type": "bottom_hands_draw_asymmetric",
+          "count": 5,
+          "opponentCount": 4
+        }
+      },
+      {
+        "cardName": "Lt. Surge's Deal",
+        "setCode": "M1L",
+        "cardNumber": "90",
+        "language": "ja",
+        "effectTextExact": "Ask your opponent if each player should take a Prize card. If yes, both players take a Prize card. If no, you draw 4 cards.",
+        "effect": {
+          "type": "offer_prize_or_draw",
+          "count": 4
+        }
+      },
+      {
+        "cardName": "Acerola's Mischief",
+        "setCode": "M1S",
+        "cardNumber": "84",
+        "language": "ja",
+        "effectTextExact": "You can use this card only use if your opponent has 2 or fewer Prize cards remaining. Choose 1 of your Pokémon in play. During your opponent's next turn, prevent all damage from and effects of attacks done to this Pokémon by attacks from your opponent's Pokémon ex.",
+        "effect": {
+          "type": "protect_from_ex_attacks"
+        }
+      },
+      {
+        "cardName": "N's Resolve",
+        "setCode": "CEC",
+        "cardNumber": "200",
+        "language": "en",
+        "effectTextExact": "Discard the top 6 cards of your deck. If any of those cards are basic Energy cards, attach them to 1 of your Benched Dragon Pokémon.",
+        "effect": {
+          "type": "discard_top_attach_to_bench",
+          "count": 6,
+          "targetType": "dragon"
+        }
+      },
+      {
+        "cardName": "N's Plan",
+        "setCode": "BLK",
+        "cardNumber": "83",
+        "language": "en",
+        "effectTextExact": "Move up to 2 Energy from your Benched Pokémon to your Active Pokémon.",
+        "effect": {
+          "type": "move_bench_energy_to_active",
+          "count": 2
+        }
+      }
+    ],
+    "items": [
+      {
+        "cardName": "Evolution Incense",
+        "setCode": "SGG",
+        "cardNumber": "10",
+        "language": "ja",
+        "effectTextExact": "Search your deck for an evolution card, reveal it and put it into your hand. Then, shuffle your deck.",
+        "effect": {
+          "type": "filtered_deck_search",
+          "count": 1,
+          "filter": "evolution"
+        }
+      },
+      {
+        "cardName": "Escape Rope",
+        "setCode": "SP",
+        "cardNumber": "245",
+        "language": "ja",
+        "effectTextExact": "Each player switches their Active Pokemon with 1 of their Benched Pokemon. Your opponent switches first. (If a player does not have a Benched Pokemon, that player doesn't switch Pokemon.)",
+        "effect": {
+          "type": "both_switch_opponent_first"
+        }
+      },
+      {
+        "cardName": "Electric Generator",
+        "setCode": "SV1V",
+        "cardNumber": "69",
+        "language": "ja",
+        "effectTextExact": "Look at the top 5 cards of your deck and choose up to 2 Basic Lightning Energy you find there. Attach them to your Benched Lightning Pokémon in any way you like, and shuffle the remaining card back into your deck.",
+        "effect": {
+          "type": "electric_generator",
+          "count": 2,
+          "look": 5
+        }
+      },
+      {
+        "cardName": "Rescue Trolley",
+        "setCode": "S12A",
+        "cardNumber": "142",
+        "language": "ja",
+        "effectTextExact": "Put up to 2 Pokémon with 90 HP or less from your discard pile into your hand.",
+        "effect": {
+          "type": "recover_matching_discard",
+          "count": 2,
+          "maxHp": 90
+        }
+      },
+      {
+        "cardName": "N's PP Up",
+        "setCode": "ASC",
+        "cardNumber": "195",
+        "language": "en",
+        "effectTextExact": "Attach a Basic Energy card from your discard pile to 1 of your Benched N's Pokémon.",
+        "effect": {
+          "type": "attach_discard_basic_named_bench",
+          "owner": "n"
+        }
+      },
+      {
+        "cardName": "Evolution Incense",
+        "setCode": "SSH",
+        "cardNumber": "163",
+        "language": "en",
+        "effectTextExact": "Search your deck for an Evolution Pokémon, reveal it, and put it into your hand. Then, shuffle your deck.",
+        "effect": {
+          "type": "filtered_deck_search",
+          "count": 1,
+          "filter": "evolution"
+        }
+      },
+      {
+        "cardName": "Level Ball",
+        "setCode": "SPZ",
+        "cardNumber": "11",
+        "language": "ja",
+        "effectTextExact": "Search your deck for a Pokémon with 90 HP or less, reveal it, and put it into your hand. Then, shuffle your deck.",
+        "effect": {
+          "type": "filtered_deck_search",
+          "count": 1,
+          "filter": "pokemon_hp",
+          "maxHp": 90
+        },
+        "translationSource": "Verified Japanese card text",
+        "translationUrl": "https://www.pokemon-card.com/card-search/details.php/card/41915"
+      }
+    ],
+    "tools": [
+      {
+        "cardName": "Choice Belt",
+        "setCode": "SPZ",
+        "cardNumber": "12",
+        "language": "ja",
+        "effectTextExact": "The attacks of the Pokemon this card is attached to do 30 more damage to your opponent's Active Pokemon V (before applying Weakness and Resistance) .",
+        "effect": {
+          "type": "active_damage_bonus",
+          "amount": 30,
+          "targetPokemonV": true
+        }
+      },
+      {
+        "cardName": "Charm of Courage",
+        "setCode": "SVP",
+        "cardNumber": "145",
+        "language": "ja",
+        "effectTextExact": "The Basic Pokémon this card is attached to gets +50 HP.",
+        "effect": {
+          "type": "basic_hp_bonus",
+          "amount": 50
+        }
+      }
+    ],
+    "stadiums": [
+      {
+        "cardName": "Gapejaw Bog",
+        "setCode": "S12",
+        "cardNumber": "125",
+        "language": "ja",
+        "effectTextExact": "Whenever any player puts a Basic Pokémon from their hand onto their Bench, put 2 damage counters on that Pokémon.",
+        "effect": {
+          "type": "damage_hand_bench",
+          "amount": 20
+        }
+      },
+      {
+        "cardName": "N's Castle",
+        "setCode": "SV9",
+        "cardNumber": "97",
+        "language": "ja",
+        "effectTextExact": "N's Pokémon in play have no Retreat Cost.",
+        "effect": {
+          "type": "free_retreat_named",
+          "owner": "n"
+        }
+      },
+      {
+        "cardName": "Gapejaw Bog",
+        "setCode": "ASR",
+        "cardNumber": "142",
+        "language": "en",
+        "effectTextExact": "Whenever either player puts a Basic Pokémon from their hand onto their Bench, put 2 damage counters on that Pokémon.",
+        "effect": {
+          "type": "damage_hand_bench",
+          "amount": 20
+        }
+      }
+    ],
+    "energy": [
+      {
+        "cardName": "Reversal Energy",
+        "setCode": "SV2P",
+        "cardNumber": "71",
+        "language": "ja",
+        "effectTextExact": "As long as this card is attached to a Pokémon, it provides Colorless Energy. If you have more Prize cards remaining than your opponent while this card is attached to an evolved Pokémon (except Pokémon with a Rule Box) , this card provides 3 Energy of any type.",
+        "effect": {
+          "type": "reversal_energy"
+        }
+      },
+      {
+        "cardName": "Prism Energy",
+        "setCode": "SV11B",
+        "cardNumber": "86",
+        "language": "ja",
+        "effectTextExact": "As long as this card is attached to a Pokémon, it provides Colorless Energy. If this card is attached to a Basic Pokémon, it provides every type of Energy but provides only 1 Energy at a time.",
+        "effect": {
+          "type": "prism_energy"
+        }
+      },
+      {
+        "cardName": "Reversal Energy",
+        "setCode": "PAL",
+        "cardNumber": "192",
+        "language": "en",
+        "effectTextExact": "As long as this card is attached to a Pokémon, it provides Colorless Energy. If you have more Prize cards remaining than your opponent, and if this card is attached to an Evolution Pokémon that doesn't have a Rule Box (Pokémon ex, Pokémon V, etc. have Rule Boxes) , this card provides every type of Energy but provides only 3 Energy at a time.",
+        "effect": {
+          "type": "reversal_energy"
+        }
+      },
+      {
+        "cardName": "Reversal Energy",
+        "setCode": "PAL",
+        "cardNumber": "192",
+        "language": "en",
+        "effectTextExact": "As long as this card is attached to a Pokémon, it provides {C} Energy.\n\nIf you have more Prize cards remaining than your opponent, and if this card is attached to an Evolution Pokémon that doesn't have a Rule Box (Pokémon ex, Pokémon V, etc. have Rule Boxes), this card provides every type of Energy but provides only 3 Energy at a time.",
+        "effect": {
+          "type": "reversal_energy"
+        }
+      }
+    ]
+  },
+  "free": [
+    {
+      "cardName": "hisuian zorua",
+      "setCode": "S10A",
+      "cardNumber": "29",
+      "language": "ja",
+      "attackName": "mumble",
+      "cost": [
+        "psychic"
+      ],
+      "damage": 10
+    },
+    {
+      "cardName": "dedenne",
+      "setCode": "S12",
+      "cardNumber": "45",
+      "language": "ja",
+      "attackName": "tail smack",
+      "cost": [
+        "colorless"
+      ],
+      "damage": 10
+    },
+    {
+      "cardName": "n s darumaka",
+      "setCode": "ASC",
+      "cardNumber": "32",
+      "language": "en",
+      "attackName": "rolling tackle",
+      "cost": [
+        "colorless",
+        "colorless"
+      ],
+      "damage": 20
+    },
+    {
+      "cardName": "n s darumaka",
+      "setCode": "ASC",
+      "cardNumber": "32",
+      "language": "en",
+      "attackName": "flare",
+      "cost": [
+        "fire",
+        "fire",
+        "colorless"
+      ],
+      "damage": 50
+    },
+    {
+      "cardName": "n s reshiram",
+      "setCode": "ASC",
+      "cardNumber": "154",
+      "language": "en",
+      "attackName": "virtuous flame",
+      "cost": [
+        "fire",
+        "fire",
+        "lightning",
+        "colorless"
+      ],
+      "damage": 170
+    },
+    {
+      "cardName": "hisuian zorua",
+      "setCode": "LOR",
+      "cardNumber": "75",
+      "language": "en",
+      "attackName": "mumble",
+      "cost": [
+        "psychic"
+      ],
+      "damage": 10
+    },
+    {
+      "cardName": "n s zorua",
+      "setCode": "JTG",
+      "cardNumber": "97",
+      "language": "en",
+      "attackName": "scratch",
+      "cost": [
+        "darkness"
+      ],
+      "damage": 20
+    }
+  ]
+}
