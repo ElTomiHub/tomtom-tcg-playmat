@@ -376,7 +376,7 @@
             <div class="eyebrow">Who goes first?</div>
             <button class="coin-disc" id="coinDisc" type="button" aria-label="Flip coin to choose the first player">?</button>
             <div class="coin-copy"><strong id="coinHeadline">Click the coin to flip</strong><span id="coinSubline">Heads · Toma first. Tails · Yami first.</span></div>
-            <div class="matchup-coin-actions"><button class="btn small" id="rerollCoinBtn" disabled>Flip again</button><button class="btn primary" id="startBtn" disabled>Flip &amp; get ready</button></div>
+            <div class="matchup-coin-actions"><button class="btn small" id="rerollCoinBtn" disabled>Flip again</button><button class="btn primary" id="startBtn" disabled>Flip coin</button></div>
           </div>
           <details class="matchup-records" id="matchupRecords" open><summary><span class="eyebrow">The rivalry</span><strong id="matchupRecordsHeading">Head to head</strong></summary><div id="setupMatchupStats" aria-live="polite"></div></details>
         </div>
@@ -6592,7 +6592,7 @@
       $('coinDisc').disabled = blocked;
       $('rerollCoinBtn').disabled = blocked || !coinResult;
       $('randomYamiDeckBtn').disabled = !!campaignSetup || deckResolutionBusy || !!setupCoinAnimation || registeredDecks.filter(deck => deckReadiness(deck).canStart).length < 2;
-      $('startBtn').textContent = coinResult ? 'Play match' : 'Flip & get ready';
+      $('startBtn').textContent = setupCoinAnimation ? 'Flipping…' : coinResult ? (coinResult.first === 'you' ? 'I start first' : 'Yami starts first') : 'Flip coin';
       updateDeckSelectionWarning();
     }
     function escapeHtml(value) {
@@ -9752,7 +9752,7 @@
       $('coinDisc').innerHTML = '<img class="coin-face-art" src="'+COIN_TAILS_IMAGE+'" alt="Flip coin">';
       $('coinHeadline').textContent = 'Click the coin to flip';
       $('coinSubline').textContent = 'Heads · Toma first. Tails · Yami first.';
-      setSetupStatus('Flip to choose who goes first, then press Play match to deal.');
+      setSetupStatus('Flip the coin to decide who starts, then confirm the result to deal.');
       showValidation('you'); showValidation('codex');
     }
     async function fetchJson(url) {
@@ -10034,10 +10034,15 @@
       coinResult = { face, first: face === 'HEADS' ? 'you' : 'codex' };
       const design = activePlaymatEffect?.kind === 'coin' && activePlaymatEffect.design || coinDesignForDisplay();
       $('coinDisc').innerHTML = `<img class="coin-face-art${face === 'HEADS' ? ' coin-head-art' : ''}" src="${face === 'HEADS' ? escapeHtml(design.image) : COIN_TAILS_IMAGE}" alt="${face === 'HEADS' ? 'Heads' : 'Tails'}">`;
-      $('coinHeadline').textContent = `${face} — ${PLAYER_NAMES[coinResult.first]} plays first`;
-      $('coinSubline').textContent = 'Approve this result to deal the opening hands, or flip again.';
+      const decision = coinResult;
+      const reveal = () => {
+        if (coinResult !== decision) return;
+        $('coinHeadline').textContent = `${face} — ${PLAYER_NAMES[decision.first]} plays first`;
+        $('coinSubline').textContent = 'Confirm below to deal the opening hands, or flip again.';
+        $('startBtn').textContent = decision.first === 'you' ? 'I start first' : 'Yami starts first';
+        setSetupStatus('The coin decided who starts. Confirm below to begin.');
+      };
       $('coinPanel').classList.remove('hidden');
-      $('startBtn').textContent = 'Play match';
       if (!engineTestHooks && playmatEffectsEnabled && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && $('coinDisc').animate) {
         setupCoinAnimation?.cancel();
         const animation = $('coinDisc').animate([
@@ -10046,9 +10051,13 @@
           {transform:'perspective(500px) rotateY(1800deg) translateY(0)'}
         ],{duration:fastPlaymatEffects ? 350 : 850,easing:'cubic-bezier(.2,.6,.3,1)'});
         setupCoinAnimation = animation;
-        animation.finished.catch(()=>{}).then(()=>{ if (setupCoinAnimation !== animation) return; setupCoinAnimation=null; showValidation('you'); showValidation('codex'); });
+        $('coinHeadline').textContent = 'Flipping the coin…';
+        $('coinSubline').textContent = 'Heads · Toma first. Tails · Yami first.';
+        setSetupStatus('Flipping to decide who starts…');
+        animation.finished.catch(()=>{}).then(()=>{ if (setupCoinAnimation !== animation) return; setupCoinAnimation=null; reveal(); showValidation('you'); showValidation('codex'); });
       }
-      setSetupStatus('Review the coin result. The match will not begin until you approve it.');
+      else reveal();
+      showValidation('you'); showValidation('codex');
     }
     async function handleStartAction({flipOnly = false} = {}) {
       if (deckResolutionBusy || setupCoinAnimation) return;
