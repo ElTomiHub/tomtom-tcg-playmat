@@ -1,4 +1,4 @@
-# Pokémon TCG Playmat
+# Tomtom TCG Hub
 
 Keep `index.html`, `playmat.css`, `logo.png`, `LimitlessBridge.ps1`, `StartLocalApp.bat`, and the `assets` folder together. Double-click **StartLocalApp.bat** to open `index.html` from its local file path and start the card lookup bridge. Keeping the app at the same file path preserves its existing browser-saved decks and cards. Keep the PowerShell window open while using Limitless lookup; press **Ctrl+C** in that window to stop the bridge. The bridge binds to `127.0.0.1` only and serves a small set of local files; it does not publish the site online.
 
@@ -306,3 +306,5 @@ For automatic lookups, run `card-prices.sql` once in the existing Supabase SQL E
 ### Inspecting cards during searches
 
 Deck searches display the complete inspected deck with eligible cards highlighted and other cards marked View only. Effects restricted to the top or bottom of the deck display only that permitted window, including nonmatching cards. A search that finds no eligible cards still lets the player review the permitted cards and confirm. Selection limits, costs, shuffle/reorder behavior, and card-specific legality checks remain enforced; revealed information cannot be undone. Ordinary draws do not reveal additional cards. Yami uses the same eligible sets and scoped windows, retains existing deck-specific search plans, and uses strategy keep scores for generic Competitor/Master choices.
+
+Attached Energy symbols are grouped by type for display without changing the physical card order. Multi-unit cards show their current rules-based multiplier (for example Rocket R×2, Double Dragon ×2, and evolved Ignition ×3); the accessible description includes both physical-card and Energy-unit totals. The installed app and both page titles use Tomtom TCG Hub.

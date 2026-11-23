@@ -268,7 +268,7 @@ try {
 
 $appUrl = "http://127.0.0.1:$Port/"
 $appFile = Join-Path $ProjectRoot 'index.html'
-Write-Host "Pokémon TCG Playmat is opening from its local file. The card lookup bridge is bound to $appUrl"
+Write-Host "Tomtom TCG Hub is opening from its local file. The card lookup bridge is bound to $appUrl"
 Write-Host 'Keep this window open while using Limitless lookup; press Ctrl+C to stop the bridge.'
 Start-Process $appFile
 try {

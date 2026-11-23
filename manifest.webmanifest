@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "Pokémon TCG Playmat",
-  "short_name": "Playmat",
+  "name": "Tomtom TCG Hub",
+  "short_name": "Tomtom TCG Hub",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
