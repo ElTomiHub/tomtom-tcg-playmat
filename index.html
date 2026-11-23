@@ -376,7 +376,7 @@
             <div class="eyebrow">Who goes first?</div>
             <button class="coin-disc" id="coinDisc" type="button" aria-label="Flip coin to choose the first player">?</button>
             <div class="coin-copy"><strong id="coinHeadline">Click the coin to flip</strong><span id="coinSubline">Heads · Toma first. Tails · Yami first.</span></div>
-            <div class="matchup-coin-actions"><button class="btn small" id="rerollCoinBtn" disabled>Flip again</button><button class="btn primary" id="startBtn" disabled>Flip coin</button></div>
+            <div class="matchup-coin-actions"><button class="btn primary" id="startBtn" disabled>I start first</button><button class="btn" id="yamiStartsBtn" disabled>Yami starts first</button></div>
           </div>
           <details class="matchup-records" id="matchupRecords" open><summary><span class="eyebrow">The rivalry</span><strong id="matchupRecordsHeading">Head to head</strong></summary><div id="setupMatchupStats" aria-live="polite"></div></details>
         </div>
@@ -6590,9 +6590,9 @@
       const blocked = !compositionValid || !typeValid || deckResolutionBusy || !!setupCoinAnimation;
       $('startBtn').disabled = blocked;
       $('coinDisc').disabled = blocked;
-      $('rerollCoinBtn').disabled = blocked || !coinResult;
+      $('yamiStartsBtn').disabled = blocked;
       $('randomYamiDeckBtn').disabled = !!campaignSetup || deckResolutionBusy || !!setupCoinAnimation || registeredDecks.filter(deck => deckReadiness(deck).canStart).length < 2;
-      $('startBtn').textContent = setupCoinAnimation ? 'Flipping…' : coinResult ? (coinResult.first === 'you' ? 'I start first' : 'Yami starts first') : 'Flip coin';
+      $('startBtn').textContent = 'I start first';
       updateDeckSelectionWarning();
     }
     function escapeHtml(value) {
@@ -9752,7 +9752,7 @@
       $('coinDisc').innerHTML = '<img class="coin-face-art" src="'+COIN_TAILS_IMAGE+'" alt="Flip coin">';
       $('coinHeadline').textContent = 'Click the coin to flip';
       $('coinSubline').textContent = 'Heads · Toma first. Tails · Yami first.';
-      setSetupStatus('Flip the coin to decide who starts, then confirm the result to deal.');
+      setSetupStatus('Flip the coin to start randomly, or choose who starts using the buttons below.');
       showValidation('you'); showValidation('codex');
     }
     async function fetchJson(url) {
@@ -10028,7 +10028,7 @@
         if (p.bonusDraws) logEvent(`${p.name} drew ${p.bonusDraws} bonus card${p.bonusDraws === 1 ? '' : 's'} for the opponent’s extra mulligans.`);
       }
     }
-    function flipCoin() {
+    function flipCoin({startOnResult = false} = {}) {
       if (typeof clearPlaymatEffects === 'function') clearPlaymatEffects();
       const face = randomCoin({visual:false}) ? 'HEADS' : 'TAILS';
       coinResult = { face, first: face === 'HEADS' ? 'you' : 'codex' };
@@ -10038,9 +10038,9 @@
       const reveal = () => {
         if (coinResult !== decision) return;
         $('coinHeadline').textContent = `${face} — ${PLAYER_NAMES[decision.first]} plays first`;
-        $('coinSubline').textContent = 'Confirm below to deal the opening hands, or flip again.';
-        $('startBtn').textContent = decision.first === 'you' ? 'I start first' : 'Yami starts first';
-        setSetupStatus('The coin decided who starts. Confirm below to begin.');
+        $('coinSubline').textContent = 'Dealing the opening hands…';
+        setSetupStatus('The coin decided who starts. Dealing the opening hands…');
+        if (startOnResult) startMatch();
       };
       $('coinPanel').classList.remove('hidden');
       if (!engineTestHooks && playmatEffectsEnabled && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && $('coinDisc').animate) {
@@ -10059,8 +10059,14 @@
       else reveal();
       showValidation('you'); showValidation('codex');
     }
-    async function handleStartAction({flipOnly = false} = {}) {
-      if (deckResolutionBusy || setupCoinAnimation) return;
+    async function handleStartAction({first = null} = {}) {
+      if (deckResolutionBusy || setupCoinAnimation || $('setupModal').classList.contains('hidden')) return;
+      const begin = () => {
+        if (first === 'you' || first === 'codex') {
+          coinResult = {face:null,first,method:'chosen'};
+          startMatch();
+        } else flipCoin({startOnResult:true});
+      };
       const youRaw = deckInputs.you.value, codexRaw = deckInputs.codex.value;
       const youDeck = registeredDecks.find(deck => deck.id === $('youRegisteredDeck').value), codexDeck = registeredDecks.find(deck => deck.id === $('codexRegisteredDeck').value);
       if (!youDeck || !codexDeck) {
@@ -10072,9 +10078,8 @@
       }
       const you = parseDeck(youRaw), codex = parseDeck(codexRaw);
       if (!you.valid || !codex.valid) return;
-      if (coinResult && resolvedDecks?.raw.you === youRaw && resolvedDecks?.raw.codex === codexRaw && resolvedDecks?.deckIds?.you === youDeck.id && resolvedDecks?.deckIds?.codex === codexDeck.id) {
-        if (flipOnly) { flipCoin(); showValidation('you'); showValidation('codex'); }
-        else startMatch();
+      if (resolvedDecks?.raw.you === youRaw && resolvedDecks?.raw.codex === codexRaw && resolvedDecks?.deckIds?.you === youDeck.id && resolvedDecks?.deckIds?.codex === codexDeck.id) {
+        begin();
         return;
       }
       coinResult = null;
@@ -10110,13 +10115,13 @@
         if (pending.length) {
           const names = [...new Set(pending)].slice(0, 10).join('\n• ');
           const extra = new Set(pending).size > 10 ? `\n• and ${new Set(pending).size - 10} more` : '';
-          const accepted = engineConfirm(`Some card effects are not automated yet.\n\n• ${names}${extra}\n\nYou may continue. Check each card's printed text and resolve unsupported effects manually. The Yami AI will only automate supported actions.\n\nContinue to the coin flip?`);
+          const accepted = engineConfirm(`Some card effects are not automated yet.\n\n• ${names}${extra}\n\nYou may continue. Check each card's printed text and resolve unsupported effects manually. The Yami AI will only automate supported actions.\n\nContinue to start the game?`);
           if (!accepted) {
             setSetupStatus('Game start cancelled. You can implement the pending effects or continue later with manual effect resolution.');
             return;
           }
         }
-        flipCoin();
+        begin();
       } catch (error) {
         setSetupStatus(`Card lookup failed: ${error.message} Check your connection and try again.`, true);
       } finally {
@@ -10168,7 +10173,7 @@
       coinResult = null;
       selected = null; controlSide = 'you'; pendingEvolutionId = null;
       $('setupModal').classList.add('hidden');
-      logEvent(`${approvedCoin.face} assigned first turn to ${PLAYER_NAMES[approvedCoin.first]}.`);
+      logEvent(approvedCoin.method === 'chosen' ? `${PLAYER_NAMES[approvedCoin.first]} was chosen to start first.` : `${approvedCoin.face} assigned first turn to ${PLAYER_NAMES[approvedCoin.first]}.`);
       try { resolveOpeningMulligans(); }
       catch (error) { game = null; setView('menu'); $('setupModal').classList.remove('hidden'); setSetupStatus(error.message, true); return; }
       const codex = player('codex');
@@ -21815,9 +21820,9 @@
     populateDeckSelectors();
     $('youRegisteredDeck').addEventListener('change', () => applyDeckChoice('you'));
     $('codexRegisteredDeck').addEventListener('change', () => applyDeckChoice('codex'));
-    $('startBtn').addEventListener('click', handleStartAction);
-    $('rerollCoinBtn').addEventListener('click', () => handleStartAction({flipOnly:true}));
-    $('coinDisc').addEventListener('click', () => handleStartAction({flipOnly:true}));
+    $('startBtn').addEventListener('click', () => handleStartAction({first:'you'}));
+    $('yamiStartsBtn').addEventListener('click', () => handleStartAction({first:'codex'}));
+    $('coinDisc').addEventListener('click', () => handleStartAction());
     $('randomYamiDeckBtn').addEventListener('click', randomizeYamiDeck);
     $('yamiStyleSelect').addEventListener('change', () => renderYamiStyle());
     $('yamiDifficultySelect').addEventListener('change', () => renderYamiStyle());

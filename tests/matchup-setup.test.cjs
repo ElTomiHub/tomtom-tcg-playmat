@@ -9,26 +9,36 @@ function ready(){
 }
 async function select(el,side,id){el(side+'RegisteredDeck').value=id;await el(side+'RegisteredDeck').dispatchEvent({type:'change'});}
 
-for(const heads of [true,false])test('opening coin confirms '+(heads?'Toma':'Yami')+' as the actual first player',async()=>{
+for(const heads of [true,false])test('opening coin automatically starts '+(heads?'Toma':'Yami')+' as the actual first player',async()=>{
   const {r,f,el}=ready();await el('startGameBtn').click();
   await select(el,'you',f.decks.human.id);await select(el,'codex',f.decks.ai.id);
   r.api.setChoices(r.random,r.choose,()=>heads);
   await el('coinDisc').click();
-  assert.equal(el('startBtn').textContent,heads?'I start first':'Yami starts first');
-  await el('startBtn').click();
+  assert.equal(r.api.state().phase,'setup');
   assert.equal(r.api.state().firstPlayer,heads?'you':'codex');
 });
 
-test('opening flip reveals its result after the animation and keeps confirmation disabled until then',async()=>{
+for(const first of ['you','codex'])test('manual start chooses '+first+' without flipping a coin',async()=>{
+  const {r,f,el}=ready();await el('startGameBtn').click();
+  await select(el,'you',f.decks.human.id);await select(el,'codex',f.decks.ai.id);
+  let flips=0;r.api.setChoices(r.random,r.choose,()=>{flips++;return true;});
+  assert.equal(el('startBtn').disabled,false);assert.equal(el('yamiStartsBtn').disabled,false);
+  await el(first==='you'?'startBtn':'yamiStartsBtn').click();
+  assert.equal(flips,0);assert.equal(r.api.state().phase,'setup');assert.equal(r.api.state().firstPlayer,first);
+  assert.equal(r.api.state().openingCoin.method,'chosen');assert.equal(r.api.state().openingCoin.face,null);
+});
+
+test('opening flip reveals its result after the animation and keeps both manual starts disabled until then',async()=>{
   const {r,el}=ready();let finish;
   r.context.crypto=require('node:crypto').webcrypto;
   el('coinDisc').animate=()=>({finished:new Promise(resolve=>{finish=resolve;}),cancel(){}});
-  vm.runInContext('engineTestHooks=null;playmatEffectsEnabled=true;flipCoin();',r.context);
+  const before=r.api.state();
+  vm.runInContext('engineTestHooks=null;playmatEffectsEnabled=true;flipCoin({startOnResult:true});',r.context);
   assert.equal(el('coinHeadline').textContent,'Flipping the coin…');
-  assert.equal(el('startBtn').textContent,'Flipping…');assert.equal(el('startBtn').disabled,true);
+  assert.equal(r.api.state(),before);assert.equal(el('startBtn').disabled,true);assert.equal(el('yamiStartsBtn').disabled,true);
   finish();await new Promise(resolve=>setImmediate(resolve));
   assert.match(el('startBtn').textContent,/^(I start first|Yami starts first)$/);
-  assert.equal(el('startBtn').disabled,false);
+  assert.notEqual(r.api.state(),before);assert.equal(r.api.state().phase,'setup');
 });
 
 test('ready deck names omit Playable and opening setup does not change saved records',async()=>{
@@ -53,14 +63,16 @@ test('setup shows selected-deck player totals and the selected seated rivalry',a
   assert.match(el('setupMatchupStats').innerHTML,/All player seats · 4 games/);
 });
 
-test('coin clicks flip and reflip without starting the match; deck changes invalidate approval',async()=>{
+test('changing decks before starting clears any old coin decision',async()=>{
   const {r,f,el}=ready();await el('startGameBtn').click();
   await select(el,'you',f.decks.human.id);await select(el,'codex',f.decks.ai.id);
   const before=JSON.stringify(r.api.backup().data.deckStats);
-  await el('coinDisc').click();assert.match(el('coinHeadline').textContent,/Toma plays first/);assert.match(el('startBtn').textContent,/^(I start first|Yami starts first)$/);
-  await el('coinDisc').click();assert.equal(JSON.stringify(r.api.backup().data.deckStats),before);
-  await select(el,'you',f.decks.ai.id);assert.equal(el('coinHeadline').textContent,'Click the coin to flip');assert.equal(el('rerollCoinBtn').disabled,true);
-  await el('coinDisc').click();await el('startBtn').click();assert.equal(r.api.state().phase,'setup');assert.equal(r.api.state().deckIds.you,f.decks.ai.id);
+  vm.runInContext('flipCoin()',r.context);
+  await select(el,'you',f.decks.ai.id);
+  assert.equal(el('coinHeadline').textContent,'Click the coin to flip');
+  assert.equal(el('yamiStartsBtn').disabled,false);
+  assert.equal(JSON.stringify(r.api.backup().data.deckStats),before);
+  await el('coinDisc').click();assert.equal(r.api.state().phase,'setup');assert.equal(r.api.state().deckIds.you,f.decks.ai.id);
 });
 
 test('missing data and unimplemented effects remain visible and cannot bypass deck verification',async()=>{
@@ -77,12 +89,12 @@ test('Random changes only Yami’s deck, updates records, resets the coin and ex
   await select(el,'you',f.decks.human.id);await select(el,'codex',f.decks.human.id);
   r.context.missingDeck={id:'missing-data',name:'Incomplete deck',decklist:'60 Unknown Card TST 1'};
   vm.runInContext('registeredDecks.push(missingDeck);populateDeckSelectors();',r.context);
-  await el('coinDisc').click();assert.match(el('startBtn').textContent,/^(I start first|Yami starts first)$/);
+  vm.runInContext('flipCoin()',r.context);
   const before=JSON.stringify(r.api.backup().data.deckStats);
   await el('randomYamiDeckBtn').click();
   assert.equal(el('youRegisteredDeck').value,f.decks.human.id);assert.equal(el('codexRegisteredDeck').value,f.decks.ai.id);
   assert.match(el('codexDeckSummary').innerHTML,new RegExp(f.decks.ai.name));
-  assert.equal(el('coinHeadline').textContent,'Click the coin to flip');assert.equal(el('rerollCoinBtn').disabled,true);
+  assert.equal(el('coinHeadline').textContent,'Click the coin to flip');assert.equal(el('yamiStartsBtn').disabled,false);
   assert.equal(JSON.stringify(r.api.backup().data.deckStats),before);
   await el('randomYamiDeckBtn').click();assert.equal(el('codexRegisteredDeck').value,f.decks.human.id);
 });
@@ -152,7 +164,6 @@ test('campaign locks the deck, advances after losses, and awards the winning dec
     assert.equal(el('youRegisteredDeck').disabled,true);
     assert.equal(el('randomYamiDeckBtn').disabled,true);
     await el('coinDisc').click();
-    await el('startBtn').click();
     const game=r.api.state();
     assert.equal(game.deckIds.you,f.decks.human.id);
     assert.equal(game.deckIds.codex,f.decks.ai.id);
@@ -217,8 +228,7 @@ test('Revenge preselects the finished matchup and requires a fresh coin flip',as
   assert.equal(el('revengeMatchBtn').hidden,false);
   await el('startGameBtn').click();
   await select(el,'you',f.decks.ai.id);
-  await el('coinDisc').click();
-  assert.match(el('startBtn').textContent,/^(I start first|Yami starts first)$/);
+  vm.runInContext('flipCoin()',r.context);
   await el('revengeMatchBtn').click();
   assert.equal(el('setupModal').classList.contains('hidden'),false);
   assert.equal(el('youRegisteredDeck').value,finished.deckIds.you);
@@ -226,7 +236,6 @@ test('Revenge preselects the finished matchup and requires a fresh coin flip',as
   assert.equal(el('coinHeadline').textContent,'Click the coin to flip');
   assert.equal(r.api.state(),finished);
   await el('coinDisc').click();
-  await el('startBtn').click();
   assert.equal(r.api.state().phase,'setup');
   assert.equal(r.api.state().deckIds.you,finished.deckIds.you);
   assert.equal(r.api.state().deckIds.codex,finished.deckIds.codex);
