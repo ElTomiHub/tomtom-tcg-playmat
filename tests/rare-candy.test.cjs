@@ -40,7 +40,7 @@ function makeHarness({ side = 'you', targetChoice = 'basic', evolutionChoice = '
     controlSide: side, selected: { side, zone: 'hand', id: candy.id }, localAiEnabled, activeCardChoice: null,
     activeCardChoiceResolver: null, activeBoardChoice: null, activeBoardChoiceResolver: null, registeredCards: [dragonair],
     logs: [], toasts: [], statEvents: [], renderCount: 0, window: { __POKEMON_TCG_TEST__: true }, Math, Number, Set, Map, Error, console,
-    cleanCardKey, normalizeCollectorNumber,
+    cleanCardKey, normalizeCollectorNumber, aiCardKeepScore: () => 0,
     logEvent: message => context.logs.push(message), showToast: message => context.toasts.push(message), render: () => { context.renderCount++; },
     recordDeckCardStat: (...args) => context.statEvents.push(args), isDoubleDragonEnergyCard: () => false,
     effectivePokemonHp: card => Number(card?.meta?.hp || 0), resolveOnEvolveAbilities: () => {},
@@ -50,7 +50,7 @@ function makeHarness({ side = 'you', targetChoice = 'basic', evolutionChoice = '
   });
   vm.runInContext('let engineTestHooks = null;', context);
   vm.runInContext(html.slice(registryStart, registryEnd) + '\nglobalThis.registry = CARD_EFFECT_REGISTRY;', context);
-  for (const name of ['installEngineTestHooks', 'engineTestChoice', 'normalizeScriptedCards', 'normalizePokemonStage', 'basicPokemon', 'matchEffectRule', 'itemEffectRuleFor', 'effectHandlerIsImplemented', 'cardEffectIsSafelyImplemented', 'effectSupportFor', 'effectResolutionFor', 'resolveEvolutionOperation', 'itemEvolutionTargets', 'pokemonCanUseRareCandyTarget', 'pokemonCanEvolveFrom', 'removeCardFromHand', 'consumeResolvedItem', 'snapshotResolutionState', 'restoreResolutionState', 'runResolutionTransaction', 'runEffectTransaction', 'choosePokemonOnBoard', 'chooseCardsInApp', 'pickEffectCard', 'discardInvalidDragonEnergy', 'insertEvolution', 'normalizedEnergyType', 'resolveBuiltInItem', 'canPlayTrainerEffect', 'playTrainerSelected']) vm.runInContext(engineFunction(name), context);
+  for (const name of ['installEngineTestHooks', 'engineTestChoice', 'normalizeScriptedCards', 'normalizePokemonStage', 'basicPokemon', 'matchEffectRule', 'itemEffectRuleFor', 'effectHandlerIsImplemented', 'cardEffectIsSafelyImplemented', 'effectSupportFor', 'effectResolutionFor', 'resolveEvolutionOperation', 'itemEvolutionTargets', 'pokemonCanUseRareCandyTarget', 'pokemonCanEvolveFrom', 'removeCardFromHand', 'consumeResolvedItem', 'snapshotResolutionState', 'restoreResolutionState', 'runResolutionTransaction', 'runEffectTransaction', 'choosePokemonOnBoard', 'choiceInspectionCards', 'aiInspectedCardChoices', 'chooseCardsInApp', 'pickEffectCard', 'discardInvalidDragonEnergy', 'insertEvolution', 'normalizedEnergyType', 'resolveBuiltInItem', 'canPlayTrainerEffect', 'playTrainerSelected']) vm.runInContext(engineFunction(name), context);
   vm.runInContext('globalThis.testGame = () => game; player = side => game.players[side];', context);
   context.installEngineTestHooks({ choose: ({ kind }) => kind === 'pokemon-target' ? targetChoice : [evolutionChoice] });
   return { context, players, p, basic, dragonair, dragonite, candy, side };

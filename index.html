@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="playmat.css?v=hub2">
+  <link rel="stylesheet" href="playmat.css?v=hub3">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -10170,14 +10170,32 @@
       $('cardChoiceCount').textContent = state.min === state.max ? `${state.selected.size} of ${state.max} selected` : `${state.selected.size} selected · up to ${state.max}`;
       $('cardChoiceConfirmBtn').disabled = state.selected.size < state.min || state.selected.size > state.max;
     }
+    function choiceInspectionCards(side, cards, visibleCards = null) {
+      if (visibleCards !== null) return visibleCards.slice();
+      const deck = player(side)?.deck || [];
+      return cards.length && cards.every(card => deck.includes(card)) ? deck.slice() : cards.slice();
+    }
+    function aiInspectedCardChoices(cards, count) {
+      if (game?.yamiDifficulty === 'casual') return cards.slice(0,count);
+      const selected = [];
+      while (selected.length < Math.min(count,cards.length)) {
+        const score = card => aiCardKeepScore(card) - selected.filter(pick => cleanCardKey(pick.name) === cleanCardKey(card.name)).length *
+          (game?.yamiDifficulty === 'master' ? 4 : 2);
+        const next = cards.filter(card => !selected.includes(card)).sort((a,b) => score(b)-score(a))[0];
+        if (!next) break;
+        selected.push(next);
+      }
+      return selected;
+    }
     function renderCardChoice() {
       const state = activeCardChoice;
       if (!state) return;
       const grid = $('cardChoiceGrid');
       grid.innerHTML = (state.visibleCards || state.cards).map(card => {
         const image = imageFor(card, 'high'), selectedCard = state.selected.has(card.id);
+        const eligible = state.cards.includes(card), restricted = state.visibleCards.length > state.cards.length;
         const ref = card.setCode && card.cardNumber ? `${card.setCode} ${card.cardNumber}` : card.meta?.category || 'Card';
-        return `<button type="button" class="choice-card${selectedCard ? ' selected' : ''}" data-choice-card="${escapeHtml(card.id)}" aria-pressed="${selectedCard}"${state.cards.includes(card) ? '' : ' disabled'}>${image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(card.name)}" loading="lazy">` : '<span class="choice-card-art">TCG</span>'}<strong>${escapeHtml(card.name)}</strong><small>${escapeHtml(ref)}</small></button>`;
+        return `<button type="button" class="choice-card${selectedCard ? ' selected' : ''}${restricted ? eligible ? ' eligible' : ' view-only' : ''}" data-choice-card="${escapeHtml(card.id)}" aria-pressed="${selectedCard}"${eligible ? '' : ' disabled'}>${image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(card.name)}" loading="lazy">` : '<span class="choice-card-art">TCG</span>'}<strong>${escapeHtml(card.name)}</strong><small>${escapeHtml(ref)}</small>${restricted ? `<span class="choice-eligibility">${eligible ? 'Eligible' : 'View only'}</span>` : ''}</button>`;
       }).join('');
       updateCardChoiceSelection(state);
       grid.querySelectorAll('[data-choice-card]').forEach(button => button.addEventListener('click', () => {
@@ -10196,18 +10214,20 @@
         updateCardChoiceSelection(state);
       }));
     }
-    function chooseCardsInApp(side, title, cards, minCount, maxCount, visibleCards = cards, { required = false, onePerCategory = false } = {}) {
+    function chooseCardsInApp(side, title, cards, minCount, maxCount, visibleCards = null, { required = false, onePerCategory = false } = {}) {
+      visibleCards = choiceInspectionCards(side,cards,visibleCards);
       if (!visibleCards.length || cards.length < minCount) return Promise.resolve(minCount === 0 ? [] : null);
       maxCount = Math.min(maxCount, cards.length);
-      const scripted = engineTestChoice('cards', { side, title, candidates: cards, minCount, maxCount });
+      const scripted = engineTestChoice('cards', { side, title, candidates: cards, visibleCards, minCount, maxCount });
       if (scripted.handled) return Promise.resolve(scripted.value).then(value => normalizeScriptedCards(value, cards, minCount, maxCount));
-      if (side === 'codex' && localAiEnabled) return Promise.resolve(cards.slice(0, maxCount));
+      if (side === 'codex' && localAiEnabled) return Promise.resolve(visibleCards.some(card => player(side)?.deck.includes(card)) ? aiInspectedCardChoices(cards,maxCount) : cards.slice(0,maxCount));
       if(visibleCards.some(card=>player(side)?.deck.includes(card)))markDeckInformationRevealed(side);
       const mustFinish = required || resolutionInformationRevealed;
       $('cardChoiceCancelBtn').disabled=mustFinish;$('cardChoiceCloseBtn').disabled=mustFinish;
       $('cardChoiceTitle').textContent = title;
       $('cardChoiceDescription').textContent = minCount === maxCount ? `Choose ${minCount} card${minCount === 1 ? '' : 's'} to continue.` : `Choose up to ${maxCount} card${maxCount === 1 ? '' : 's'}.`;
       if (!maxCount) $('cardChoiceDescription').textContent = 'Review the cards and confirm to continue.';
+      if (visibleCards.length > cards.length) $('cardChoiceDescription').textContent += ' Eligible cards are highlighted; the others are view only.';
       if(resolutionInformationRevealed)$('cardChoiceDescription').textContent+=' Hidden cards have been revealed; finish this effect.';
       activeCardChoice = { side, cards, visibleCards, min: minCount, max: maxCount, selected: new Set(), required, onePerCategory };
       const overlay = $('cardChoiceOverlay');
@@ -10223,15 +10243,19 @@
         if (typeof renderPlaymatTurnStatus === 'function') renderPlaymatTurnStatus();
       }).then(value=>{if(value===null && (Number(runResolutionTransaction.depth || 0)>0 || attackResolutionPending))throw cancelledCardAction();return value;});
     }
-    async function pickEffectCard(side, title, cards, preferred = null) {
-      if (!cards.length) return null;
-      if (side === 'codex' && localAiEnabled) return preferred?.(cards) || cards[0];
+    async function pickEffectCard(side, title, cards, preferred = null, visibleCards = null) {
+      if (!cards.length) {
+        if (visibleCards?.length) await chooseCardsInApp(side,title,[],0,0,visibleCards);
+        return null;
+      }
+      if (side === 'codex' && localAiEnabled) return preferred?.(cards) ||
+        (choiceInspectionCards(side,cards,visibleCards).some(card => player(side)?.deck.includes(card)) ? aiInspectedCardChoices(cards,1)[0] : cards[0]);
       // Only live board objects use board targeting; deck and discard cards stay in the picker.
       if (typeof choosePokemonOnBoard === 'function' && typeof game !== 'undefined' && game?.players) {
         const board = ['you', 'codex'].flatMap(owner => [game.players[owner]?.active, ...(game.players[owner]?.bench || [])]).filter(Boolean);
         if (cards.every(card => board.includes(card))) return choosePokemonOnBoard(side, title, cards, preferred);
       }
-      const chosen = await chooseCardsInApp(side, title, cards, 1, 1);
+      const chosen = await chooseCardsInApp(side, title, cards, 1, 1, visibleCards);
       return chosen?.[0] || null;
     }
     async function pickEffectCards(side, title, cards, count) {
@@ -10242,7 +10266,7 @@
     async function pickEffectCardsUpTo(side, title, cards, maxCount) {
       if (!cards.length) return [];
       const limit = Math.min(maxCount, cards.length);
-      if (side === 'codex' && localAiEnabled) return cards.slice().sort((a, b) => Number(b.meta?.hp || 0) - Number(a.meta?.hp || 0)).slice(0, limit);
+      if (side === 'codex' && localAiEnabled) return choiceInspectionCards(side,cards).some(card => player(side)?.deck.includes(card)) ? aiInspectedCardChoices(cards,limit) : cards.slice().sort((a, b) => Number(b.meta?.hp || 0) - Number(a.meta?.hp || 0)).slice(0, limit);
       return (await chooseCardsInApp(side, title, cards, 0, limit)) || [];
     }
     async function pickOptionalEffectCard(side, title, cards, preferred = null) {
@@ -11002,9 +11026,10 @@
     function basicWithoutRuleBox(card) {
       return basicPokemon(card) && normalizePokemonStage(card.meta?.stage) === 'basic' && withoutRuleBox(card);
     }
-    async function chooseUpToEffectCards(side, title, candidates, count) {
-      if (side === 'codex' && localAiEnabled) return candidates.slice(0, count);
-      return chooseCardsInApp(side, title, candidates, 0, Math.min(count, candidates.length));
+    async function chooseUpToEffectCards(side, title, candidates, count, visibleCards = null) {
+      if (side === 'codex' && localAiEnabled) return choiceInspectionCards(side,candidates,visibleCards).some(card => player(side)?.deck.includes(card)) ?
+        aiInspectedCardChoices(candidates,count) : candidates.slice(0,count);
+      return chooseCardsInApp(side, title, candidates, 0, Math.min(count, candidates.length), visibleCards);
     }
     async function searchDeckForCards(side, title, eligible, count, toBench = false, stillLegal = () => true) {
       const p = player(side), limit = () => toBench ? Math.min(count, 5 - p.bench.length) : count;
@@ -11027,7 +11052,7 @@
           picked.push(genAiSearchCard(candidates.filter(card=>!picked.includes(card))));
         }
       } else {
-        picked = max ? await chooseUpToEffectCards(side, `${title}: choose up to ${max} eligible cards ${toBench ? 'to Bench' : 'to reveal and add to hand'}.`, candidates, max) : [];
+        picked = max ? await chooseUpToEffectCards(side, `${title}: choose up to ${max} eligible cards ${toBench ? 'to Bench' : 'to reveal and add to hand'}.`, candidates, max, p.deck) : [];
       }
       if (!picked || !stillLegal() || picked.length > limit() || new Set(picked).size !== picked.length ||
           picked.some(card => !p.deck.includes(card) || !eligible(card))) return false;
@@ -11089,7 +11114,7 @@
           chienPaoIridaPlan(...filters.map(filter=>p.deck.filter(filter.eligible))).cards : null;
         for (const filter of filters) {
           const selection = strategy ? strategy.filter(filter.eligible) :
-            await chooseUpToEffectCards(side,card.name + ': choose up to 1 ' + filter.label + '.',p.deck.filter(filter.eligible),1);
+            await chooseUpToEffectCards(side,card.name + ': choose up to 1 ' + filter.label + '.',p.deck.filter(filter.eligible),1,p.deck);
           if (selection === null || selection.length > 1 || selection.some(item => !p.deck.includes(item) || !filter.eligible(item))) return false;
           chosen.push(...selection);
         }
@@ -11104,7 +11129,7 @@
           const candidates = p.deck.filter(card => card.meta?.category === 'Trainer' && (type === 'Tool' ? /tool/i.test(card.meta.trainerType) : String(card.meta.trainerType).toLowerCase() === 'item'));
           const selected = side==='codex' && localAiEnabled && typeof hasEthanSkeledirgeStrategy==='function' && hasEthanSkeledirgeStrategy() ?
             candidates.slice().sort((a,b)=>ethanAiArvenScore(b)-ethanAiArvenScore(a)).slice(0,p.deck.length>chosen.length+1 ? 1 : 0) :
-            await chooseUpToEffectCards(side, `${card.name}: choose up to 1 ${type} card.`, candidates, 1);
+            await chooseUpToEffectCards(side, `${card.name}: choose up to 1 ${type} card.`, candidates, 1,p.deck);
           if (selected === null) return false; chosen.push(...selected); groups.push(...selected.map(card=>({card,type})));
         }
         if (new Set(chosen).size !== chosen.length || groups.some(({card,type})=>!p.deck.includes(card) || card.meta?.category !== 'Trainer' || !(type === 'Tool' ? /tool/i.test(card.meta.trainerType) : String(card.meta.trainerType).toLowerCase() === 'item'))) return false;
@@ -11124,7 +11149,7 @@
       const candidates = p.deck.filter(eligible);
       const toBench = effect.type === 'search_basic_without_rulebox_to_bench';
       if (djinn && toBench) djinnPicks = djinnMissingChoices(candidates,Math.min(effect.count,5-p.bench.length,Math.max(0,p.deck.length-1)));
-      const selected = djinnPicks ?? await chooseUpToEffectCards(side, `${card.name}: choose up to ${effect.count} ${toBench ? 'Basic Pokémon without a Rule Box for your Bench' : 'cards to reveal and add to your hand'}.`, candidates, toBench ? Math.min(effect.count,5-p.bench.length) : effect.count);
+      const selected = djinnPicks ?? await chooseUpToEffectCards(side, `${card.name}: choose up to ${effect.count} ${toBench ? 'Basic Pokémon without a Rule Box for your Bench' : 'cards to reveal and add to your hand'}.`, candidates, toBench ? Math.min(effect.count,5-p.bench.length) : effect.count,p.deck);
       if (selected === null || new Set(selected).size !== selected.length || selected.some(item=>!p.deck.includes(item) || !candidates.includes(item) || !eligible(item)) || toBench && selected.length > 5-p.bench.length) return false;
       p.deck = shuffled(p.deck.filter(item=>!selected.includes(item)));
       if (toBench) for (const pokemon of selected) { pokemon.enteredTurn = game.turnNumber; p.bench.push(pokemon); recordMatchActivity('pokemon',side,pokemon); }
@@ -11154,11 +11179,11 @@
       const stageTwo = side==='codex' && localAiEnabled && typeof stageTwoAiProfile==='function' && stageTwoAiProfile();
       const skeleridge = side==='codex' && localAiEnabled && hasSkeleridgeStrategy();
       const score = effect.trainerType==='supporter' ? aiSupporterScore : skeleridgeTrainerScore;
-      const chosen = effect.any ? await chooseUpToEffectCards(side,title+': choose Supporters from the top '+windowCards.length+' cards.',candidates,limit) :
+      const chosen = effect.any ? await chooseUpToEffectCards(side,title+': choose Supporters from the top '+windowCards.length+' cards.',candidates,limit,windowCards) :
         stageTwo ? stageTwoAiSearchChoice(candidates,Math.min(1,Math.max(0,p.deck.length-1))) :
         skeleridge ? candidates.map(card=>({card,value:score(card)})).filter(item=>item.value>0)
           .sort((a,b)=>b.value-a.value).slice(0,p.deck.length>1 ? 1 : 0).map(item=>item.card) :
-        candidates.length ? await chooseUpToEffectCards(side,title+': reveal up to 1 '+effect.trainerType+' from the top '+windowCards.length+' cards.',candidates,1) : [];
+        await chooseUpToEffectCards(side,title+': reveal up to 1 '+effect.trainerType+' from the top '+windowCards.length+' cards.',candidates,1,windowCards);
       if(chosen===null || chosen.length>limit || new Set(chosen).size!==chosen.length || chosen.some(card=>!candidates.includes(card) || !eligible(card)) || !stillLegal())return false;
       const live=p.deck.slice(-windowCards.length);if(live.length!==ids.length || live.some((card,i)=>card.id!==ids[i]))return false;
       p.deck=shuffled(p.deck.filter(card=>!chosen.includes(card)));addRevealedDeckCardsToHand(side, p, chosen);
@@ -11264,8 +11289,11 @@
       for (const target of recipients) {
         if (future && p.deck.length<=1) break;
         const candidates = p.deck.filter(card => basicEnergyHasType(card, effect.energyType));
-        if (!candidates.length) break;
-        const chosen = await chooseUpToEffectCards(side, `${attack.name}: choose a Basic Psychic Energy for ${target.name}.`, candidates, 1);
+        if (!candidates.length) {
+          await chooseCardsInApp(side,attack.name + ': review your deck.',[],0,0,p.deck);
+          break;
+        }
+        const chosen = await chooseUpToEffectCards(side, `${attack.name}: choose a Basic Psychic Energy for ${target.name}.`, candidates, 1,p.deck);
         if (!chosen || !p.bench.includes(target) || chosen.some(card => !p.deck.includes(card) || !candidates.includes(card))) return false;
         const energy = chosen[0];
         if (!energy) continue;
@@ -11310,7 +11338,7 @@
       const chosen = stageTwo ? stageTwoAiSearchChoice(candidates,Math.min(effect.count,Math.max(0,p.deck.length-1))) :
         side==='codex' && localAiEnabled && typeof hasEthanSkeledirgeStrategy==='function' && hasEthanSkeledirgeStrategy() ?
         ethanAiSearchChoice(candidates,Math.min(effect.count,Math.max(0,p.deck.length-1))) :
-        await chooseUpToEffectCards(side, `${card.name}: reveal up to ${effect.count} eligible card(s).`, candidates, effect.count);
+        await chooseUpToEffectCards(side, `${card.name}: reveal up to ${effect.count} eligible card(s).`, candidates, effect.count,p.deck);
       if (!chosen || !p.hand.includes(card) || payment && !p.hand.includes(payment) || chosen.some(item => !p.deck.includes(item) || !eligible(item))) return false;
       if (payment) {
         p.discard.push(removeCardFromHand(p, payment.id));
@@ -11329,7 +11357,7 @@
         const future = ai && stageTwoAiProfile()==='future_princess';
         const candidates = p.deck.filter(basicPokemon);
         const chosen = future ? stageTwoAiSearchChoice(candidates,Math.min(1,Math.max(0,p.deck.length-1))) :
-          await chooseUpToEffectCards(side, `${card.name}: choose a Basic Pokémon to Bench.`, candidates, 1);
+          await chooseUpToEffectCards(side, `${card.name}: choose a Basic Pokémon to Bench.`, candidates, 1,p.deck);
         const target = chosen?.[0];
         if (!chosen || target && (!p.deck.includes(target) || !basicPokemon(target) || p.bench.length >= 5)) return false;
         p.deck = shuffled(p.deck.filter(item => item !== target));
@@ -11434,8 +11462,8 @@
       if (effect.type==='look_top_type_to_bench_bottom') {
         if (!p.turnsTaken || p.bench.length>=5 || !p.deck.length) return false;
         const looked=p.deck.slice(-effect.look),ids=looked.map(card=>card.id),candidates=looked.filter(card=>pokemonHasType(card,effect.pokemonType));
-        const chosen = candidates.length ? await pickEffectCard(side,card.name+': choose a Darkness Pokémon from the top '+looked.length+' cards to put on your Bench.',candidates,
-          list=>stageTwoAiProfile()==='obstagogo' ? stageTwoAiSearchChoice(list,1)[0] : list[0]) : null;
+        const chosen = await pickEffectCard(side,card.name+': choose a Darkness Pokémon from the top '+looked.length+' cards to put on your Bench.',candidates,
+          list=>stageTwoAiProfile()==='obstagogo' ? stageTwoAiSearchChoice(list,1)[0] : aiInspectedCardChoices(list,1)[0],looked);
         const live=p.deck.slice(-looked.length);
         if (p.bench.length>=5 || live.length!==looked.length || live.some((item,i)=>item.id!==ids[i]) || candidates.length && !chosen || chosen && !candidates.includes(chosen)) return false;
         p.deck=p.deck.slice(0,-looked.length);p.deck.unshift(...shuffled(looked.filter(item=>item!==chosen)));
@@ -11447,7 +11475,7 @@
         markDeckInformationRevealed(side);
         const chosen=[];
         for (const [label,filter] of [['Energy',card=>card.meta?.category==='Energy'],['Darkness Pokémon',card=>pokemonHasType(card,effect.pokemonType)]]) {
-          const candidates=p.deck.filter(filter),selection=await chooseUpToEffectCards(side,card.name+': choose up to 1 '+label+'.',candidates,1);
+          const candidates=p.deck.filter(filter),selection=await chooseUpToEffectCards(side,card.name+': choose up to 1 '+label+'.',candidates,1,p.deck);
           if (selection===null || selection.length>1 || selection.some(card=>!p.deck.includes(card) || !filter(card))) return false;chosen.push(...selection);
         }
         if (new Set(chosen).size!==chosen.length || chosen.some(card=>!p.deck.includes(card))) return false;
@@ -11493,7 +11521,7 @@
         for (let i=0;i<Number(effect.millCount || 0) && foe.deck.length;i++) {const discarded=foe.deck.pop();foe.discard.push(discarded);logEvent(attack.name+': discarded '+discarded.name+' from the top of '+foe.name+'’s deck.');}return true;
       }
       if (effect.type==='search_pokemon_type') {
-        const candidates=p.deck.filter(card=>pokemonHasType(card,effect.pokemonType)),chosen=await chooseUpToEffectCards(side,attack.name+': choose up to '+effect.count+' Darkness Pokémon to reveal.',candidates,effect.count);
+        const candidates=p.deck.filter(card=>pokemonHasType(card,effect.pokemonType)),chosen=await chooseUpToEffectCards(side,attack.name+': choose up to '+effect.count+' Darkness Pokémon to reveal.',candidates,effect.count,p.deck);
         if (chosen===null || chosen.length>effect.count || new Set(chosen).size!==chosen.length || chosen.some(card=>!p.deck.includes(card) || !candidates.includes(card))) return false;
         p.deck=shuffled(p.deck.filter(card=>!chosen.includes(card)));addRevealedDeckCardsToHand(side, p, chosen);logEvent(p.name+' used '+attack.name+': revealed '+(chosen.map(card=>card.name).join(', ') || 'no Pokémon')+'; shuffled.');return true;
       }
@@ -11640,7 +11668,7 @@
           const candidates = owner.deck.filter(item=>supporterSearchGroup(group,item) && !picked.includes(item));
           const tailored = side==='codex' && localAiEnabled && ['stellar_snow','rafa_psy_zoo'].includes(stageTwoAiProfile());
           const chosen = tailored ? stageTwoAiSearchChoice(candidates,Math.min(1,Math.max(0,owner.deck.length-picked.length-1)),[],picked) :
-            await chooseUpToEffectCards(side,card.name + ': choose a ' + group + ' card.',candidates,1);
+            await chooseUpToEffectCards(side,card.name + ': choose a ' + group + ' card.',candidates,1,owner.deck);
           if (!chosen || chosen.length>1 || chosen.some(item=>!candidates.includes(item) || !owner.deck.includes(item))) return false;
           picked.push(...chosen);
         }
@@ -11674,7 +11702,7 @@
           if (!target || ![owner.active,...owner.bench].includes(target)) return false;
           const candidates = salvatoreEvolutionChoices(side,target);
           const picked = side==='codex' && localAiEnabled && stageTwoAiProfile()==='stellar_snow' ? stageTwoAiSearchChoice(candidates,1) :
-            await chooseUpToEffectCards(side,card.name + ': choose an Evolution Pokémon without an Ability.',candidates,1);
+            await chooseUpToEffectCards(side,card.name + ': choose an Evolution Pokémon without an Ability.',candidates,1,owner.deck);
           if (!picked || picked.length>1 || picked.some(item=>!salvatoreEvolutionChoices(side,target).includes(item))) return false;
           if (picked.length && !await insertEvolution(side,target,picked[0],'deck')) return false;
         }
@@ -11904,7 +11932,7 @@
         const chosen = side === 'codex' && localAiEnabled
           ? hasIonoFanStrategy() ? rankIonoFanSearch(candidates,limit)
             : hasPeterDragoniteStrategy() ? rankPeterDragoniteSearch(candidates,limit) : await pickEffectCardsUpTo(side, card.name, candidates, limit)
-          : await chooseCardsInApp(side, `${card.name}: choose up to ${effect.count} ${effect.type === 'search_dragon_pokemon' ? 'Dragon Pokémon' : 'Basic Pokémon with 120 HP or less'} to reveal and add to your hand.`, candidates, 0, limit);
+          : await chooseCardsInApp(side, `${card.name}: choose up to ${effect.count} ${effect.type === 'search_dragon_pokemon' ? 'Dragon Pokémon' : 'Basic Pokémon with 120 HP or less'} to reveal and add to your hand.`, candidates, 0, limit,p.deck);
         if (!Array.isArray(chosen) || chosen.length > limit || new Set(chosen.map(item => item.id)).size !== chosen.length ||
             chosen.some(item => !candidates.includes(item) || !p.deck.includes(item) || !eligible(item))) return false;
         const ids = new Set(chosen.map(item => item.id));
@@ -11916,9 +11944,9 @@
       if (effect.type === 'search_item_and_lightning_energy') {
         const p = player(side), itemCards = p.deck.filter(item => item.meta?.category === 'Trainer' && String(item.meta?.trainerType || '').toLowerCase() === 'item');
         const lightning = p.deck.filter(item => item.meta?.category === 'Energy' && isBasicEnergy(item.name) && normalizedEnergyType(item.meta?.energyType || item.name) === 'lightning');
-        const item = itemCards.length ? await pickEffectCard(side, `${card.name}: choose an Item card to reveal and add to your hand.`, itemCards, list => list.find(candidate => !p.hand.some(handCard => cleanCardKey(handCard.name) === cleanCardKey(candidate.name))) || list[0]) : null;
+        const item = await pickEffectCard(side, `${card.name}: choose an Item card to reveal and add to your hand.`, itemCards, list => list.find(candidate => !p.hand.some(handCard => cleanCardKey(handCard.name) === cleanCardKey(candidate.name))) || list[0],p.deck);
         if (itemCards.length && !item) return false;
-        const energy = lightning.length ? await pickEffectCard(side, `${card.name}: choose a Lightning Energy card to reveal and add to your hand.`, lightning, list => list[0]) : null;
+        const energy = await pickEffectCard(side, `${card.name}: choose a Lightning Energy card to reveal and add to your hand.`, lightning, list => list[0],p.deck);
         if (lightning.length && !energy) return false;
         if (item && (!p.deck.includes(item) || !itemCards.includes(item)) || energy && (!p.deck.includes(energy) || !lightning.includes(energy))) return false;
         const chosenIds = new Set([item?.id, energy?.id].filter(Boolean));
@@ -11934,7 +11962,7 @@
         if (!discard) return false;
         const lightningPokemon = item => item.meta?.category === 'Pokemon' && (item.meta?.types || []).some(type => normalizedEnergyType(type) === 'lightning');
         const candidates = p.deck.filter(lightningPokemon);
-        const chosen = side === 'codex' && localAiEnabled ? hasIonoFanStrategy() ? rankIonoFanSearch(candidates,effect.count,discard) : await pickEffectCardsUpTo(side, card.name, candidates, effect.count) : await chooseCardsInApp(side, `${card.name}: choose up to ${effect.count} Lightning Pokémon to reveal and add to your hand.`, candidates, 0, Math.min(effect.count, candidates.length));
+        const chosen = side === 'codex' && localAiEnabled ? hasIonoFanStrategy() ? rankIonoFanSearch(candidates,effect.count,discard) : await pickEffectCardsUpTo(side, card.name, candidates, effect.count) : await chooseCardsInApp(side, `${card.name}: choose up to ${effect.count} Lightning Pokémon to reveal and add to your hand.`, candidates, 0, Math.min(effect.count, candidates.length),p.deck);
         if (!Array.isArray(chosen) || chosen.some(item => !p.deck.includes(item) || !lightningPokemon(item)) || !p.hand.includes(discard)) return false;
         removeCardFromHand(p, discard.id); p.discard.push(discard);
         const ids = new Set(chosen.map(item => item.id));
@@ -11960,7 +11988,7 @@
       const targets = () => (effect.benchOnly ? p.bench : [p.active,...p.bench]).filter(card => card && (!effect.pokemonType || pokemonHasType(card,effect.pokemonType)));
       const energies = p[sourceZone].filter(eligible), maximum = Math.min(effect.count || energies.length,energies.length);
       const selected = sourceZone === 'hand' && side === 'codex' && localAiEnabled ? energies.slice(0,1) :
-        await chooseUpToEffectCards(side,title + ': choose up to ' + maximum + (effect.energyType ? ' Basic ' + effect.energyType : ' Basic') + ' Energy.',energies,maximum);
+        await chooseUpToEffectCards(side,title + ': choose up to ' + maximum + (effect.energyType ? ' Basic ' + effect.energyType : ' Basic') + ' Energy.',energies,maximum,sourceZone==='deck' ? p.deck : energies);
       if (selected === null) return false;
       if (!selected.length) {
         if (effect.vstar) logEvent(p.name + ' used ' + title + ' without attaching Energy.');
@@ -12154,7 +12182,7 @@
         const top = p.deck.slice(-2);
         markDeckInformationRevealed(side);
         const picked = await pickEffectCard(side,ability.name + ': choose one of the top cards to put into your hand.',top,
-          list=>stageTwoAiProfile() ? stageTwoAiSearchChoice(list,1)[0] : list[0]);
+          list=>stageTwoAiProfile() ? stageTwoAiSearchChoice(list,1)[0] : aiInspectedCardChoices(list,1)[0],top);
         if (!top.includes(picked) || !canUsePokemonAbility(pokemon,ability,side) || abilityEffectRuleFor(pokemon,ability)?.effect !== effect ||
             top.some((card,i)=>p.deck[p.deck.length-top.length+i]!==card)) return false;
         p.deck.splice(-top.length);
@@ -12263,10 +12291,10 @@
       }
       if (effect.type === 'search_evolution_pokemon') {
         const candidates = p.deck.filter(item => item.meta?.category === 'Pokemon' && !basicPokemon(item));
-        const chosen = candidates.length ? await pickEffectCard(side, `${ability.name}: choose an Evolution Pokémon to reveal and add to your hand.`, candidates, list =>
+        const chosen = await pickEffectCard(side, `${ability.name}: choose an Evolution Pokémon to reveal and add to your hand.`, candidates, list =>
           typeof hasPeterDragoniteStrategy === 'function' && side === 'codex' && hasPeterDragoniteStrategy()
             ? rankPeterDragoniteSearch(list,1)[0] || list[0]
-            : list.find(item => !p.hand.some(handCard => cleanCardKey(handCard.name) === cleanCardKey(item.name))) || list[0]) : null;
+            : list.find(item => !p.hand.some(handCard => cleanCardKey(handCard.name) === cleanCardKey(item.name))) || list[0],p.deck);
         if (candidates.length && !chosen) return false;
         if (!canUsePokemonAbility(pokemon, ability, side) || chosen && (!p.deck.includes(chosen) || chosen.meta?.category !== 'Pokemon' || basicPokemon(chosen))) return false;
         if (chosen) {
@@ -12675,7 +12703,7 @@
       const { card, side, definition } = context, p = player(side);
       if (!p || !p.hand.some(item => item.id === card.id) || p.bench.length >= definition.benchCapacity) return false;
       const choices = p.deck.filter(item => basicPokemon(item));
-      const chosen = choices.length ? await pickEffectCard(side, `Choose a Basic Pokémon for ${card.name}.`, choices, list => {
+      const chosen = await pickEffectCard(side, `Choose a Basic Pokémon for ${card.name}.`, choices, list => {
         if (side==='codex' && typeof hasSkeleridgeStrategy==='function' && hasSkeleridgeStrategy()) return skeleridgeSearchChoice(list);
         if (side==='codex' && typeof hasDjinnStrategy==='function' && hasDjinnStrategy()) return djinnMissingChoices(list,1)[0] || list[0];
         if (side==='codex' && typeof stageTwoAiProfile==='function' && stageTwoAiProfile()) return stageTwoAiSearchChoice(list,1)[0];
@@ -12687,7 +12715,7 @@
           return list.slice().sort((a,b) => peterDragoniteDevelopmentScore(b,board) - peterDragoniteDevelopmentScore(a,board))[0];
         }
         return list.find(item => p.hand.some(evo => cleanCardKey(evo.meta?.evolveFrom) === cleanCardKey(item.name))) || list[0];
-      }) : null;
+      },p.deck);
       if (choices.length && !chosen) return false;
       return runEffectTransaction(() => {
         const currentPlayer = player(side);
@@ -12820,9 +12848,9 @@
       if (discardCount && (!Array.isArray(chosenDiscards) || chosenDiscards.length !== discardCount || new Set(chosenDiscards.map(item => item.id)).size !== discardCount || chosenDiscards.some(item => !discardCandidates.some(candidate => candidate.id === item.id)))) return false;
       let chosenPokemon = null;
       if(sourceCards.length)markDeckInformationRevealed(side);
-      if (pokemonCandidates.length) {
+      if (sourceCards.length) {
         if (lookCount > 0 && !(side === 'codex' && localAiEnabled)) {
-          const selection = await chooseCardsInApp(side, `${card.name}: choose a Pokémon from the ${effect.position==='bottom'?'bottom':'top'} ${sourceCards.length} cards, or choose none.`, pokemonCandidates, 0, 1);
+          const selection = await chooseCardsInApp(side, `${card.name}: choose a Pokémon from the ${effect.position==='bottom'?'bottom':'top'} ${sourceCards.length} cards, or choose none.`, pokemonCandidates, 0, 1,sourceCards);
           // Cancellation aborts the Item; an explicit empty selection is legal.
           if (selection === null) return false;
           chosenPokemon = selection[0] || null;
@@ -12835,7 +12863,7 @@
             if (side === 'codex' && typeof genAiProfile === 'function' && genAiProfile()) return genAiSearchCard(list,chosenDiscards);
             return side === 'codex' && hasIonoFanStrategy() ? rankIonoFanSearch(list,1)[0] :
               list.find(item => !owner.hand.some(handCard => cleanCardKey(handCard.name) === cleanCardKey(item.name))) || list[0];
-          });
+          },sourceCards);
         }
       }
       if (pokemonCandidates.length && !lookCount && !chosenPokemon) return false;
@@ -12931,7 +12959,7 @@
         const ordered = [...first], remaining = seen.filter(item => !ordered.includes(item));
         if (!shoes && first.length) {
           while (remaining.length > 1) {
-            const next = await pickEffectCard(side, card.name + ': choose the next card from the top.', remaining);
+            const next = await pickEffectCard(side, card.name + ': choose the next card from the top.', remaining,null,remaining);
             if (!remaining.includes(next)) return false;
             ordered.push(remaining.splice(remaining.indexOf(next), 1)[0]);
           }
@@ -12997,7 +13025,7 @@
           const candidates = p.deck.filter(item=>item.meta?.category==='Trainer' &&
             (subtype==='tool' ? item.meta.trainerType?.toLowerCase().includes('tool') : item.meta.trainerType?.toLowerCase()===subtype));
           const pick = side==='codex' && localAiEnabled && stageTwoAiProfile() ? stageTwoAiSearchChoice(candidates,1) :
-            await chooseUpToEffectCards(side,card.name + ': choose a ' + subtype + '.',candidates,1);
+            await chooseUpToEffectCards(side,card.name + ': choose a ' + subtype + '.',candidates,1,p.deck);
           if (!pick || pick.length>1 || pick.some(item=>!candidates.includes(item))) return false;
           chosen.push(...pick);
         }
@@ -13039,7 +13067,7 @@
       }
       if (effect.type === 'search_basic_energy_to_hand') {
         const candidates = p.deck.filter(item => item.meta?.category === 'Energy' && isBasicEnergy(item.name));
-        const chosen = candidates.length ? await pickEffectCard(side, `${card.name}: choose a Basic Energy to reveal and put into your hand.`, candidates, list => list.find(item => normalizedEnergyType(item.name) === normalizedEnergyType(p.active?.meta?.types?.[0] || '')) || list[0]) : null;
+        const chosen = await pickEffectCard(side, `${card.name}: choose a Basic Energy to reveal and put into your hand.`, candidates, list => list.find(item => normalizedEnergyType(item.name) === normalizedEnergyType(p.active?.meta?.types?.[0] || '')) || list[0],p.deck);
         if (candidates.length && !chosen) return false;
         if (!p.hand.some(item => item === card) || chosen && !p.deck.some(item => item === chosen && item.meta?.category === 'Energy' && isBasicEnergy(item.name))) return false;
         if (chosen) {
@@ -13054,7 +13082,7 @@
         const lookedAt = p.deck.slice(-Number(effect.look || 5));
         const energies = lookedAt.filter(isBasicLightningEnergy);
         const targets = p.bench.filter(target => (target.meta?.types || []).some(type => normalizedEnergyType(type) === 'lightning'));
-        const chosen = energies.length && targets.length ? (side === 'codex' && localAiEnabled ? await pickEffectCardsUpTo(side, card.name, energies, effect.count) : await chooseCardsInApp(side, `${card.name}: choose up to ${effect.count} Basic Lightning Energy from the top ${lookedAt.length} cards.`, energies, 0, Math.min(effect.count, energies.length))) : [];
+        const chosen = side === 'codex' && localAiEnabled ? (targets.length ? await pickEffectCardsUpTo(side, card.name, energies, effect.count) : []) : await chooseCardsInApp(side, `${card.name}: choose up to ${effect.count} Basic Lightning Energy from the top ${lookedAt.length} cards.`, targets.length ? energies : [], 0, targets.length ? Math.min(effect.count, energies.length) : 0,lookedAt);
         if (chosen === null) return false;
         const assignments = [];
         for (const energy of chosen) {
@@ -13093,7 +13121,7 @@
         const heads = typeof flipEffectCoin === 'function' ? await flipEffectCoin(card.name) : randomCoin(); logEvent(`${card.name}: ${heads ? 'heads' : 'tails'}.`);
         if (!heads) return true;
         const candidates = p.deck.filter(item => item.meta?.category === 'Pokemon');
-        const chosen = candidates.length ? await pickEffectCard(side, `${card.name}: choose a Pokémon to reveal and put into your hand.`, candidates, list => list.find(item => !p.hand.some(handCard => cleanCardKey(handCard.name) === cleanCardKey(item.name))) || list[0]) : null;
+        const chosen = await pickEffectCard(side, `${card.name}: choose a Pokémon to reveal and put into your hand.`, candidates, list => list.find(item => !p.hand.some(handCard => cleanCardKey(handCard.name) === cleanCardKey(item.name))) || list[0],p.deck);
         if (candidates.length && !chosen) return false;
         if (chosen) {
           p.deck.splice(p.deck.findIndex(item => item.id === chosen.id), 1); addRevealedDeckCardsToHand(side, p, [chosen]);
@@ -14187,7 +14215,7 @@
       if (!picked || new Set(picked).size !== picked.length || picked.some(card=>!candidates.includes(card) || !eligible(card))) return false;
       const remaining = seen.filter(card=>!picked.includes(card)), topFirst = [];
       while (remaining.length > 1) {
-        const card = await pickEffectCard(side,attack.name+': choose the next card to put on top of the deck.',remaining);
+        const card = await pickEffectCard(side,attack.name+': choose the next card to put on top of the deck.',remaining,null,remaining);
         if (!card || !remaining.includes(card)) return false;
         topFirst.push(remaining.splice(remaining.indexOf(card),1)[0]);
       }
@@ -15331,7 +15359,7 @@
       }
       if (effect?.type === 'search_basic_energy') {
         const choicesInDeck = p.deck.filter(card => card.meta?.category === 'Energy' && isBasicEnergy(card.name));
-        choices.basicEnergy = choicesInDeck.length ? await pickEffectCard(side, `${option.attack.name}: choose a Basic Energy to add to your hand.`, choicesInDeck, list => list.find(item => normalizedEnergyType(item.name) === normalizedEnergyType(attacker.meta?.types?.[0] || '')) || list[0]) : null;
+        choices.basicEnergy = await pickEffectCard(side, `${option.attack.name}: choose a Basic Energy to add to your hand.`, choicesInDeck, list => list.find(item => normalizedEnergyType(item.name) === normalizedEnergyType(attacker.meta?.types?.[0] || '')) || list[0],p.deck);
         if (choicesInDeck.length && !choices.basicEnergy) return false;
       }
       if (effect?.type === 'search_attach_basic_energy') {
@@ -15344,7 +15372,7 @@
         } else {
           const chooseUpTo = side === 'codex' && localAiEnabled
             ? pickEffectCardsUpTo(side, `${option.attack.name}: choose up to ${effect.count} Basic Energy cards to attach to your Pokémon.`, energies, Number(effect.count || 3))
-            : chooseCardsInApp(side, `${option.attack.name}: choose up to ${effect.count} Basic Energy cards to attach to your Pokémon.`, energies, 0, Math.min(Number(effect.count || 3), energies.length));
+            : chooseCardsInApp(side, `${option.attack.name}: choose up to ${effect.count} Basic Energy cards to attach to your Pokémon.`, energies, 0, Math.min(Number(effect.count || 3), energies.length),p.deck);
           const chosen = await chooseUpTo;
           if (chosen === null) return false;
           const targets = [p.active, ...p.bench].filter(Boolean);
@@ -15363,7 +15391,7 @@
           choices.waterEnergyIds = plan.map(item => item.energyId);
           choices.basicWaterTargetId = plan[0]?.targetId;
         } else {
-          const chosen = energies.length && targets.length ? (side === 'codex' && localAiEnabled ? await pickEffectCardsUpTo(side, option.attack.name, energies, effect.count) : await chooseCardsInApp(side, `${option.attack.name}: choose up to ${effect.count} Basic Water Energy cards.`, energies, 0, Math.min(effect.count, energies.length))) : [];
+          const chosen = side === 'codex' && localAiEnabled ? (targets.length ? await pickEffectCardsUpTo(side, option.attack.name, energies, effect.count) : []) : await chooseCardsInApp(side, `${option.attack.name}: choose up to ${effect.count} Basic Water Energy cards.`, targets.length ? energies : [], 0, targets.length ? Math.min(effect.count, energies.length) : 0,p.deck);
           if (chosen === null) return false;
           choices.waterEnergyIds = chosen.map(card => card.id);
           if (chosen.length) {
@@ -15376,8 +15404,8 @@
       if (effect?.type === 'search_basic_pokemon_to_bench') {
         const count = Math.min(Number(effect.count || 3), Math.max(0, 5 - p.bench.length));
         const candidates = p.deck.filter(card=>basicPokemon(card) && (!effect.pokemonType || pokemonHasType(card,effect.pokemonType)));
-        const chosen = count && candidates.length ? (side === 'codex' && localAiEnabled ? stageTwoAiProfile()==='rafa_psy_zoo' ?
-          rafaGeoTargets(candidates,Math.min(count,Math.max(0,p.deck.length-1))) : await pickEffectCardsUpTo(side, option.attack.name, candidates, count) : await chooseCardsInApp(side, `${option.attack.name}: choose up to ${count} Basic Pokémon to put onto your Bench.`, candidates, 0, Math.min(count, candidates.length))) : [];
+        const chosen = count ? (side === 'codex' && localAiEnabled ? stageTwoAiProfile()==='rafa_psy_zoo' ?
+          rafaGeoTargets(candidates,Math.min(count,Math.max(0,p.deck.length-1))) : await pickEffectCardsUpTo(side, option.attack.name, candidates, count) : await chooseCardsInApp(side, `${option.attack.name}: choose up to ${count} Basic Pokémon to put onto your Bench.`, candidates, 0, Math.min(count, candidates.length),p.deck)) : [];
         if (chosen === null) return false;
         choices.benchPokemonIds = chosen.map(card => card.id);
       }

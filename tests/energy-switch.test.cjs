@@ -37,7 +37,7 @@ function makeHarness({ side = 'you', sourceEnergy = [energy('basic-lightning', '
     controlSide: side, selected: { side, zone: 'hand', id: card.id }, localAiEnabled, effectResolutionPending: false, deckStats: {},
     activeCardChoice: null, activeCardChoiceResolver: null, activeBoardChoice: null, activeBoardChoiceResolver: null,
     registeredCards: [], logs: [], toasts: [], statEvents: [], window: { __POKEMON_TCG_TEST__: true }, Math, Number, Set, Map, Error, console,
-    cleanCardKey, normalizeCollectorNumber,
+    cleanCardKey, normalizeCollectorNumber, aiCardKeepScore: () => 0,
     logEvent: message => context.logs.push(message), showToast: message => context.toasts.push(message), render: () => {}, persistDeckStats: () => true, scheduleLocalAiTurn: () => {},
     recordDeckCardStat: (...args) => context.statEvents.push(args), isDoubleDragonEnergyCard: () => false,
     hasVerifiedCardData: () => true, hasWildGrowthFor: () => false, imageFor: () => '', escapeHtml: value => String(value),
@@ -45,7 +45,7 @@ function makeHarness({ side = 'you', sourceEnergy = [energy('basic-lightning', '
   });
   vm.runInContext('let engineTestHooks = null;', context);
   vm.runInContext(html.slice(registryStart, registryEnd), context);
-  for (const name of ['installEngineTestHooks', 'engineTestChoice', 'normalizeScriptedCards', 'matchEffectRule', 'itemEffectRuleFor', 'effectHandlerIsImplemented', 'cardEffectIsSafelyImplemented', 'effectSupportFor', 'effectResolutionFor', 'resolveTransferAttachedEnergyOperation', 'choosePokemonOnBoard', 'chooseCardsInApp', 'pickEffectCard', 'canPlayTrainerEffect', 'resolveBuiltInItem', 'removeCardFromHand', 'consumeResolvedItem', 'playTrainerSelected', 'isBasicEnergy', 'transferAttachedBasicEnergy', 'snapshotResolutionState', 'restoreResolutionState', 'runResolutionTransaction', 'runEffectTransaction', 'normalizedEnergyType', 'basicEnergyHasType', 'energyUnitsForPokemon', 'retreatEnergyUnits', 'retreatPaymentCards', 'canPayAttack', 'attachSelected']) vm.runInContext(engineFunction(name), context);
+  for (const name of ['installEngineTestHooks', 'engineTestChoice', 'normalizeScriptedCards', 'matchEffectRule', 'itemEffectRuleFor', 'effectHandlerIsImplemented', 'cardEffectIsSafelyImplemented', 'effectSupportFor', 'effectResolutionFor', 'resolveTransferAttachedEnergyOperation', 'choosePokemonOnBoard', 'choiceInspectionCards', 'aiInspectedCardChoices', 'chooseCardsInApp', 'pickEffectCard', 'canPlayTrainerEffect', 'resolveBuiltInItem', 'removeCardFromHand', 'consumeResolvedItem', 'playTrainerSelected', 'isBasicEnergy', 'transferAttachedBasicEnergy', 'snapshotResolutionState', 'restoreResolutionState', 'runResolutionTransaction', 'runEffectTransaction', 'normalizedEnergyType', 'basicEnergyHasType', 'energyUnitsForPokemon', 'retreatEnergyUnits', 'retreatPaymentCards', 'canPayAttack', 'attachSelected']) vm.runInContext(engineFunction(name), context);
   vm.runInContext('globalThis.testGame = () => game; player = side => game.players[side];', context);
   context.installEngineTestHooks({ choose: ({ kind, title, candidates }) => kind === 'cards' ? (energyChoice === 'auto' ? candidates[0]?.id : energyChoice) : title.includes('move Basic Energy from') ? sourceChoice : targetChoice });
   return { context, players, p, active, bench, card, side };

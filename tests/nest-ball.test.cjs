@@ -34,7 +34,7 @@ function makeHarness({ side = 'you', deck = [], bench = [], chooseId = null, loc
     activeCardChoice: null, activeCardChoiceResolver: null, activeBoardChoice: null, activeBoardChoiceResolver: null,
     logs: [], toasts: [], renderCount: 0, statEvents: [], chooseId,
     window: { __POKEMON_TCG_TEST__: true }, Math, Number, Set, Map, Error, console,
-    cleanCardKey, normalizeCollectorNumber,
+    cleanCardKey, normalizeCollectorNumber, aiCardKeepScore: () => 0,
     normalizeCategory: value => /^pokemon/i.test(value) ? 'Pokemon' : /^trainer/i.test(value) ? 'Trainer' : /^energy/i.test(value) ? 'Energy' : 'Unknown',
     logEvent: message => context.logs.push(message), showToast: message => context.toasts.push(message), render: () => { context.renderCount++; },
     recordDeckCardStat: (currentSide, card, event) => context.statEvents.push([currentSide, card.id, event]),
@@ -48,7 +48,7 @@ function makeHarness({ side = 'you', deck = [], bench = [], chooseId = null, loc
   const functions = [
     'installEngineTestHooks', 'engineRandom', 'engineTestChoice', 'normalizeScriptedCards', 'matchEffectRule',
     'itemEffectRuleFor', 'effectHandlerIsImplemented', 'cardEffectIsSafelyImplemented', 'effectSupportFor', 'effectResolutionFor', 'resolveSearchAndMoveOperation', 'isBasicEnergy', 'basicPokemon', 'removeCardFromHand', 'consumeResolvedItem', 'snapshotResolutionState', 'restoreResolutionState', 'runResolutionTransaction', 'runEffectTransaction',
-    'shuffled', 'chooseCardsInApp', 'pickEffectCard', 'canPlayTrainerEffect', 'resolveBuiltInItem', 'playTrainerSelected', 'hasIonoFanStrategy', 'chooseLocalAiAction', 'canEvolveNormally', 'stadiumEffectRuleFor', 'pokemonHasType'
+    'shuffled', 'choiceInspectionCards', 'aiInspectedCardChoices', 'chooseCardsInApp', 'pickEffectCard', 'canPlayTrainerEffect', 'resolveBuiltInItem', 'playTrainerSelected', 'hasIonoFanStrategy', 'chooseLocalAiAction', 'canEvolveNormally', 'stadiumEffectRuleFor', 'pokemonHasType'
   ];
   for (const name of functions) vm.runInContext(engineFunction(name), context);
   vm.runInContext('globalThis.testGame = () => game; player = side => game.players[side];', context);
@@ -126,10 +126,16 @@ test('AI uses the same item handler and chooses an eligible Basic Pokémon using
   assert.deepEqual(Array.from(harness.players.codex.discard, card => card.id), ['nest-ball']);
 });
 
-test('no Basic Pokémon or an empty deck completes the search without a choice and shuffles safely', async () => {
+test('no Basic Pokémon still allows deck review and an empty deck completes safely', async () => {
   const noBasic = makeHarness({ deck: [pokemon('stage1', 'Stage One', 'Stage 1'), { id: 'trainer', name: 'Trainer', meta: { category: 'Trainer' } }] });
   assert.equal(noBasic.context.canPlayTrainerEffect(noBasic.nest, 'you'), true);
+  let reviews=0;
+  noBasic.context.installEngineTestHooks({random:()=>0,choose:request=>{
+    reviews++; assert.equal(request.candidates.length,0);
+    assert.deepEqual(Array.from(request.visibleCards,card=>card.id),['stage1','trainer']);return [];
+  }});
   await play(noBasic);
+  assert.equal(reviews,1);
   assert.equal(noBasic.players.you.deck.length, 2);
   assert.equal(noBasic.players.you.hand.length, 0);
   assert.deepEqual(Array.from(noBasic.players.you.discard, card => card.id), ['nest-ball']);
