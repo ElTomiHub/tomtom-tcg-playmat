@@ -274,6 +274,28 @@
       clearTotal:() => set(input.value)};
   }
 
+  function mountReferenceNavigation(setInput,numberInput,collector,onReference=()=>{}) {
+    const focusNumber=()=>{setInput.value=setInput.value.trim();numberInput.focus();numberInput.select();};
+    const fill=value=>{
+      const match=value.normalize('NFKC').trim().match(/^([A-Z0-9.-]+)\s+([A-Z0-9-]+(?:\s*\/\s*[A-Z0-9-]+)?)$/i);
+      if(!match)return false;
+      setInput.value=match[1];collector.set(match[2].replace(/\s/g,''));onReference();focusNumber();return true;
+    };
+    setInput.addEventListener('keydown',event=>{
+      if(event.isComposing || event.ctrlKey || event.altKey || event.metaKey)return;
+      if((event.key===' ' || event.key==='Enter') && setInput.value.trim()){event.preventDefault();focusNumber();}
+    });
+    setInput.addEventListener('input',event=>{
+      if(event.isComposing)return;
+      if(fill(setInput.value))return;
+      if(/\s$/.test(setInput.value) && setInput.value.trim())focusNumber();
+    });
+    setInput.addEventListener('paste',event=>{
+      const text=event.clipboardData?.getData('text');
+      if(text && fill(text))event.preventDefault();
+    });
+  }
+
   const pokemonNameEntries = catalog.map(entry => ({...entry,name:entryName(entry),
     aliases:[entryName(entry),...(names[entry.id-1] || []).map(name=>[entry.label,name].filter(Boolean).join(' '))]}));
   function mountNameSuggestions(input,onSelect,enabled = () => true) {
@@ -325,7 +347,10 @@
       input.setAttribute('aria-expanded',String(!list.hidden));
     }
     input.addEventListener('input',show);
-    input.addEventListener('focus',show);
+    input.addEventListener('focus',()=>{
+      const identified=pokemonNameEntries.some(entry=>entry.aliases.some(alias=>normalizeSearch(alias)===normalizeSearch(input.value)));
+      if (!identified) show();
+    });
     input.addEventListener('blur',close);
     input.addEventListener('keydown',event=>{
       if (event.key === 'Escape' && !list.hidden) {
@@ -648,11 +673,10 @@
     const cover = featuredCard(copies,preferredId);
     const image = owned ? cover?.image || artwork : sprites + sprite + '.png';
     const open = button(null, () => {
-      if (!owned) { openCardCapture({entry}); return; }
       showSpecies(entry);
     });
     open.className = 'species-open';
-    open.setAttribute('aria-label', (owned ? 'View registered cards for ' : 'Add a card for ') + name);
+    open.setAttribute('aria-label', 'View registered cards for ' + name);
     const picture = photo(image,'No image',cover?.image ? cardPreviewLabel(cover) : '');
     if (owned && image !== artwork) picture.addEventListener('error', () => {
       open.querySelector('.fallback')?.replaceWith(photo(artwork,'No image'));
@@ -1055,6 +1079,7 @@
   });
   editorFields.set.addEventListener('input',()=>editorNumber.clearTotal());
   for (const key of ['set','number','variant']) editorFields[key].addEventListener('change',updateEditorArtwork);
+  mountReferenceNavigation(editorFields.set,editorFields.number,editorNumber,updateEditorArtwork);
   function openEditor(card, entry = speciesFilter, draft = null) {
     if (editorSave.disabled) return;
     const values = card || draft;
@@ -1095,6 +1120,8 @@
     el('deleteCardConfirm').hidden = true;
     el('editorStatus').textContent = '';
     el('editor').showModal();
+    el('editorHeading').focus({preventScroll:true});
+    editorNameSuggestions.close();
   }
   const editorSave = editorForm.querySelector('button[type="submit"]');
   el('editorForm').addEventListener('submit', async event => {
@@ -1243,7 +1270,7 @@
   const openCardCapture = mountPokedexScanner({
     cards:()=>data.cards,
     savedPrints:()=>[...(globalThis.PLAYMAT_STARTER_LIBRARY?.cards || []),...readLocalList('codexPokemonPlaymat.cards.v1')],
-    speciesNames:names,displayVariant,variantOptionLabel,variantBadge,variants,mountNumberField,mountNameSuggestions,
+    speciesNames:names,displayVariant,variantOptionLabel,variantBadge,variants,mountNumberField,mountNameSuggestions,mountReferenceNavigation,
     openAdd:draft=>openEditor(null,null,draft)
   });
   el('addCard').disabled = false;
