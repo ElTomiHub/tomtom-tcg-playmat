@@ -10,7 +10,7 @@
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="playmat.css?v=hub6">
+  <link rel="stylesheet" href="playmat.css?v=hub7">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -10065,7 +10065,15 @@
         $('coinHeadline').textContent = `${face} — ${PLAYER_NAMES[decision.first]} plays first`;
         $('coinSubline').textContent = 'Dealing the opening hands…';
         setSetupStatus('The coin decided who starts. Dealing the opening hands…');
-        if (startOnResult) startMatch();
+        if (!startOnResult) return;
+        if (window.__POKEMON_TCG_TEST__ === true) { startMatch(); return; }
+        const hold = {cancel:()=>clearTimeout(timer)};
+        const timer = setTimeout(()=>{
+          if (setupCoinAnimation !== hold || coinResult !== decision) return;
+          setupCoinAnimation = null;
+          if (!$('setupModal').classList.contains('hidden')) startMatch();
+        }, 1050);
+        setupCoinAnimation = hold;
       };
       $('coinPanel').classList.remove('hidden');
       if (!engineTestHooks && playmatEffectsEnabled && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && $('coinDisc').animate) {
@@ -10249,7 +10257,7 @@
       showToast('Choose a Basic Pokémon for your Active Spot.');
     }
     function finishPokemonSetup() {
-      if (!game || game.phase !== 'setup') return;
+      if (!game || game.phase !== 'setup' || gameplayEffectsBusy()) return;
       const you = player('you');
       if (!you.active || !basicPokemon(you.active) || !you.openingBasicIds.includes(you.active.id)) { showToast('Choose a Basic Pokémon from your opening seven for the Active Spot.'); return; }
       lastUndoSnapshot = null;
@@ -10329,6 +10337,11 @@
       clearTimeout(turnBannerTimer);
       turnBannerTimer = setTimeout(() => banner.classList.remove('show'), 2800);
     }
+    function updateBattlefieldTurnLighting() {
+      const side = game?.phase === 'play' && !game.pendingCheckup && !game.pendingPromotion &&
+        game.announcedTurn === `${game.turnNumber}:${game.turn}` ? game.turn : null;
+      for (const owner of ['you','codex']) $(owner+'Row').dataset.turnLit = String(owner === side);
+    }
     function announceTurnStart() {
       try {
         if (game?.phase !== 'play' || game.pendingCheckup || game.pendingPromotion) return;
@@ -10341,6 +10354,7 @@
         }
         turnAnnouncementDeferred = false;
         game.announcedTurn = key;
+        updateBattlefieldTurnLighting();
         const side = game.turn, own = side === 'you', banner = $('turnDoneBanner');
         if (own) $('localAiStatus').textContent = 'Your turn is ready.';
         banner.dataset.turn = side;
@@ -10735,6 +10749,7 @@
         p.bench.push(card);
       }
       if (target !== 'stadium' && game.phase === 'play' && typeof recordMatchActivity === 'function') recordMatchActivity('pokemon', controlSide, card);
+      if (game.phase === 'setup' && controlSide === 'you') queueCardMovement(controlSide,card,target,card);
       if (game.phase === 'play' && typeof recordPlayedCard === 'function') recordPlayedCard(controlSide,card,target === 'stadium' ? 'Stadium played' : 'Played to Bench',target === 'stadium' ? null : card,target === 'stadium' ? 'stadium' : 'bench');
       logEvent(`${p.name} placed ${openingCardIsHidden(controlSide) ? 'a face-down Pokémon' : card.name} in the ${target === 'stadium' ? 'Stadium' : target === 'active' ? 'Active Spot' : 'Bench'}.`);
       const bog=stadiumEffectRuleFor(game.stadium?.card)?.effect;
@@ -13622,7 +13637,7 @@
       if (typeof clearEnergyDrag === 'function') clearEnergyDrag();
       $('playmatEffects').innerHTML = ''; $('playmatEffects').dataset.kind = '';
       $('playmatEffectAnnouncement').textContent = '';
-      if ((hadTransition || hadEffect) && game && game.phase !== 'setup') {
+      if ((hadTransition || hadEffect) && game) {
         const matchId = game.matchHistory?.id;
         Promise.resolve().then(() => {
           if (game?.matchHistory?.id !== matchId || visualTransitionBusy()) return;
@@ -13692,6 +13707,7 @@
         }
         return null;
       }
+      else if (zone === 'lost') element = $(side+'Row').querySelector('.lost-zone-marker') || $(side+'Row');
       else if (zone === 'prizes') element = $(side+'Row').querySelector('.prize-display') || $(side+'Row');
       else if (zone === 'discard' || zone === 'deck') element = $(side+'Row').querySelector(zone === 'discard' ? '.discard-pile-card' : '.deck-pile-card') || $(side+'Row');
       else if (zone === 'stadium') element = $('stadiumSlot');
@@ -13737,10 +13753,10 @@
     }
     function queueCardMovement(side, card, destination, target = null, origin = 'hand', detail = '', showPlay = false) {
       try {
-        if (game?.phase === 'setup' || !card) return;
+        if (!card || game?.phase === 'setup' && (side !== 'you' || !stagedKnockoutsEnabled())) return;
         const point = cardMovementPoint(side,destination,target);
         queueHandArrival({kind:'card-move',side,cardId:card.id,name:card.name,image:imageFor(card),detail,
-          from:typeof origin === 'object' ? playmatPointFor(side,origin) : cardMovementPoint(side,origin,card),
+          from:origin && Number.isFinite(origin.x) && Number.isFinite(origin.y) ? origin : typeof origin === 'object' ? playmatPointFor(side,origin) : cardMovementPoint(side,origin,card),
           point,destination,targetId:target?.id || null,
           ...(detail.startsWith('Evolution') ? {evolution:true} : {}),
           ...(showPlay ? {playedCue:{target:target?.name || '',point:target ? point : null}} : {})}, destination==='hand' ? [card] : []);
@@ -13752,7 +13768,7 @@
     }
     function queueHiddenCardMovement(side, fromZone, toZone, count, arrivals = []) {
       try {
-        if (game?.phase !== 'play' || count <= 0) return;
+        if (!['play','finished'].includes(game?.phase) || count <= 0) return;
         const effect = {kind:'zone-move',side,fromZone,toZone,count,faceDown:true,
           from:cardMovementPoint(side,fromZone),point:cardMovementPoint(side,toZone)};
         queueHandArrival(effect, arrivals.filter(Boolean));
@@ -13787,19 +13803,19 @@
         if(!batch || game?.phase==='setup')return;
         const before=cardZoneLocations(previous), after=cardZoneLocations(game), existing=playmatEffectBatches.flat();
         const hidden=new Map();let publicCount=0;
-        for(const [id,dest]of after){const source=before.get(id);if(!source || source.side!==dest.side || source.zone===dest.zone && (source.zone!=='pokemon' || source.target?.id===dest.target?.id) || ['lost'].includes(source.zone) || ['lost'].includes(dest.zone))continue;
+        for(const [id,dest]of after){const source=before.get(id);if(!source || source.side!==dest.side || source.zone===dest.zone && (source.zone!=='pokemon' || source.target?.id===dest.target?.id))continue;
           // Evolution keeps the old Pokémon and its attachments in the same stack.
           const previousHost = source.zone === 'pokemon' ? source.target?.id :
             ['active','bench'].includes(source.zone) ? id : null;
           if (dest.zone === 'pokemon' && previousHost && dest.target?.evolutionStack?.some(stage => stage.id === previousHost)) continue;
-          if(source.zone==='prizes' && dest.zone==='hand')continue;
+          if(source.zone==='prizes' && dest.zone==='hand' && existing.some(effect=>stagedPrizeCards.get(effect)?.includes(id) || effect.kind==='prize' && effect.side===source.side))continue;
           const explicit=existing.find(effect=>effect.cardId===id);
           if(explicit && !(explicit.destination==='last-played' && dest.zone==='discard'))continue;
           const fromZone=explicit?.destination==='last-played'?'last-played':source.zone;
           const revealed = source.zone === 'deck' && dest.zone === 'hand' && batch.revealedDeckCards?.has(id);
           const preview = dest.side === 'codex' && !explicit?.playedCue && (revealed || dest.zone === 'discard')
             ? cardMovementPoint(dest.side, 'last-played') : null;
-          const faceDown=dest.zone==='deck' || dest.zone==='prizes' || source.zone==='deck' && dest.zone==='hand' && !revealed;
+          const faceDown=dest.zone==='deck' || dest.zone==='prizes' || source.zone==='prizes' || source.zone==='deck' && dest.zone==='hand' && !revealed;
           if(faceDown){if(existing.some(effect=>effect.kind==='zone-move' && effect.side===dest.side && effect.fromZone===fromZone && effect.toZone===dest.zone))continue;const key=[dest.side,fromZone,dest.zone].join(':');const group=hidden.get(key)||{side:dest.side,fromZone,toZone:dest.zone,count:0,arrivals:[]};group.count++;if(dest.zone==='hand')group.arrivals.push(dest.card);hidden.set(key,group);continue;}
           if(++publicCount>12)continue;
           queueHandArrival({kind:'zone-move',side:dest.side,cardId:id,name:dest.card.name,image:imageFor(dest.card),count:1,fromZone,toZone:dest.zone,preview,from:preview || (fromZone==='pokemon'?playmatPointFor(source.side,source.target):cardMovementPoint(source.side,fromZone,source.card)),point:dest.zone==='pokemon'?playmatPointFor(dest.side,dest.target):cardMovementPoint(dest.side,dest.zone,dest.card)}, dest.zone==='hand' ? [dest.card] : []);
@@ -13810,7 +13826,12 @@
     function queuePrizeMovement(side, count, cards = []) {
       try {
         if (!count) return;
-        const effect = { kind: 'prize', side, count, from: cardMovementPoint(side, 'prizes'), point: cardMovementPoint(side, 'hand') };
+        const slots = [...$(side+'Row').querySelectorAll('.prize-slot:not(.taken)')].slice(-(count || 1)).reverse();
+        const origins = slots.map(slot=>{
+          const bounds = slot.getBoundingClientRect();
+          return bounds.width && bounds.height ? {x:bounds.left+bounds.width/2,y:bounds.top+bounds.height/2} : null;
+        });
+        const effect = { kind:'prize', side, count, origins, from:cardMovementPoint(side,'prizes'), point:cardMovementPoint(side,'hand') };
         // Private card IDs never enter the animation payload.
         if (stagedKnockoutsEnabled()) stagedPrizeCards.set(effect, cards.map(card => card.id));
         queuePlaymatEffect(effect);
@@ -13879,11 +13900,37 @@
       render();
       if(!visualTransitionBusy()){announceTurnStart();scheduleLocalAiTurn(3000);}
     }
+    function battlefieldArrivals(side, zone) {
+      if (!stagedKnockoutsEnabled()) return [];
+      return [activePlaymatEffect,...playmatEffectQueue,...playmatEffectBatches.flat()]
+        .filter(effect=>effect?.cardId && effect.side===side && (effect.destination || effect.toZone)===zone)
+        .map(effect=>effect.cardId);
+    }
+    let battlefieldTheme = null;
+    function updateBattlefieldTheme() {
+      const center = $('battleCenter');
+      if (game?.phase !== 'play' && game?.phase !== 'finished') {
+        battlefieldTheme = null;
+        center.style.setProperty('--battlefield-tint','transparent');
+        return;
+      }
+      if (battlefieldTheme?.match !== game) battlefieldTheme = {match:game, ids:{}, tint:'transparent'};
+      for (const side of [oppositeSide(game.turn),game.turn]) {
+        const card = player(side)?.active;
+        if (!card || battlefieldTheme.ids[side]===card.id || battlefieldArrivals(side,'active').includes(card.id) ||
+            activeVisualTransitions.some(item=>item.side===side && item.zone==='active') ||
+            activePlaymatEffect?.playedCue?.boardSwitch?.side===side) continue;
+        battlefieldTheme.ids[side] = card.id;
+        battlefieldTheme.tint = playmatEffectTheme(normalizedEnergyType(card.meta?.types?.[0] || 'Colorless'))[0];
+      }
+      center.style.setProperty('--battlefield-tint',battlefieldTheme.tint);
+    }
     function activePokemonMarkup(side) {
       const transition=activeVisualTransitions.find(item=>item.side===side && item.zone==='active');
       if (!transition) {
         const cue = activePlaymatEffect?.playedCue?.boardSwitch;
-        return cardMarkup((cue?.side===side ? cue.outgoing : player(side)?.active) || null,side,'active');
+        const card = (cue?.side===side ? cue.outgoing : player(side)?.active) || null;
+        return cardMarkup(card && battlefieldArrivals(side,'active').includes(card.id) ? null : card,side,'active');
       }
       if (transition.phase === 'waiting-for-prizes') return '<div class="empty-slot" role="img" aria-label="Active Spot empty while Prizes are collected">Collecting Prizes…</div>';
       if(transition.phase==='promotion')return '<div class="empty-slot" role="img" aria-label="A Pokémon is moving to the Active Spot">Moving to Active…</div>';
@@ -13931,7 +13978,7 @@
       const focus = (point, target = false) => point ? `<div class="fx-focus${target ? ' target' : ''}" style="${at(point)}"></div>` : '';
       if (effect.kind === 'card-move' || effect.kind === 'prize' || effect.kind==='zone-move' || effect.kind==='promotion') {
         const prize = effect.kind === 'prize', hidden=prize || effect.faceDown, owner = PLAYER_NAMES[effect.side];
-        const zones={deck:'Deck',hand:'Hand',discard:'Discard',prizes:'Prizes',active:'Active',bench:'Bench',pokemon:'Pokémon','last-played':'Played card',stadium:'Stadium'};
+        const zones={deck:'Deck',hand:'Hand',discard:'Discard',lost:'Lost Zone',prizes:'Prizes',active:'Active',bench:'Bench',pokemon:'Pokémon','last-played':'Played card',stadium:'Stadium'};
         const title = prize ? `${effect.count} Prize card${effect.count === 1 ? '' : 's'} taken` : hidden ? `${effect.count} card${effect.count===1?'':'s'}` : effect.name;
         const detail=effect.kind==='zone-move'?`${zones[effect.fromZone]||'Cards'} → ${zones[effect.toZone]||'Cards'}`:prize?'Added to hand':effect.detail;
         if (effect.playedCue && !hidden) {
@@ -13953,11 +14000,14 @@
           const art = effect.image ? `<img src="${escapeHtml(effect.image)}" alt="">` : "";
           return `<div class="fx-moving-card fx-public-preview${reduced ? " fx-public-still" : ""}" style="${at(effect.preview)}--travel-x:${end.x-effect.preview.x}px;--travel-y:${end.y-effect.preview.y}px">${art}<span>${escapeHtml(title)}<br>${effect.toZone === "discard" ? "Discarded" : "Revealed · To hand"}</span></div>`;
         }
-        const draw = hidden && effect.fromZone === 'deck' && effect.toZone === 'hand';
-        const moving = !reduced && effect.from && effect.point ? Array.from({length:draw ? Math.min(effect.count,3) : 1}, (_, index) => `<div class="fx-moving-card${hidden ? ' face-down-card' : ''}${draw ? ' fx-draw-card' : ''}" style="${at(effect.from)}--draw-index:${index};--travel-x:${effect.point.x-effect.from.x}px;--travel-y:${effect.point.y-effect.from.y}px">${!hidden && effect.image ? `<img src="${escapeHtml(effect.image)}" alt="">` : ''}<span>${prize ? 'PRIZE' : hidden?'CARD':escapeHtml(effect.name)}</span></div>`).join('') : '';
+        const draw = prize || hidden && effect.toZone === 'hand' && ['deck','prizes'].includes(effect.fromZone);
+        const moving = !reduced && effect.from && effect.point ? Array.from({length:draw ? Math.min(effect.count,3) : 1}, (_, index) => { const origin = effect.origins?.[index] || effect.from; return `<div class="fx-moving-card${hidden ? ' face-down-card' : ''}${draw ? ' fx-draw-card' : ''}" style="${at(origin)}--draw-index:${index};--travel-x:${effect.point.x-origin.x}px;--travel-y:${effect.point.y-origin.y}px">${!hidden && effect.image ? `<img src="${escapeHtml(effect.image)}" alt="">` : ''}<span>${prize ? 'PRIZE' : hidden?'CARD':escapeHtml(effect.name)}</span></div>`; }).join('') : '';
         const announcement = playmatActionAnnouncement(effect);
         const glow = effect.evolution && effect.point && !reduced ? `<div class="fx-evolution-ring" style="${at(effect.point)}"></div>` : '';
-        return moving + glow + (announcement ? caption(owner+' · Pokémon movement',announcement,detail,'fx-position-caption') : caption(owner,title,detail,'fx-move-caption'));
+        const destination = effect.toZone || effect.destination;
+        const spotlight = (pokemonMoveDestination(effect) === 'active' || destination === 'stadium' || destination === 'lost') && effect.point && !reduced
+          ? `<div class="fx-battlefield-landing" data-destination="${destination || 'active'}" style="${at(effect.point)}"></div>` : '';
+        return moving + glow + spotlight + (announcement ? caption(owner+' · Pokémon movement',announcement,detail,'fx-position-caption') : caption(owner,title,detail,'fx-move-caption'));
       }
       if (effect.kind === 'coin') {
         const design = effect.design ||= coinDesignForDisplay();
@@ -14081,7 +14131,7 @@
           finishPlaymatEffectWaiters();
           presentFinishedMatch();
           if (turnAnnouncementDeferred) announceTurnStart();
-          if (stagedKnockoutsEnabled() && game?.phase === 'play') {
+          if (stagedKnockoutsEnabled() && ['setup','play'].includes(game?.phase)) {
             render();
             if (!localAiTimer) scheduleLocalAiTurn(3000);
           }
@@ -14117,7 +14167,9 @@
         $('playmatEffectAnnouncement').textContent = playmatActionAnnouncement(effect) || (effect.kind === 'coin' ? `Coin flip: ${effect.heads ? 'heads' : 'tails'}.` : effect.kind === 'attack' ? `${effect.name} used ${effect.attack}.` : effect.kind === 'damage' ? `${effect.name} took ${effect.amount} damage.` : effect.kind === 'knockout' ? `${effect.name} was Knocked Out.` : effect.kind === 'card-move' ? `${PLAYER_NAMES[effect.side]} played ${effect.name}. ${effect.detail || ''}` : effect.kind === 'zone-move' ? `${PLAYER_NAMES[effect.side]}: ${effect.faceDown?`${effect.count} cards`:effect.name}, ${effect.fromZone} to ${effect.toZone}.` : effect.kind === 'promotion' ? `${effect.name} moved to the Active Spot.` : effect.kind === 'prize' ? `${effect.side === 'you' ? 'You' : 'Yami'} took ${effect.count} Prize cards.` : effect.winner === 'you' ? 'Victory! You won the match.' : effect.winner ? 'Yami won the match.' : 'The match is a draw.');
         const epoch = playmatEffectEpoch;
         playmatEffectTimer = setTimeout(() => { if (epoch === playmatEffectEpoch) { activePlaymatEffect = null; playmatEffectTimer = null; finishVisualTransition(effect);
-          if (effect.playedCue?.boardSwitch || stagedPrizeCards.has(effect) || stagedHandArrivals.has(effect)) {
+          const destination = effect.destination || effect.toZone;
+          const landsOnField = effect.cardId && stagedKnockoutsEnabled() && ['active','bench','stadium','discard','lost'].includes(destination);
+          if (landsOnField || effect.playedCue?.boardSwitch || stagedPrizeCards.has(effect) || stagedHandArrivals.has(effect)) {
             render();
             if (!visualTransitionBusy()) { announceTurnStart(); scheduleLocalAiTurn(3000); }
           }
@@ -19860,6 +19912,7 @@
       if (displaced === card || from === place && place !== 'bench' ||
           place === 'active' && !p.openingBasicIds.includes(card.id) ||
           from === 'active' && displaced && !p.openingBasicIds.includes(displaced.id)) return;
+      const origin = from === 'bench' ? benchSlotMovementPoint(side,oldIndex) : cardMovementPoint(side,from,card);
       if (from === 'active') p.active = null;
       else if (from === 'bench') p.bench.splice(oldIndex,1);
       else removeCardFromHand(p,card.id);
@@ -19872,6 +19925,7 @@
         else if (from === 'bench') p.bench.splice(oldIndex,0,displaced);
         else p.hand.push(displaced);
       }
+      if (side === 'you') queueCardMovement(side,card,place,card,origin || from);
       selected = {side,zone:place,id:card.id};
       render();
     }
@@ -20479,6 +20533,9 @@
       const incomingDiscard = new Set(activeVisualTransitions
         .filter(item => item.side === side && item.phase === 'knockout')
         .flatMap(({card}) => [card, ...(card.energy || []), ...(card.tools || []), ...(card.evolutionStack || [])].map(item => item.id)));
+      for (const id of battlefieldArrivals(side,'discard')) incomingDiscard.add(id);
+      const lostArrivals = new Set(battlefieldArrivals(side,'lost'));
+      const lostCount = (p.lost || []).filter(card=>!lostArrivals.has(card.id)).length;
       const visibleDiscard = p.discard.filter(card => !incomingDiscard.has(card.id));
       const topDiscard = visibleDiscard.at(-1), discardCount = visibleDiscard.length, discardImage = imageFor(topDiscard);
       const discardTop = (topDiscard ? `${discardImage ? `<img src="${escapeHtml(discardImage)}" alt="" loading="lazy">` : ''}<span class="discard-top-name">${escapeHtml(topDiscard.name)}</span>` : '<small class="discard-empty-pile">Empty</small>') + `<span class="discard-count pile-count">${discardCount}</span>`;
@@ -20489,9 +20546,10 @@
       if (waiting) benchCards.splice(waiting.benchIndex, 0, waiting.replacement);
       const departing = activeVisualTransitions.filter(item => item.side === side && item.zone === 'bench').reverse();
       for (const transition of departing) benchCards.splice(transition.benchIndex, 0, transition.card);
+      const benchArrivals = new Set(battlefieldArrivals(side,'bench'));
       const bench = Array.from({ length: 5 }, (_, i) => {
         const transition = departing.find(item => item.card === benchCards[i]);
-        return transition ? knockoutPlaceholderMarkup(transition) : cardMarkup(benchCards[i], side, 'bench');
+        return transition ? knockoutPlaceholderMarkup(transition) : cardMarkup(benchArrivals.has(benchCards[i]?.id) ? null : benchCards[i], side, 'bench');
       }).join('');
       const pendingPrizes = pendingPrizeEffects(side);
       const prizeCount = p.prizes.length + pendingPrizes.filter(effect => effect !== activePlaymatEffect).reduce((sum, effect) => sum + effect.count, 0);
@@ -20502,7 +20560,7 @@
         <div class="mat-layout">
           <div class="side-piles">
             <div class="pile-zone"><div class="zone-title">Deck</div><div class="pile-card deck-pile-card${p.deck.length ? '' : ' empty-deck'}" role="img" aria-label="${escapeHtml(p.name)}’s deck, ${p.deck.length} cards, face down"><span class="deck-pile-back" aria-hidden="true"></span><span class="pile-count">${p.deck.length}</span></div></div>
-            <div class="pile-zone"><div class="zone-title">Discard</div><button type="button" class="pile-card discard-pile-card" data-discard-side="${side}" title="${topDiscard ? `Top: ${escapeHtml(topDiscard.name)} · ` : ''}View discard pile" aria-label="View ${escapeHtml(p.name)} discard pile, ${discardCount} cards${topDiscard ? `, top card ${escapeHtml(topDiscard.name)}` : ''}">${discardTop}</button></div>
+            <div class="pile-zone"><div class="zone-title">Discard</div><button type="button" class="pile-card discard-pile-card" data-discard-side="${side}" title="${topDiscard ? `Top: ${escapeHtml(topDiscard.name)} · ` : ''}View discard pile" aria-label="View ${escapeHtml(p.name)} discard pile, ${discardCount} cards${topDiscard ? `, top card ${escapeHtml(topDiscard.name)}` : ''}">${discardTop}</button><span class="lost-zone-marker" data-used="${!!lostCount || !!lostArrivals.size}" aria-label="Lost Zone, ${lostCount} cards">Lost <b>${lostCount}</b></span></div>
           </div>
           <div class="main-zones">
             <div class="zone bench-zone" data-bench-drop-side="${side}"><div class="zone-title">Bench <span class="zone-note">${benchCards.length} / 5</span></div><div class="bench-grid">${bench}</div></div>
@@ -21132,7 +21190,7 @@
         title = 'Knockout · changing Active Pokémon';
         detail = 'Wait for the Knockout, Prizes, and Active Pokémon movement.';
       } else if (game?.phase === 'setup') {
-        title = 'Opening setup';
+        title = 'Opening setup · ' + (game.firstPlayer === 'you' ? 'You start first' : 'Yami starts first');
         detail = player('you').active ? 'Bench any other Basics, then finish setup.' : 'Select a Basic Pokémon and set it as Active.';
       } else if (matchFinishPresentationBusy()) {
         title = 'Finishing match';
@@ -21169,7 +21227,11 @@
       $('codexActiveZone').innerHTML = `<div class="zone-title">YAMI · ACTIVE</div>${activePokemonMarkup('codex')}`;
       $('youActiveZone').innerHTML = `<div class="zone-title">TOMA · ACTIVE</div>${activePokemonMarkup('you')}`;
       for (const owner of ['you','codex']) $(owner+'ActiveZone').dataset.currentTurn = String(!!turnReady && game.turn === owner);
-      $('stadiumSlot').innerHTML = active ? cardMarkup(game.stadium?.card || null, game.stadium?.owner || side, 'stadium') : '<span class="zone-note">Stadium</span>';
+      const stadium = game?.stadium;
+      const stadiumCard = stadium && !battlefieldArrivals(stadium.owner,'stadium').includes(stadium.card.id) ? stadium.card : null;
+      updateBattlefieldTheme();
+      updateBattlefieldTurnLighting();
+      $('stadiumSlot').innerHTML = active ? cardMarkup(stadiumCard, stadium?.owner || side, 'stadium') : '<span class="zone-note">Stadium</span>';
       const current = selected?.zone === 'hand' && selected.side !== side ? null : findSelected();
       renderHand(side);
       renderInspector(current);
@@ -21236,7 +21298,7 @@
       $('attachBtn').disabled = !ownsTurn || !energyTargets.length || p?.energyAttachedThisTurn;
       $('evolveBtn').disabled = !ownsTurn;
       $('finishSetupBtn').hidden = !active || game.phase !== 'setup';
-      $('finishSetupBtn').disabled = !active || game.phase !== 'setup' || !basicPokemon(player('you').active) || !player('you').openingBasicIds.includes(player('you').active.id);
+      $('finishSetupBtn').disabled = !active || game.phase !== 'setup' || gameplayEffectsBusy() || !basicPokemon(player('you').active) || !player('you').openingBasicIds.includes(player('you').active.id);
       if (active) renderLog();
       renderMatchSummaryCard();
       if (active && game.phase === 'play' && !game.pendingPromotion && game.turn === 'codex' && !localAiTimer && localAiEnabled) $('localAiStatus').textContent = localAiTimer ? 'Yami is thinking locally…' : 'Yami’s turn is queued.';
@@ -22165,6 +22227,7 @@
       else if (result) inspectLibraryCard(result.dataset.libraryCard);
     });
     $('closeSetupBtn').addEventListener('click', () => {
+      clearCoinDecision();
       $('setupModal').classList.add('hidden');
       setView(game ? 'match' : 'menu');
     });

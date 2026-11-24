@@ -3043,3 +3043,39 @@ button.recap-marker:hover, button.recap-marker:focus-visible { border-color: #f5
 @media (prefers-reduced-motion:reduce) {
   #playmatPanel[data-effects="on"] :is(.slot-card,.hand-card) { transition:none; }
 }
+
+/* Battlefield lighting follows the revealed Active Pokémon and the turn banner. */
+.battle-center {
+  border-color: color-mix(in srgb, var(--battlefield-tint, transparent) 38%, #344b65);
+  box-shadow: inset 0 0 75px color-mix(in srgb, var(--battlefield-tint, transparent) 17%, transparent);
+  transition: border-color 430ms ease, box-shadow 430ms ease;
+}
+.field[data-custom-playmat="true"] .battle-center {
+  border-color: color-mix(in srgb, var(--battlefield-tint, transparent) 35%, #e6f2ff77);
+  box-shadow: inset 0 0 65px color-mix(in srgb, var(--battlefield-tint, transparent) 16%, transparent);
+}
+.player-row { transition: box-shadow 350ms ease; }
+.player-row[data-turn-lit="true"] { box-shadow: inset 0 0 0 1px #82dbf388, inset 0 0 26px #5baed124; }
+.player-row.opponent[data-turn-lit="true"] { box-shadow: inset 0 0 0 1px #efbd7e99, inset 0 0 26px #cc904d24; }
+.fx-battlefield-landing {
+  position:absolute; width:82px; height:108px; border-radius:12px;
+  border:2px solid #d5f1ff; box-shadow:0 0 28px #a5dcff, inset 0 0 22px #b7e4ff80;
+  animation:fx-evolution-land calc(var(--fx-duration) * .42) calc(var(--fx-duration) * .56) ease-out both;
+}
+.fx-battlefield-landing[data-destination="stadium"] { width:58px; height:78px; border-color:#99efc4; }
+.fx-battlefield-landing[data-destination="lost"] { width:54px; height:25px; border-color:#e0baff; box-shadow:0 0 18px #b593ed; }
+.pile-zone:has(.lost-zone-marker) { position:relative; }
+.lost-zone-marker {
+  position:absolute; inset:auto 0 -7px auto; z-index:1; white-space:nowrap; pointer-events:none;
+  border:1px solid #b298e1; background:#2b2049; color:#f5e7ff;
+  padding:1px 4px; border-radius:7px; font-size:9px; line-height:1.1;
+}
+.lost-zone-marker[data-used="false"] { visibility:hidden; }
+@media (max-width:600px) {
+  .fx-battlefield-landing { width:57px; height:78px; }
+  .fx-battlefield-landing[data-destination="stadium"] { width:40px; height:57px; }
+  .lost-zone-marker { font-size:7px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .battle-center, .player-row { transition:none; }
+}

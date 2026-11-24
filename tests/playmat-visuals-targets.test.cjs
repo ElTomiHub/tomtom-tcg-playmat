@@ -14,6 +14,37 @@ function ready() {
 }
 function advance(r,timers) {const timer=timers.get(r.api.visualState().timer);assert.ok(timer);timers.delete(r.api.visualState().timer);timer.callback()}
 
+test('opening Active placement reaches the field before setup can finish',()=>{
+  const {r,g,p,timers}=ready();
+  r.api.stagedKnockouts(true);
+  const card=p.active;
+  g.phase='setup';p.active=null;p.hand.push(card);p.openingBasicIds=[card.id];
+  require('node:vm').runInContext("controlSide='you'",r.context);
+  r.context.selectHand(card.id);
+  r.context.placeSelected('active');
+  const active=r.document.getElementById('youActiveZone'), finish=r.document.getElementById('finishSetupBtn');
+  assert.equal(r.api.visualState().active.destination,'active');
+  assert.doesNotMatch(active.innerHTML,/data-card=/);
+  assert.equal(finish.disabled,true);
+  advance(r,timers);
+  assert.match(active.innerHTML,/data-card=/);
+  assert.equal(finish.disabled,false);
+});
+
+test('a committed Lost Zone move reaches its marker before the count increases',async()=>{
+  const {r,p,timers}=ready();
+  r.api.stagedKnockouts(true);
+  const card=p.deck.at(-1);
+  await r.api.transaction(()=>{p.lost.push(p.deck.pop());return true;});
+  r.api.renderNow();
+  const row=r.document.getElementById('youRow');
+  assert.equal(r.api.visualState().active.toZone,'lost');
+  assert.equal(r.api.visualState().active.cardId,card.id);
+  assert.match(row.innerHTML,/Lost Zone, 0 cards/);
+  advance(r,timers);
+  assert.match(row.innerHTML,/Lost Zone, 1 cards/);
+});
+
 test('a draw adds cards to the visible hand only after the movement ends',()=>{
   const {r,p,timers}=ready();
   r.api.stagedKnockouts(true);
