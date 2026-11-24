@@ -1462,14 +1462,13 @@
     .fx-focus.target { border-color:#7cdcff; box-shadow:0 0 12px #7cdcff77; }
     .playmat-effects.fast-motion .fx-coin { animation-duration:.36s; }
     .playmat-effects.fast-motion .fx-coin-caption { animation-delay:.29s; }
-    .playmat-effects.fast-motion .fx-confetti { animation-duration:.85s; }
     .log-inspect { margin-top:4px; font-size:.8em; }
     .fx-caption { position: absolute; left: 50%; top: 20%; transform: translateX(-50%); display: grid; justify-items: center; gap: 6px; width: max-content; max-width: min(90vw, 420px); padding: 15px 24px; border: 1px solid var(--fx-color, #f3c75c); border-radius: 18px; background: #071b35ed; box-shadow: 0 12px 45px #0006; color: #fff5d6; text-align: center; animation: fx-caption-in .24s ease-out both; }
     .fx-caption small { color: var(--fx-color, #f3c75c); font-size: 10px; font-weight: 850; letter-spacing: .18em; text-transform: uppercase; }
     .fx-caption strong { font-size: clamp(18px, 3vw, 29px); line-height: 1.15; overflow-wrap: anywhere; }
     .fx-caption span { color: #cad8e9; font-size: 12px; }
     .fx-coin-stage { position: absolute; top: 32%; left: 50%; width: 106px; height: 106px; margin-left: -53px; perspective: 700px; }
-    .fx-coin { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transform: rotateY(var(--coin-end)); animation: fx-coin-toss .85s cubic-bezier(.16,.65,.3,1) both; }
+    .fx-coin { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transform: rotateY(var(--coin-end)); animation: fx-coin-toss .6s cubic-bezier(.16,.65,.3,1) both; }
     .fx-coin-face { position: absolute; inset: 0; display: grid; place-content: center; gap: 2px; border: 5px solid #e8b43d; border-radius: 50%; background: radial-gradient(circle at 35% 25%, #fff7c4, #edc45d 68%, #b77a1d); color: #644008; box-shadow: inset 0 0 0 3px #fff1ac, 0 12px 25px #0005; backface-visibility: hidden; font-size: 46px; font-weight: 950; text-align: center; line-height: 1; }
     .fx-coin-face small { font-size: 10px; letter-spacing: .14em; }
     .fx-coin-face.back { transform: rotateY(180deg); background: radial-gradient(circle at 35% 25%, #fff4cb, #dab253 68%, #a06d23); }
@@ -1478,7 +1477,7 @@
     .coin-head-art { inset: -19%; width: 138%; height: 138%; max-width: none; }
     .coin-flip-overlay { z-index: 50; background: #06132644; }
     .coin-flip-overlay:not(:empty) { pointer-events: auto !important; }
-    .fx-coin-caption { top: calc(32% + 126px); animation-delay: .65s; }
+    .fx-coin-caption { top: calc(32% + 126px); animation-delay: .48s; }
     .fx-attack-lane { position: absolute; inset: var(--attack-field-inset, 0); overflow: hidden; }
     .fx-attack-caption { top: var(--attack-banner-y, 66%); width: 108%; max-width: none; box-sizing: border-box; gap: 2px;
       padding: 7px 8%; transform: translate(-50%, -50%) rotate(-4deg); border: 0; border-radius: 0;
@@ -1552,10 +1551,11 @@
     .fx-move-caption { top: 12%; padding: 9px 17px; }
     .fx-move-caption strong { font-size: 18px; }
     .fx-ko-caption { top: 15%; --fx-color: #f3c75c; }
-    .fx-victory { top: 30%; padding: 25px 35px; border-width: 2px; background: linear-gradient(145deg, #15365bf5, #07172ff5); }
+    .fx-victory { top: 30%; padding: 25px 35px; border-width: 2px; background: linear-gradient(145deg, #15365bf5, #07172ff5); animation: fx-caption-in .2s ease-out both, fx-victory-out .16s var(--fx-result-hold, 400ms) ease-in forwards; }
+    @keyframes fx-victory-out { from { opacity: 1; } to { opacity: 0; } }
     .fx-victory strong { font-size: clamp(30px, 5vw, 56px); color: #ffe190; }
     .fx-victory-mark { font-size: 32px; color: #f3c75c; line-height: 1; }
-    .fx-confetti { position: absolute; top: -25px; left: var(--confetti-x); width: 8px; height: 15px; border-radius: 2px; background: var(--confetti-color); animation: fx-confetti 2.7s var(--confetti-delay) cubic-bezier(.1,.45,.55,1) both; }
+    .fx-confetti { position: absolute; top: -25px; left: var(--confetti-x); width: 8px; height: 15px; border-radius: 2px; background: var(--confetti-color); animation: fx-confetti calc(var(--fx-duration) - 320ms) var(--confetti-delay) cubic-bezier(.1,.45,.55,1) both; }
     @keyframes fx-caption-in { from { opacity: 0; translate: 0 9px; } to { opacity: 1; translate: 0 0; } }
     @keyframes fx-coin-toss { 0% { transform: translateY(28px) rotateY(0) scale(.7); } 45% { transform: translateY(-40px) rotateY(850deg) scale(1.08); } 100% { transform: translateY(0) rotateY(var(--coin-end)) scale(1); } }
     @keyframes fx-charge { 0% { opacity:0; scale:.45; } 65% { opacity:.9; scale:1; } 100% { opacity:0; scale:1.15; } }

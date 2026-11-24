@@ -10,7 +10,7 @@
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="playmat.css?v=hub10">
+  <link rel="stylesheet" href="playmat.css?v=hub11">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -10090,7 +10090,7 @@
           if (setupCoinAnimation !== hold || coinResult !== decision) return;
           setupCoinAnimation = null;
           if (!$('setupModal').classList.contains('hidden')) startMatch();
-        }, 1050);
+        }, fastPlaymatEffects || prefersReducedPlaymatMotion() ? 750 : 1050);
         setupCoinAnimation = hold;
       };
       $('coinPanel').classList.remove('hidden');
@@ -10100,7 +10100,7 @@
           {transform:'perspective(500px) rotateY(0) translateY(0)'},
           {transform:'perspective(500px) rotateY(900deg) translateY(-14px)',offset:.5},
           {transform:'perspective(500px) rotateY(1800deg) translateY(0)'}
-        ],{duration:fastPlaymatEffects ? 350 : 850,easing:'cubic-bezier(.2,.6,.3,1)'});
+        ],{duration:fastPlaymatEffects ? 350 : 650,easing:'cubic-bezier(.2,.6,.3,1)'});
         setupCoinAnimation = animation;
         $('coinHeadline').textContent = 'Flipping the coin…';
         $('coinSubline').textContent = 'Heads · Toma first. Tails · Yami first.';
@@ -13631,7 +13631,12 @@
         $('playmatEffectAnnouncement').textContent = `${label}: ${heads ? 'heads' : 'tails'}.`;
         render();
         if (typeof engineTestHooks?.presentCoin === 'function') await engineTestHooks.presentCoin({heads,label});
-        else if (window.__POKEMON_TCG_TEST__ !== true && !document.hidden) await new Promise(resolve=>{coinPresentationResolve=resolve;coinPresentationTimer=setTimeout(()=>{if(epoch===coinPresentationEpoch)finishCoinPresentation();},reduced?450:fastPlaymatEffects?650:1450);});
+        else if (window.__POKEMON_TCG_TEST__ !== true && !document.hidden) await new Promise(resolve=>{
+          coinPresentationResolve = resolve;
+          coinPresentationTimer = setTimeout(()=>{
+            if (epoch === coinPresentationEpoch) finishCoinPresentation();
+          }, reduced ? 320 : fastPlaymatEffects ? 650 : 1050);
+        });
       } catch { /* Display errors cannot change the coin result or block resolution. */ }
       finally { finishCoinPresentation(); }
       return heads;
@@ -13989,7 +13994,7 @@
       const card = transition.card, image = imageFor(card), effect = activePlaymatEffect;
       const departing = effect?.kind === 'knockout' && effect.transitionId === transition.id;
       const moving = departing && effect.point && !prefersReducedPlaymatMotion();
-      return `<div class="slot-card${moving ? ' fx-ko-placeholder' : ''}" role="img" aria-label="${escapeHtml(card.name)}${departing ? ' was Knocked Out' : ''}">${image ? `<img class="card-art" src="${escapeHtml(image)}" alt="">` : ''}<span class="card-label">${escapeHtml(card.name)}${departing ? ' · Knocked Out' : ''}</span>${pokemonHpSummaryMarkup(card, transition.side)}</div>`;
+      return `<div class="slot-card${moving ? ' fx-ko-placeholder' : ''}" data-knockout-card="${escapeHtml(card.id)}" role="img" aria-label="${escapeHtml(card.name)}${departing ? ' was Knocked Out' : ''}">${image ? `<img class="card-art" src="${escapeHtml(image)}" alt="">` : ''}<span class="card-label">${escapeHtml(card.name)}${departing ? ' · Knocked Out' : ''}</span>${pokemonHpSummaryMarkup(card, transition.side)}</div>`;
     }
     function queueAbilityVisualEffect(side, pokemon, abilityName) {
       try {
@@ -14177,7 +14182,7 @@
         {duration:duration*.46,easing:'ease-out'});
     }
     function animateDamageHealth(effect, previous, duration) {
-      const health = boardCardElements(effect.side).find(element=>element.dataset.card===effect.cardId)?.querySelector('.hp-left');
+      const health = visiblePokemonHealth(effect);
       const remaining = Number(health?.textContent);
       if (!health || !Number.isFinite(previous) || previous<=remaining) return;
       const start = performance.now(), countDuration = Math.min(duration*.55,320);
@@ -14191,6 +14196,23 @@
       health.closest('.card-health-badge')?.animate?.([{scale:1, color:'#fff1d2'}, {scale:1.15,color:'#ffb799'}, {scale:1}], {duration:countDuration,easing:'ease-out'});
       health.textContent = String(previous);
       requestAnimationFrame(tick);
+    }
+    // Standard and Fast durations. Reduced motion has its own short text-only beats.
+    const playmatEffectTiming = {
+      attack:[790,490], damage:[380,220], ability:[480,270], 'attack-feedback':[390,250],
+      'card-move':[360,235], 'zone-move':[350,225], promotion:[400,250], shuffle:[290,175],
+      revealed:[520,320], played:[600,360], prize:[460,290], knockout:[820,500], victory:[1200,800]
+    };
+    function playmatEffectDuration(effect, reduced) {
+      if (reduced) return effect.kind === 'victory' ? 280 : effect.preview || effect.playedCue || effect.kind === 'knockout' ? 260 : 170;
+      const kind = effect.playedCue ? 'played' : effect.preview ? 'revealed' : effect.kind;
+      return (playmatEffectTiming[kind] || [400,260])[Number(fastPlaymatEffects)];
+    }
+    function visiblePokemonHealth(effect) {
+      const boardCard = boardCardElements(effect.side).find(element=>element.dataset.card===effect.cardId);
+      const placeholder = boardCard ? null : [...document.querySelectorAll('[data-knockout-card]')]
+        .find(element=>element.dataset.knockoutCard===effect.cardId);
+      return (boardCard || placeholder)?.querySelector('.hp-left');
     }
     function showNextPlaymatEffect() {
       try {
@@ -14210,7 +14232,8 @@
           return;
         }
         const reduced = prefersReducedPlaymatMotion();
-        const previousHealth = effect.kind==='damage' && !reduced && typeof performance !== 'undefined' ? Number(boardCardElements(effect.side).find(element=>element.dataset.card===effect.cardId)?.querySelector('.hp-left')?.textContent) : NaN;
+        const previousHealth = effect.kind === 'damage' && !reduced && typeof performance !== 'undefined'
+          ? Number(visiblePokemonHealth(effect)?.textContent) : NaN;
         activePlaymatEffect = effect;
         playPlaymatSound(effect.kind);
         renderYamiCharacter();
@@ -14224,13 +14247,29 @@
         root.dataset.kind = effect.kind; root.dataset.element = effect.element || '';
         root.classList.toggle('reduced-motion', reduced);
         root.classList.toggle('fast-motion', fastPlaymatEffects);
-        const duration = effect.playedCue ? (fastPlaymatEffects ? 570 : 1050) : effect.preview ? (fastPlaymatEffects ? 650 : 1150) : fastPlaymatEffects ? (effect.kind === 'victory' ? 1200 : 380) : reduced ? 850 : ({ coin: 1450, attack: 1200, ability: 950, damage: 650, knockout: 1000, victory: 3100, 'card-move': 720, 'zone-move':620, promotion:720, prize:900, 'attack-feedback':560, shuffle:460 }[effect.kind] || 900);
+        const duration = playmatEffectDuration(effect, reduced);
         root.style.setProperty('--fx-duration', `${duration}ms`);
         root.innerHTML = playmatEffectMarkup(effect, reduced);
         if (effect.kind==='attack' && !reduced) {
           setTimeout(()=>{ if (activePlaymatEffect===effect) animateAttackLunge(effect,duration); },duration*.28);
+          const damage = playmatEffectQueue[0];
+          const impactDamage = damage?.kind === 'damage' && damage.side === oppositeSide(effect.side) &&
+            damage.cardId === effect.targetId ? damage : null;
           setTimeout(()=>{
             if (activePlaymatEffect !== effect || !effect.targetId) return;
+            if (impactDamage && playmatEffectQueue[0] === impactDamage) {
+              const previous = Number(visiblePokemonHealth(impactDamage)?.textContent);
+              playmatEffectQueue.shift();
+              if (stagedKnockoutsEnabled()) render();
+              const impactDuration = duration * .38;
+              const impact = document.createElement('div');
+              impact.style.setProperty('--fx-duration', `${impactDuration}ms`);
+              impact.innerHTML = playmatEffectMarkup(impactDamage, false);
+              root.append(impact);
+              playPlaymatSound('damage');
+              if (typeof performance !== 'undefined') animateDamageHealth(impactDamage, previous, impactDuration);
+              $('playmatEffectAnnouncement').textContent = `${effect.name} used ${effect.attack}. ${impactDamage.name} took ${impactDamage.amount} damage.`;
+            }
             const target = boardCardElements(oppositeSide(effect.side)).find(card => card.dataset.card === effect.targetId);
             if (effect.element === 'fighting') {
               $('battleCenter').animate?.([{translate:'0'}, {translate:'-3px'}, {translate:'3px'}, {translate:'0'}],
@@ -14246,6 +14285,15 @@
         }
         if (Number.isFinite(previousHealth)) animateDamageHealth(effect,previousHealth,duration);
         $('playmatEffectAnnouncement').textContent = playmatActionAnnouncement(effect) || (effect.kind === 'attack-feedback' ? [effect.label,effect.detail].filter(Boolean).join('. ') : effect.kind === 'coin' ? `Coin flip: ${effect.heads ? 'heads' : 'tails'}.` : effect.kind === 'attack' ? `${effect.name} used ${effect.attack}.` : effect.kind === 'damage' ? `${effect.name} took ${effect.amount} damage.` : effect.kind === 'knockout' ? `${effect.name} was Knocked Out.` : effect.kind === 'card-move' ? `${PLAYER_NAMES[effect.side]} played ${effect.name}. ${effect.detail || ''}` : effect.kind === 'zone-move' ? `${PLAYER_NAMES[effect.side]}: ${effect.faceDown?`${effect.count} cards`:effect.name}, ${effect.fromZone} to ${effect.toZone}.` : effect.kind === 'promotion' ? `${effect.name} moved to the Active Spot.` : effect.kind === 'prize' ? `${effect.side === 'you' ? 'You' : 'Yami'} took ${effect.count} Prize cards.` : effect.winner === 'you' ? 'Victory! You won the match.' : effect.winner ? 'Yami won the match.' : 'The match is a draw.');
+        if (effect.kind === 'victory' && !reduced) {
+          const resultHold = fastPlaymatEffects ? 270 : 400;
+          root.style.setProperty('--fx-result-hold', `${resultHold}ms`);
+          setTimeout(()=>{
+            if (activePlaymatEffect !== effect) return;
+            effect.presentationReady = true;
+            presentFinishedMatch();
+          }, resultHold);
+        }
         const epoch = playmatEffectEpoch;
         playmatEffectTimer = setTimeout(() => { if (epoch === playmatEffectEpoch) { activePlaymatEffect = null; playmatEffectTimer = null; finishVisualTransition(effect);
           const destination = effect.destination || effect.toZone;
@@ -15399,13 +15447,15 @@
       if (/\b(ex|vstar|v|gx)\b/.test(name)) return 2;
       return 1;
     }
-    let pendingCampaignPresentation = null;
+    let pendingCampaignPresentation = null, presentedFinishedMatch = null;
     function matchFinishPresentationBusy() {
-      return game?.phase === 'finished' && !!(activePlaymatEffect || playmatEffectQueue.length ||
+      const effect = activePlaymatEffect;
+      return game?.phase === 'finished' && !!(effect && !effect.presentationReady || playmatEffectQueue.length ||
         playmatEffectBatches.some(batch => batch.length) || visualTransitionBusy());
     }
     function presentFinishedMatch() {
-      if (game?.phase !== 'finished' || matchFinishPresentationBusy()) return;
+      if (game?.phase !== 'finished' || presentedFinishedMatch === game || matchFinishPresentationBusy()) return;
+      presentedFinishedMatch = game;
       const showCampaign = pendingCampaignPresentation === game;
       pendingCampaignPresentation = null;
       render();
@@ -15434,10 +15484,10 @@
       }
       logEvent(`${cancelled ? 'Match cancelled' : winner ? `${player(winner).name} wins` : 'The match is a draw'}${reason ? ` — ${reason}` : ''}.`);
       game.log[0].afterPresentation = true;
+      if (!cancelled && typeof queuePlaymatEffect === 'function') queuePlaymatEffect({ kind: 'victory', winner, reason });
       if (typeof syncFinishedMatchHistory === 'function') syncFinishedMatchHistory();
       if (!cancelled && typeof queueFinishedProgress === 'function' && !runResolutionTransaction.depth) queueFinishedProgress();
       $('localAiStatus').textContent = cancelled ? 'Match cancelled.' : winner === 'codex' ? 'Local opponent won this match.' : winner === 'you' ? 'You won this match.' : 'The match is a draw.';
-      if (!cancelled && typeof queuePlaymatEffect === 'function') queuePlaymatEffect({ kind: 'victory', winner, reason });
       render();
       if (typeof mobileMatchLayout==='function' && mobileMatchLayout() && !campaignFinished && !matchFinishPresentationBusy()) setMobileMatchPanel('log');
       if (campaignFinished) {
