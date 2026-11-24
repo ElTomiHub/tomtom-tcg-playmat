@@ -2684,8 +2684,6 @@
     grid-template-rows: auto minmax(calc(var(--phone-active-height) + 26px),1fr) auto;
   }
   #matchLayout .lower-controls { background: #0e2645; border-radius: 8px; }
-  .app-shell:has(#matchLayout:not(.app-hidden)) #homeBtn { font-size: 0; }
-  .app-shell:has(#matchLayout:not(.app-hidden)) #homeBtn::before { content: "Lobby"; font-size: 10px; }
   body:has(#matchLayout:not(.app-hidden)) .action-dock {
     max-height: 40dvh;
   }
@@ -3218,3 +3216,13 @@ button.recap-marker:hover, button.recap-marker:focus-visible { border-color: #f5
     .modal-backdrop:not(.hidden), #matchCardZoom[open], #playmatConfirmDialog[open] { opacity: 0; }
   }
 }
+
+.brand { color: inherit; text-decoration: none; }
+.hub-page.hidden { display: none; }
+.app-shell:has(.hub-page:not(.hidden)) {
+  display: grid; height: 100dvh; min-height: 0; grid-template-rows: auto minmax(0,1fr); overflow: hidden;
+}
+.hub-page { min-height: 0; min-width: 0; overflow: auto; }
+#deckManagerModal .manager-card, #cardLibraryModal .library-dashboard { height: 100%; max-height: 100%; }
+#setupModal .matchup-setup { width: min(100%, 1120px); margin: 0 auto; max-height: none; min-height: 0; }
+#closeSetupBtn, #closeDeckManagerBtn, #closeCardLibraryBtn { display: none; }

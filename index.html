@@ -10,7 +10,7 @@
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="playmat.css?v=hub11">
+  <link rel="stylesheet" href="playmat.css?v=hub12">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -21,7 +21,7 @@
   <main class="app-shell">
     <svg class="type-symbol-definitions" width="0" height="0" aria-hidden="true"><defs><symbol id="lobby-fire" viewBox="0 0 24 24"><path fill="currentColor" d="M13 2c1 5-4 5-3 9-2-1-3-3-3-4-4 5-4 10 0 13 5 4 13 1 13-5 0-4-3-7-5-9 1 4-1 5-2 5 2-4 1-7 0-9Z"/></symbol><symbol id="lobby-water" viewBox="0 0 24 24"><path fill="currentColor" d="M19 2C9 5 4 11 4 16a8 8 0 0 0 16 0c0-5-5-5-4-9l3-5Z"/></symbol><symbol id="lobby-grass" viewBox="0 0 24 24"><path fill="currentColor" d="M20 3C9 3 4 8 4 15c0 3 2 5 5 5l3-5-5-1 1-2 5 1 3-4 1 1-3 5 4-1v2l-5 1-3 5c9-2 13-9 10-19Z"/></symbol><symbol id="lobby-lightning" viewBox="0 0 24 24"><path fill="currentColor" d="M14 1 4 14h7l-2 9 11-14h-7Z"/></symbol><symbol id="lobby-psychic" viewBox="0 0 24 24"><path fill="currentColor" d="M1 12q11-13 22 0Q12 25 1 12Zm3 0q8 8 16 0Q12 4 4 12Zm4 0a4 4 0 1 1 8 0 4 4 0 0 1-8 0Z"/></symbol><symbol id="lobby-fighting" viewBox="0 0 24 24"><path fill="currentColor" d="M3 11h4V5h3v7h2V3h3v9h2V5h3v7l-2 8H7l-5-5v-3Z"/></symbol><symbol id="lobby-metal" viewBox="0 0 24 24"><path fill="currentColor" d="M4 5h7L8 8H5l-2 4-2-3Zm9 0h7l3 4-2 3-2-4h-3Zm8 9 2 3-3 4h-6l2-3h3ZM3 14l2 4h3l2 3H4l-3-4ZM9 9h6l2 4-5 6-5-6Z"/></symbol><symbol id="lobby-darkness" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10c0-2-1-5-3-7 1 5-4 8-8 6C7 9 8 4 12 2Z"/></symbol><symbol id="lobby-dragon" viewBox="0 0 24 24"><path fill="currentColor" d="M22 5C12 2 3 7 3 13c0 6 7 9 13 8l-5-5 6 3-2-5 5 1-3-5 5-2Z"/></symbol><symbol id="lobby-colorless" viewBox="0 0 24 24"><path fill="currentColor" d="m12 1 3 7 8 1-6 5 2 8-7-4-7 4 2-8-6-5 8-1Z"/></symbol><symbol id="lobby-fairy" viewBox="0 0 24 24"><path fill="currentColor" d="M12 21S2 15 2 8a5 5 0 0 1 10-1 5 5 0 0 1 10 1c0 7-10 13-10 13Z"/></symbol></defs></svg>
     <header class="topbar">
-      <div class="brand"><img class="brand-mark" src="logo.png" alt=""><div>Tomtom TCG Hub</div></div>
+      <a class="brand" id="homeBtn" href="./" aria-label="Tomtom TCG Hub home"><img class="brand-mark" src="logo.png" alt=""><div>Tomtom TCG Hub</div></a>
       <div class="top-actions"><details class="playmat-settings" id="playmatSettings">
         <summary class="btn small" id="playmatSettingsLabel">Settings</summary>
         <div class="playmat-settings-panel">
@@ -29,7 +29,7 @@
           <label class="playmat-volume" for="playmatVolume">Sound volume <output id="playmatVolumeValue" for="playmatVolume">100%</output></label>
           <input id="playmatVolume" type="range" min="0" max="100" step="1" value="100">
         </div>
-      </details><button class="btn small mobile-match-button" id="mobileInspectorBtn" type="button" aria-controls="cardInspectorPanel" aria-expanded="false">Inspect</button><button class="btn small mobile-match-button" id="mobileToolsBtn" type="button" aria-controls="matchBoardToolbar" aria-expanded="false">Match</button><button class="btn small" id="matchLogBtn" hidden aria-controls="matchActivityPanel" aria-expanded="true"><span class="desktop-log-label">History &amp; chat</span><span class="mobile-log-label">Log</span></button><button class="btn small" id="homeBtn" hidden>Main menu</button><button class="btn small primary" id="startGameBtn" hidden>Start a game</button></div>
+      </details><button class="btn small mobile-match-button" id="mobileInspectorBtn" type="button" aria-controls="cardInspectorPanel" aria-expanded="false">Inspect</button><button class="btn small mobile-match-button" id="mobileToolsBtn" type="button" aria-controls="matchBoardToolbar" aria-expanded="false">Match</button><button class="btn small" id="matchLogBtn" hidden aria-controls="matchActivityPanel" aria-expanded="true"><span class="desktop-log-label">History &amp; chat</span><span class="mobile-log-label">Log</span></button><button class="btn small primary" id="startGameBtn" hidden>Start a game</button></div>
     </header>
     <aside id="libraryStorageWarning" class="panel" role="status" hidden>
       <p id="libraryStorageWarningText"></p>
@@ -65,7 +65,7 @@
         <span class="lobby-energy" style="--x:86%;--y:92%;--energy:#e8bc63"><svg viewBox="0 0 24 24"><use href="#lobby-dragon"/></svg></span>
         <span class="lobby-energy" style="--x:96%;--y:92%;--energy:#d3dfec"><svg viewBox="0 0 24 24"><use href="#lobby-colorless"/></svg></span>
       </div>
-      <div class="menu-intro"><h1>Battle Lobby</h1><p>Your next battle. Your growing collection.</p></div>
+      <div class="menu-intro"><h1>Tomtom TCG Hub</h1><p>Your next battle. Your growing collection.</p></div>
       <div class="resume-card" id="resumeCard" hidden><div><strong>Unfinished game</strong><p id="resumeDescription"></p></div><button class="btn primary" id="resumeMatchBtn">Resume game</button></div>
       <div class="menu-options">
         <button class="menu-option menu-start" id="menuStartGame" type="button">
@@ -97,8 +97,161 @@
       </div>
       <div class="menu-library-summary"><span><strong id="menuCardCount">0</strong> registered card prints</span><span><strong id="menuDeckCount">0</strong> decks</span><span class="menu-note">Card artwork &amp; text from TCGdex and Limitless</span></div>
     </section>
+    <div class="hub-page hidden" id="setupModal" role="region" aria-labelledby="setupHeading">
+    <section class="setup-card matchup-setup">
+      <div class="setup-top">
+        <div><div class="eyebrow">Before the first draw</div><h2 id="setupHeading">Choose your matchup.</h2><p id="setupSubtitle">Pick your decks. Flip the coin. Let the battle begin.</p></div>
+        <button class="btn small" id="closeSetupBtn" aria-label="Close setup">✕</button>
+      </div>
+      <div class="matchup-grid">
+        <div class="deck-box matchup-player toma-player">
+          <div class="matchup-player-heading"><span class="matchup-avatar">T</span><div><div class="eyebrow">Your side</div><h3>Toma</h3></div></div>
+          <div class="deck-box-head"><label for="youRegisteredDeck">Choose deck</label><span class="deck-count" id="youCount">0 / 60 cards</span></div>
+          <select class="deck-select" id="youRegisteredDeck" aria-label="Choose your registered deck"></select>
+          <div class="selected-deck-summary" id="youDeckSummary">Choose a deck from the registered collection.</div><textarea class="hidden-deck-text" id="youDeck" spellcheck="false" placeholder="Deck lists are managed in the deck builder."></textarea>
+          <div class="validation" id="youValidation"></div>
+        </div>
+        <div class="deck-box matchup-player yami-player">
+          <div class="matchup-player-heading"><span class="matchup-avatar">Y</span><div><div class="eyebrow">Opponent</div><h3>Yami</h3></div></div>
+          <div class="deck-box-head"><label for="codexRegisteredDeck">Choose deck</label><span class="deck-count" id="codexCount">0 / 60 cards</span></div>
+          <div class="matchup-deck-choice"><select class="deck-select" id="codexRegisteredDeck" aria-label="Choose Yami's registered deck"></select><button class="btn small" type="button" id="randomYamiDeckBtn" aria-label="Choose a random deck for Yami">⚄ Random</button></div>
+          <div class="selected-deck-summary" id="codexDeckSummary">Choose a deck from the registered collection.</div><textarea class="hidden-deck-text" id="codexDeck" spellcheck="false" placeholder="Deck lists are managed in the deck builder."></textarea>
+          <div class="validation" id="codexValidation"></div>
+          <details class="matchup-yami-settings" id="matchupYamiSettings" open>
+          <summary>Yami settings</summary>
+          <label class="matchup-stat-label" for="yamiStyleSelect">Yami style</label>
+          <select class="deck-select" id="yamiStyleSelect" aria-describedby="yamiStyleNote">
+            <option value="random">Random</option>
+            <option value="aggro">Aggro</option>
+            <option value="balanced">Balanced</option>
+            <option value="control">Control</option>
+          </select>
+          <p class="matchup-stat-note" id="yamiStyleNote" role="status"></p>
+          <label class="matchup-stat-label" for="yamiDifficultySelect">Yami difficulty</label>
+          <select class="deck-select" id="yamiDifficultySelect" aria-describedby="yamiDifficultyNote">
+            <option value="random">Random</option>
+            <option value="competitor">Competitor</option>
+            <option value="casual">Casual</option>
+            <option value="master">Master</option>
+          </select>
+          <p class="matchup-stat-note" id="yamiDifficultyNote" role="status"></p>
+          </details>
+        </div>
+        <div class="matchup-center">
+          <div class="coin-panel" id="coinPanel" aria-live="polite">
+            <div class="eyebrow">Who goes first?</div>
+            <button class="coin-disc" id="coinDisc" type="button" aria-label="Flip coin to choose the first player">?</button>
+            <div class="coin-copy"><strong id="coinHeadline">Click the coin to flip</strong><span id="coinSubline">Heads · Toma first. Tails · Yami first.</span></div>
+            <div class="matchup-coin-actions"><button class="btn primary" id="startBtn" disabled>I start first</button><button class="btn" id="yamiStartsBtn" disabled>Yami starts first</button></div>
+          </div>
+          <details class="matchup-records" id="matchupRecords" open><summary><span class="eyebrow">The rivalry</span><strong id="matchupRecordsHeading">Head to head</strong></summary><div id="setupMatchupStats" aria-live="polite"></div></details>
+        </div>
+      </div>
+      <div class="deck-selection-warning" id="deckSelectionWarning" role="status">Decks with verified card details can be selected even when some effects need manual resolution.</div>
+      <section class="setup-playmat-choice" aria-label="Choose a playmat">
+        <div class="setup-playmat-preview" id="setupPlaymatPreview" aria-hidden="true"></div>
+        <div class="setup-playmat-control"><label for="setupPlaymatSelect">Playmat</label><select class="deck-select" id="setupPlaymatSelect"><option value="">Default · blue playmat</option></select><small>One background across Toma’s and Yami’s field. Zones stay visible.</small></div>
+        <button class="btn small" id="managePlaymatsBtn" type="button">Upload / manage</button>
+      </section>
+      <div class="setup-status" id="setupStatus" aria-live="polite">Card type, Pokémon stats, artwork, and effect text load from Limitless when available.</div>
+      <div class="setup-bottom">
+        <div class="note">Changing either deck resets the coin flip.</div>
+        <div class="setup-actions"><button class="btn small" id="setupManageDecksBtn">Manage decks</button><button class="btn small" id="setupManageCardsBtn">Card library</button></div>
+      </div>
+    </section>
+  </div>
+    <div class="hub-page hidden" id="deckManagerModal" role="region" aria-labelledby="deckManagerTitle">
+    <section class="setup-card manager-card">
+      <div class="setup-top"><div><div class="eyebrow">DECK LIBRARY</div><h2 id="deckManagerTitle">My decks</h2><p>Check implementation status, review deck stats, and start a local playtest.</p></div><button class="btn small" id="closeDeckManagerBtn" aria-label="Close deck manager">✕</button></div>
+      <div class="deck-manager-tabs"><button class="library-view-tab active" id="deckLibraryTab" type="button">My decks</button><button class="library-view-tab" id="deckPasteTab" type="button">Create / edit deck</button><button class="library-view-tab" id="playmatsTab" type="button">Playmats</button></div>
+      <section class="playmats-workspace app-hidden" id="playmatsWorkspace" aria-labelledby="playmatsHeading">
+        <div class="playmats-heading"><h3 id="playmatsHeading">Your playmats</h3><p>Upload a picture, then choose it when starting a match. It covers both players’ field as one image.</p></div>
+        <div class="playmat-upload-controls"><label for="playmatUploadName">Name (optional)<input class="deck-name-input" id="playmatUploadName" maxlength="60" placeholder="For example: Dragon arena"></label><button class="btn primary" id="uploadPlaymatBtn" type="button">Upload playmat</button><input class="file-input" id="playmatUploadFile" type="file" accept="image/jpeg,image/png,image/webp"></div>
+        <p class="data-tools-note">JPG, PNG or WebP · images are resized automatically and saved on this device. The default blue playmat is always available.</p>
+        <p class="manager-status" id="playmatLibraryStatus" role="status" aria-live="polite"></p>
+        <div class="playmat-library-grid" id="playmatLibraryGrid"></div>
+      </section>
+      <section class="deck-library-workspace" id="deckLibraryWorkspace">
+        <div class="deck-library-heading"><div><strong>Registered decks</strong><p>Playable means every card is verified and its game effects are supported.</p></div><div class="deck-library-heading-actions"><button class="btn" id="refreshDeckCardStatusesBtn" type="button" title="Recheck every saved card against the current game engine and update status labels.">Update all card statuses</button><button class="btn" id="deckCollapseAll" type="button">Collapse all</button><button class="btn" id="deckExpandAll" type="button">Expand all</button><button class="btn" id="exportMatchFixtureBtn" type="button" title="Download only the registered Iono Lightning and Dragonite decks and their referenced card records.">Export match test data</button><button class="btn primary" id="createDeckFromLibraryBtn" type="button">+ New deck</button></div></div>
+        <input class="btn" id="deckLibrarySearch" type="search" aria-label="Search decks by name" placeholder="Search decks by name">
+        <div class="deck-tag-buttons" id="deckLibraryCategory" role="group" aria-label="Filter decks by tag" data-tag="all">
+          <button class="btn" type="button" data-filter-tag="all" aria-pressed="true">All tags</button><button class="btn" type="button" data-filter-tag="Toma" aria-pressed="false">[T] Toma</button><button class="btn" type="button" data-filter-tag="A" aria-pressed="false">[A] A</button><button class="btn" type="button" data-filter-tag="R" aria-pressed="false">[R] R</button><button class="btn" type="button" data-filter-tag="Master" aria-pressed="false">[M] Master</button><button class="btn" type="button" data-filter-tag="untagged" aria-pressed="false">Untagged</button>
+        </div>
+        <div class="deck-library-grid" id="deckLibraryGrid"></div>
+      </section>
+      <div class="deck-build-workspace" id="deckBuildWorkspace">
+        <div class="deck-builder-toolbar"><select id="deckEditorSelect" class="deck-select" aria-label="Choose a deck to edit"></select><button class="btn" id="deckPasteModeBtn" type="button">Edit pasted list</button><input id="deckNameInput" class="deck-name-input" maxlength="48" placeholder="Deck name"><select class="deck-select" id="deckBuilderCategory" aria-label="Deck tag"><option value="">No tag</option><option>Toma</option><option>A</option><option>R</option><option>Master</option></select><button class="btn" id="newDeckBtn" type="button">New manual deck</button></div>
+        <div class="deck-cover-control"><div class="deck-cover-control-head"><label for="deckCoverSelect">Deck cover</label><span>Choose a card from this list or add your own picture.</span></div><div class="deck-cover-control-actions"><select id="deckCoverSelect" aria-label="Choose a card from this deck as its cover"><option value="">Automatic cover · first Pokémon</option></select><button class="btn" id="chooseDeckCoverBtn" type="button">Choose picture</button><button class="btn" id="clearDeckCoverBtn" type="button">Use card cover</button><input class="file-input" type="file" id="deckCoverFile" accept="image/*"></div><div class="deck-cover-preview" id="deckCoverPreview">Add cards to choose a cover.</div></div>
+        <div class="deck-builder-layout">
+          <section class="deck-builder-catalog"><div class="builder-section-heading"><strong>Card library</strong><span class="deck-count" id="deckPickerCount">0 cards</span></div><div class="deck-picker-filters"><input id="deckCardFilter" class="deck-filter-input" placeholder="Search card name or number…" autocomplete="off" aria-label="Search registered cards"><select id="deckCardTypeFilter" aria-label="Filter cards by type"><option value="all">All types</option><option value="Pokemon">Pokémon</option><option value="Trainer">Trainer</option><option value="Energy">Energy</option></select><select id="deckCardStatusFilter" aria-label="Filter cards by implementation"><option value="all">Any status</option><option value="implemented">Implemented</option><option value="registered">Registered</option><option value="unchecked">Not checked</option></select><select id="deckCardSetFilter" aria-label="Filter cards by set"><option value="all">All sets</option></select></div><div class="builder-card-list" id="deckCardPicker"></div></section>
+          <section class="deck-builder-list"><div class="builder-section-heading"><strong>Deck list</strong><span class="deck-count" id="deckBuilderCount">0 / 60 cards</span></div><div class="deck-builder-breakdown" id="deckBuilderBreakdown">Pokémon 0 · Trainer 0 · Energy 0</div><div class="deck-builder-validation" id="deckBuilderValidation">Add cards from the registered library.</div><div class="builder-deck-cards" id="deckBuilderCards"></div><div class="deck-builder-actions"><button class="btn danger" id="deleteDeckBtn" disabled>Delete deck</button><button class="btn primary" id="saveDeckBtn" disabled>Save deck</button></div></section>
+        </div>
+      </div>
+      <section class="deck-paste-workspace app-hidden" id="deckPasteWorkspace">
+        <div class="deck-paste-heading"><div><strong>Create or edit a deck</strong><p>Paste the deck list, give it a name, and save. Card records are added automatically; cards without verified details can stay Not checked until you update them.</p></div><span class="deck-count" id="deckImportCount">0 / 60 cards</span></div>
+        <div class="deck-paste-fields"><input id="deckImportName" class="deck-name-input" maxlength="48" placeholder="Deck name"><select class="deck-select" id="deckImportCategory" aria-label="Deck tag"><option value="">No tag</option><option>Toma</option><option>A</option><option>R</option><option>Master</option></select><textarea id="deckImportText" spellcheck="false" placeholder="Pokémon: 16&#10;4 Dratini OBF 157&#10;...&#10;Trainer: 29&#10;...&#10;Energy: 15&#10;..."></textarea></div>
+        <div class="deck-import-footer"><div class="deck-import-validation" id="deckImportValidation">Paste a Limitless list. The app will register the deck and its card records together.</div><div class="deck-import-actions"><button class="btn" id="openManualDeckBuilderBtn" type="button">Choose cards from library</button><button class="btn primary" id="importDeckFromTextBtn" disabled>Save deck &amp; cards</button></div></div>
+      </section>
+      <div class="manager-status" id="deckManagerStatus">Paste a deck list to register the deck and its card records together.</div>
+    </section>
+  </div>
+    <div class="hub-page hidden" id="cardLibraryModal" role="region" aria-labelledby="cardLibraryTitle">
+    <section class="setup-card library-card library-dashboard">
+      <div class="library-heading"><div><h2 id="cardLibraryTitle">Cards</h2><p>Registered card prints, saved card text, engine support, and deck usage. <span id="engineBuildLabel">Playmat update: 3 Nov 2026.</span></p></div><div class="library-heading-actions"><button class="btn small" id="retryMissingCardDataBtn" type="button" title="Retry card identity, statistics, effect text, and artwork lookups for all cards whose data is not verified.">Retry missing data</button><button class="btn small" id="refreshAllCardStatusesBtn" type="button" title="Recheck all saved card effects against the current game engine and update their status labels.">Update all cards</button><button class="btn small" id="reloadRegisteredCardsBtn" type="button" title="Reload registered cards and deck usage from browser storage">Reload</button><button class="btn small primary" id="showCatalogSearchTab" type="button">+ Register Card</button><button class="btn small" id="closeCardLibraryBtn" aria-label="Close card library">✕</button></div></div>
+      <div class="library-stats">
+        <div class="library-stat"><small>Registered cards</small><strong id="libraryTotalCount">0</strong></div>
+        <div class="library-stat"><small>Pokémon</small><strong id="libraryPokemonCount">0</strong></div>
+        <div class="library-stat"><small>Trainer</small><strong id="libraryTrainerCount">0</strong></div>
+        <div class="library-stat"><small>Energy</small><strong id="libraryEnergyCount">0</strong></div>
+        <div class="library-stat"><small>Registered · needs implementation</small><strong id="libraryRegisteredCount">0</strong></div>
+        <div class="library-stat"><small>Saved cache</small><strong id="libraryCacheSize">0 KB</strong></div>
+      </div>
+      <section class="library-workflow" aria-label="How card effect implementation works">
+        <div class="library-workflow-step"><b>1</b><div><strong>Add a card</strong>Search Limitless or import a deck. The app saves the verified print, picture, and effect text.</div></div>
+        <div class="library-workflow-step"><b>2</b><div><strong>Check engine support</strong>Save or update the card to see whether its effects are already supported.</div></div>
+        <div class="library-workflow-step"><b>3</b><div><strong>Queue missing effects</strong>Cards tagged Registered appear in the pending tab. Copy the list and paste it into Codex.</div></div>
+        <div class="library-workflow-step"><b>4</b><div><strong>Refresh after code changes</strong>Reopen the page, then reload the library. The app rechecks saved text; supported cards can unlock decks.</div></div>
+      </section>
+      <section class="coverage-panel" aria-label="Card effect coverage">
+        <div class="coverage-heading"><strong>Effect coverage</strong><div class="coverage-actions"><button class="text-button" id="clearLibraryFiltersBtn" type="button">Clear filter</button></div></div>
+        <div class="coverage-chips">
+          <button class="coverage-chip" data-effect-filter="implemented" type="button"><i class="coverage-dot supported"></i>Implemented <b id="libraryImplementedCount">0</b></button>
+          <button class="coverage-chip" data-effect-filter="registered" type="button" title="Card details are saved, but at least one printed effect still needs implementation."><i class="coverage-dot missing"></i>Registered · needs implementation <b id="libraryRegisteredChipCount">0</b></button>
+          <button class="coverage-chip" data-effect-filter="unchecked" type="button"><i class="coverage-dot unchecked"></i>Not checked <b id="libraryUncheckedCount">0</b></button>
+        </div>
+      </section>
+      <div class="library-view-tabs"><button class="library-view-tab active" id="libraryBrowseTab" type="button">Browse</button><button class="library-view-tab" id="libraryMissingTab" type="button">Registered · needs implementation <span id="libraryPendingTabCount">0</span></button><button class="btn small" id="copyMissingEffectsBtn" type="button" title="Copy verified card text for registered cards whose effects are not supported by this engine yet.">Copy pending cards</button><button class="btn small" id="copyUncheckedCardIdsBtn" type="button" title="Copy names, print IDs, and lookup errors for cards whose data could not be verified, so they can be identified manually.">Copy unchecked IDs</button></div>
+      <div class="implementation-progress bulk-card-progress hidden" id="bulkCardDataProgress" role="status" aria-live="polite" data-state="loading"><div class="implementation-progress-track" id="bulkCardDataProgressTrack" role="progressbar" aria-label="Card data lookup" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="implementation-progress-fill" id="bulkCardDataProgressFill"></div></div><span id="bulkCardDataMessage">Waiting to retry card data lookups.</span></div>
+      <div class="implementation-progress bulk-card-progress hidden" id="bulkCardCheckProgress" role="status" aria-live="polite" data-state="loading"><div class="implementation-progress-track" id="bulkCardCheckProgressTrack" role="progressbar" aria-label="Card status refresh" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="implementation-progress-fill" id="bulkCardCheckProgressFill"></div></div><span id="bulkCardCheckMessage">Waiting to refresh card statuses.</span></div>
+      <div class="library-top-controls">
+        <div class="library-filters" id="registeredCardFilters">
+          <input id="registeredCardSearch" placeholder="Search name, set code, or number…" autocomplete="off" aria-label="Search registered cards">
+          <select id="registeredCardStatusFilter" aria-label="Filter by support status"><option value="all">Any status</option><option value="implemented">Implemented</option><option value="registered">Registered · needs implementation</option><option value="unchecked">Not checked</option></select>
+          <select id="registeredCardTypeFilter" aria-label="Filter by card type"><option value="all">All types</option><option value="Pokemon">Pokémon</option><option value="Trainer">Trainer</option><option value="Energy">Energy</option><option value="Unknown">Unknown type</option></select>
+          <select id="registeredCardSubtypeFilter" aria-label="Filter by card subtype"><option value="all">All subtypes</option></select>
+          <select id="registeredCardDeckFilter" aria-label="Filter by deck"><option value="all">All decks</option></select>
+          <select id="registeredCardSetFilter" aria-label="Filter by expansion"><option value="all">All expansions</option></select>
+          <button class="btn small library-reset" id="resetLibraryFiltersBtn" type="button">Reset</button>
+        </div>
+        <form class="library-search app-hidden" id="cardSearchForm"><input id="cardSearchInput" placeholder="Search Pokémon, Trainer, or Energy on Limitless" autocomplete="off"><button class="btn primary" type="submit">Search cards</button></form>
+      </div>
+      <div class="library-workspace">
+        <aside class="card-detail-drawer" id="cardDetailDrawer" aria-label="Selected card details">
+          <div class="drawer-heading"><div><span class="panel-kicker">CARD RECORD</span><strong>Details</strong></div><button class="btn small" id="closeCardDetailBtn" type="button" aria-label="Clear card selection">✕</button></div>
+          <div class="library-detail" id="libraryCardDetail"><div class="inspector-empty">Select a card to inspect its rules.</div></div>
+          <div class="library-context" id="libraryContext"><div><strong>Card data</strong><span id="libraryCardDataStatus">Not checked</span></div><div><strong>Artwork</strong><span id="libraryCardImageStatus">Not loaded</span></div><div><strong>Effect support</strong><span id="libraryImplementationState">Select a card</span></div><div><strong>Registered in decks</strong><span class="deck-usage-list" id="libraryDeckUsage">—</span></div></div>
+          <div class="library-card-actions"><button class="btn" id="loadRegisteredCardBtn" hidden>Check card text</button><button class="btn primary" id="implementLibraryCardBtn" disabled>Save data &amp; check support</button><button class="btn" id="copyEffectBriefBtn" disabled>Copy implementation brief</button><button class="btn danger" id="deleteLibraryCardBtn" type="button" hidden>Delete card</button></div>
+          <div class="implementation-progress hidden" id="implementationProgress" role="status" aria-live="polite"><div class="implementation-progress-track"><div class="implementation-progress-fill" id="implementationProgressFill"></div></div><span id="implementationResult">Waiting for card data.</span></div>
+        </aside>
+        <section class="library-results-panel" aria-label="Card list">
+          <div class="library-status" id="cardLibraryStatus" aria-live="polite">0 of 0 cards</div>
+          <div class="card-library-grid" id="cardLibraryResults" aria-label="Card collection"></div>
+        </section>
+      </div>
+    </section>
+  </div>
     <section class="statistics-page app-hidden" id="statisticsPage" aria-labelledby="statisticsTitle">
-      <div class="statistics-header"><div><span class="panel-kicker">BATTLE LOBBY · MATCH RECORDS</span><h1 id="statisticsTitle" tabindex="-1">Statistics</h1></div><button class="btn" id="statisticsBack">← Main menu</button></div>
+      <div class="statistics-header"><div><span class="panel-kicker">MATCH RECORDS</span><h1 id="statisticsTitle" tabindex="-1">Statistics</h1></div></div>
       <div class="statistics-overview">
         <div><label class="statistics-filter">Deck played by Toma<select class="deck-select" id="statisticsDeck"></select></label><div id="statisticsDeckSummary"></div></div>
         <div class="statistics-chart" id="statisticsChart"></div>
@@ -329,159 +482,6 @@
       <button class="btn small" id="campaignNewRunBtn" type="button" hidden>Choose a new run</button>
       <button class="btn small" id="campaignManageDecksBtn" type="button">Manage Decks</button>
       <p class="matchup-stat-note" id="campaignActionStatus" role="status"></p>
-    </section>
-  </div>
-  <div class="modal-backdrop hidden" id="setupModal" role="dialog" aria-modal="true" aria-labelledby="setupHeading">
-    <section class="setup-card matchup-setup">
-      <div class="setup-top">
-        <div><div class="eyebrow">Before the first draw</div><h2 id="setupHeading">Choose your matchup.</h2><p id="setupSubtitle">Pick your decks. Flip the coin. Let the battle begin.</p></div>
-        <button class="btn small" id="closeSetupBtn" aria-label="Close setup">✕</button>
-      </div>
-      <div class="matchup-grid">
-        <div class="deck-box matchup-player toma-player">
-          <div class="matchup-player-heading"><span class="matchup-avatar">T</span><div><div class="eyebrow">Your side</div><h3>Toma</h3></div></div>
-          <div class="deck-box-head"><label for="youRegisteredDeck">Choose deck</label><span class="deck-count" id="youCount">0 / 60 cards</span></div>
-          <select class="deck-select" id="youRegisteredDeck" aria-label="Choose your registered deck"></select>
-          <div class="selected-deck-summary" id="youDeckSummary">Choose a deck from the registered collection.</div><textarea class="hidden-deck-text" id="youDeck" spellcheck="false" placeholder="Deck lists are managed in the deck builder."></textarea>
-          <div class="validation" id="youValidation"></div>
-        </div>
-        <div class="deck-box matchup-player yami-player">
-          <div class="matchup-player-heading"><span class="matchup-avatar">Y</span><div><div class="eyebrow">Opponent</div><h3>Yami</h3></div></div>
-          <div class="deck-box-head"><label for="codexRegisteredDeck">Choose deck</label><span class="deck-count" id="codexCount">0 / 60 cards</span></div>
-          <div class="matchup-deck-choice"><select class="deck-select" id="codexRegisteredDeck" aria-label="Choose Yami's registered deck"></select><button class="btn small" type="button" id="randomYamiDeckBtn" aria-label="Choose a random deck for Yami">⚄ Random</button></div>
-          <div class="selected-deck-summary" id="codexDeckSummary">Choose a deck from the registered collection.</div><textarea class="hidden-deck-text" id="codexDeck" spellcheck="false" placeholder="Deck lists are managed in the deck builder."></textarea>
-          <div class="validation" id="codexValidation"></div>
-          <details class="matchup-yami-settings" id="matchupYamiSettings" open>
-          <summary>Yami settings</summary>
-          <label class="matchup-stat-label" for="yamiStyleSelect">Yami style</label>
-          <select class="deck-select" id="yamiStyleSelect" aria-describedby="yamiStyleNote">
-            <option value="random">Random</option>
-            <option value="aggro">Aggro</option>
-            <option value="balanced">Balanced</option>
-            <option value="control">Control</option>
-          </select>
-          <p class="matchup-stat-note" id="yamiStyleNote" role="status"></p>
-          <label class="matchup-stat-label" for="yamiDifficultySelect">Yami difficulty</label>
-          <select class="deck-select" id="yamiDifficultySelect" aria-describedby="yamiDifficultyNote">
-            <option value="random">Random</option>
-            <option value="competitor">Competitor</option>
-            <option value="casual">Casual</option>
-            <option value="master">Master</option>
-          </select>
-          <p class="matchup-stat-note" id="yamiDifficultyNote" role="status"></p>
-          </details>
-        </div>
-        <div class="matchup-center">
-          <div class="coin-panel" id="coinPanel" aria-live="polite">
-            <div class="eyebrow">Who goes first?</div>
-            <button class="coin-disc" id="coinDisc" type="button" aria-label="Flip coin to choose the first player">?</button>
-            <div class="coin-copy"><strong id="coinHeadline">Click the coin to flip</strong><span id="coinSubline">Heads · Toma first. Tails · Yami first.</span></div>
-            <div class="matchup-coin-actions"><button class="btn primary" id="startBtn" disabled>I start first</button><button class="btn" id="yamiStartsBtn" disabled>Yami starts first</button></div>
-          </div>
-          <details class="matchup-records" id="matchupRecords" open><summary><span class="eyebrow">The rivalry</span><strong id="matchupRecordsHeading">Head to head</strong></summary><div id="setupMatchupStats" aria-live="polite"></div></details>
-        </div>
-      </div>
-      <div class="deck-selection-warning" id="deckSelectionWarning" role="status">Decks with verified card details can be selected even when some effects need manual resolution.</div>
-      <section class="setup-playmat-choice" aria-label="Choose a playmat">
-        <div class="setup-playmat-preview" id="setupPlaymatPreview" aria-hidden="true"></div>
-        <div class="setup-playmat-control"><label for="setupPlaymatSelect">Playmat</label><select class="deck-select" id="setupPlaymatSelect"><option value="">Default · blue playmat</option></select><small>One background across Toma’s and Yami’s field. Zones stay visible.</small></div>
-        <button class="btn small" id="managePlaymatsBtn" type="button">Upload / manage</button>
-      </section>
-      <div class="setup-status" id="setupStatus" aria-live="polite">Card type, Pokémon stats, artwork, and effect text load from Limitless when available.</div>
-      <div class="setup-bottom">
-        <div class="note">Changing either deck resets the coin flip.</div>
-        <div class="setup-actions"><button class="btn small" id="setupManageDecksBtn">Manage decks</button><button class="btn small" id="setupManageCardsBtn">Card library</button></div>
-      </div>
-    </section>
-  </div>
-  <div class="modal-backdrop hidden" id="deckManagerModal" role="dialog" aria-modal="true" aria-labelledby="deckManagerTitle">
-    <section class="setup-card manager-card">
-      <div class="setup-top"><div><div class="eyebrow">DECK LIBRARY</div><h2 id="deckManagerTitle">My decks</h2><p>Check implementation status, review deck stats, and start a local playtest.</p></div><button class="btn small" id="closeDeckManagerBtn" aria-label="Close deck manager">✕</button></div>
-      <div class="deck-manager-tabs"><button class="library-view-tab active" id="deckLibraryTab" type="button">My decks</button><button class="library-view-tab" id="deckPasteTab" type="button">Create / edit deck</button><button class="library-view-tab" id="playmatsTab" type="button">Playmats</button></div>
-      <section class="playmats-workspace app-hidden" id="playmatsWorkspace" aria-labelledby="playmatsHeading">
-        <div class="playmats-heading"><h3 id="playmatsHeading">Your playmats</h3><p>Upload a picture, then choose it when starting a match. It covers both players’ field as one image.</p></div>
-        <div class="playmat-upload-controls"><label for="playmatUploadName">Name (optional)<input class="deck-name-input" id="playmatUploadName" maxlength="60" placeholder="For example: Dragon arena"></label><button class="btn primary" id="uploadPlaymatBtn" type="button">Upload playmat</button><input class="file-input" id="playmatUploadFile" type="file" accept="image/jpeg,image/png,image/webp"></div>
-        <p class="data-tools-note">JPG, PNG or WebP · images are resized automatically and saved on this device. The default blue playmat is always available.</p>
-        <p class="manager-status" id="playmatLibraryStatus" role="status" aria-live="polite"></p>
-        <div class="playmat-library-grid" id="playmatLibraryGrid"></div>
-      </section>
-      <section class="deck-library-workspace" id="deckLibraryWorkspace">
-        <div class="deck-library-heading"><div><strong>Registered decks</strong><p>Playable means every card is verified and its game effects are supported.</p></div><div class="deck-library-heading-actions"><button class="btn" id="refreshDeckCardStatusesBtn" type="button" title="Recheck every saved card against the current game engine and update status labels.">Update all card statuses</button><button class="btn" id="deckCollapseAll" type="button">Collapse all</button><button class="btn" id="deckExpandAll" type="button">Expand all</button><button class="btn" id="exportMatchFixtureBtn" type="button" title="Download only the registered Iono Lightning and Dragonite decks and their referenced card records.">Export match test data</button><button class="btn primary" id="createDeckFromLibraryBtn" type="button">+ New deck</button></div></div>
-        <input class="btn" id="deckLibrarySearch" type="search" aria-label="Search decks by name" placeholder="Search decks by name">
-        <div class="deck-tag-buttons" id="deckLibraryCategory" role="group" aria-label="Filter decks by tag" data-tag="all">
-          <button class="btn" type="button" data-filter-tag="all" aria-pressed="true">All tags</button><button class="btn" type="button" data-filter-tag="Toma" aria-pressed="false">[T] Toma</button><button class="btn" type="button" data-filter-tag="A" aria-pressed="false">[A] A</button><button class="btn" type="button" data-filter-tag="R" aria-pressed="false">[R] R</button><button class="btn" type="button" data-filter-tag="Master" aria-pressed="false">[M] Master</button><button class="btn" type="button" data-filter-tag="untagged" aria-pressed="false">Untagged</button>
-        </div>
-        <div class="deck-library-grid" id="deckLibraryGrid"></div>
-      </section>
-      <div class="deck-build-workspace" id="deckBuildWorkspace">
-        <div class="deck-builder-toolbar"><select id="deckEditorSelect" class="deck-select" aria-label="Choose a deck to edit"></select><button class="btn" id="deckPasteModeBtn" type="button">Edit pasted list</button><input id="deckNameInput" class="deck-name-input" maxlength="48" placeholder="Deck name"><select class="deck-select" id="deckBuilderCategory" aria-label="Deck tag"><option value="">No tag</option><option>Toma</option><option>A</option><option>R</option><option>Master</option></select><button class="btn" id="newDeckBtn" type="button">New manual deck</button></div>
-        <div class="deck-cover-control"><div class="deck-cover-control-head"><label for="deckCoverSelect">Deck cover</label><span>Choose a card from this list or add your own picture.</span></div><div class="deck-cover-control-actions"><select id="deckCoverSelect" aria-label="Choose a card from this deck as its cover"><option value="">Automatic cover · first Pokémon</option></select><button class="btn" id="chooseDeckCoverBtn" type="button">Choose picture</button><button class="btn" id="clearDeckCoverBtn" type="button">Use card cover</button><input class="file-input" type="file" id="deckCoverFile" accept="image/*"></div><div class="deck-cover-preview" id="deckCoverPreview">Add cards to choose a cover.</div></div>
-        <div class="deck-builder-layout">
-          <section class="deck-builder-catalog"><div class="builder-section-heading"><strong>Card library</strong><span class="deck-count" id="deckPickerCount">0 cards</span></div><div class="deck-picker-filters"><input id="deckCardFilter" class="deck-filter-input" placeholder="Search card name or number…" autocomplete="off" aria-label="Search registered cards"><select id="deckCardTypeFilter" aria-label="Filter cards by type"><option value="all">All types</option><option value="Pokemon">Pokémon</option><option value="Trainer">Trainer</option><option value="Energy">Energy</option></select><select id="deckCardStatusFilter" aria-label="Filter cards by implementation"><option value="all">Any status</option><option value="implemented">Implemented</option><option value="registered">Registered</option><option value="unchecked">Not checked</option></select><select id="deckCardSetFilter" aria-label="Filter cards by set"><option value="all">All sets</option></select></div><div class="builder-card-list" id="deckCardPicker"></div></section>
-          <section class="deck-builder-list"><div class="builder-section-heading"><strong>Deck list</strong><span class="deck-count" id="deckBuilderCount">0 / 60 cards</span></div><div class="deck-builder-breakdown" id="deckBuilderBreakdown">Pokémon 0 · Trainer 0 · Energy 0</div><div class="deck-builder-validation" id="deckBuilderValidation">Add cards from the registered library.</div><div class="builder-deck-cards" id="deckBuilderCards"></div><div class="deck-builder-actions"><button class="btn danger" id="deleteDeckBtn" disabled>Delete deck</button><button class="btn primary" id="saveDeckBtn" disabled>Save deck</button></div></section>
-        </div>
-      </div>
-      <section class="deck-paste-workspace app-hidden" id="deckPasteWorkspace">
-        <div class="deck-paste-heading"><div><strong>Create or edit a deck</strong><p>Paste the deck list, give it a name, and save. Card records are added automatically; cards without verified details can stay Not checked until you update them.</p></div><span class="deck-count" id="deckImportCount">0 / 60 cards</span></div>
-        <div class="deck-paste-fields"><input id="deckImportName" class="deck-name-input" maxlength="48" placeholder="Deck name"><select class="deck-select" id="deckImportCategory" aria-label="Deck tag"><option value="">No tag</option><option>Toma</option><option>A</option><option>R</option><option>Master</option></select><textarea id="deckImportText" spellcheck="false" placeholder="Pokémon: 16&#10;4 Dratini OBF 157&#10;...&#10;Trainer: 29&#10;...&#10;Energy: 15&#10;..."></textarea></div>
-        <div class="deck-import-footer"><div class="deck-import-validation" id="deckImportValidation">Paste a Limitless list. The app will register the deck and its card records together.</div><div class="deck-import-actions"><button class="btn" id="openManualDeckBuilderBtn" type="button">Choose cards from library</button><button class="btn primary" id="importDeckFromTextBtn" disabled>Save deck &amp; cards</button></div></div>
-      </section>
-      <div class="manager-status" id="deckManagerStatus">Paste a deck list to register the deck and its card records together.</div>
-    </section>
-  </div>
-  <div class="modal-backdrop hidden" id="cardLibraryModal" role="dialog" aria-modal="true" aria-labelledby="cardLibraryTitle">
-    <section class="setup-card library-card library-dashboard">
-      <div class="library-heading"><div><h2 id="cardLibraryTitle">Cards</h2><p>Registered card prints, saved card text, engine support, and deck usage. <span id="engineBuildLabel">Playmat update: 3 Nov 2026.</span></p></div><div class="library-heading-actions"><button class="btn small" id="retryMissingCardDataBtn" type="button" title="Retry card identity, statistics, effect text, and artwork lookups for all cards whose data is not verified.">Retry missing data</button><button class="btn small" id="refreshAllCardStatusesBtn" type="button" title="Recheck all saved card effects against the current game engine and update their status labels.">Update all cards</button><button class="btn small" id="reloadRegisteredCardsBtn" type="button" title="Reload registered cards and deck usage from browser storage">Reload</button><button class="btn small primary" id="showCatalogSearchTab" type="button">+ Register Card</button><button class="btn small" id="closeCardLibraryBtn" aria-label="Close card library">✕</button></div></div>
-      <div class="library-stats">
-        <div class="library-stat"><small>Registered cards</small><strong id="libraryTotalCount">0</strong></div>
-        <div class="library-stat"><small>Pokémon</small><strong id="libraryPokemonCount">0</strong></div>
-        <div class="library-stat"><small>Trainer</small><strong id="libraryTrainerCount">0</strong></div>
-        <div class="library-stat"><small>Energy</small><strong id="libraryEnergyCount">0</strong></div>
-        <div class="library-stat"><small>Registered · needs implementation</small><strong id="libraryRegisteredCount">0</strong></div>
-        <div class="library-stat"><small>Saved cache</small><strong id="libraryCacheSize">0 KB</strong></div>
-      </div>
-      <section class="library-workflow" aria-label="How card effect implementation works">
-        <div class="library-workflow-step"><b>1</b><div><strong>Add a card</strong>Search Limitless or import a deck. The app saves the verified print, picture, and effect text.</div></div>
-        <div class="library-workflow-step"><b>2</b><div><strong>Check engine support</strong>Save or update the card to see whether its effects are already supported.</div></div>
-        <div class="library-workflow-step"><b>3</b><div><strong>Queue missing effects</strong>Cards tagged Registered appear in the pending tab. Copy the list and paste it into Codex.</div></div>
-        <div class="library-workflow-step"><b>4</b><div><strong>Refresh after code changes</strong>Reopen the page, then reload the library. The app rechecks saved text; supported cards can unlock decks.</div></div>
-      </section>
-      <section class="coverage-panel" aria-label="Card effect coverage">
-        <div class="coverage-heading"><strong>Effect coverage</strong><div class="coverage-actions"><button class="text-button" id="clearLibraryFiltersBtn" type="button">Clear filter</button></div></div>
-        <div class="coverage-chips">
-          <button class="coverage-chip" data-effect-filter="implemented" type="button"><i class="coverage-dot supported"></i>Implemented <b id="libraryImplementedCount">0</b></button>
-          <button class="coverage-chip" data-effect-filter="registered" type="button" title="Card details are saved, but at least one printed effect still needs implementation."><i class="coverage-dot missing"></i>Registered · needs implementation <b id="libraryRegisteredChipCount">0</b></button>
-          <button class="coverage-chip" data-effect-filter="unchecked" type="button"><i class="coverage-dot unchecked"></i>Not checked <b id="libraryUncheckedCount">0</b></button>
-        </div>
-      </section>
-      <div class="library-view-tabs"><button class="library-view-tab active" id="libraryBrowseTab" type="button">Browse</button><button class="library-view-tab" id="libraryMissingTab" type="button">Registered · needs implementation <span id="libraryPendingTabCount">0</span></button><button class="btn small" id="copyMissingEffectsBtn" type="button" title="Copy verified card text for registered cards whose effects are not supported by this engine yet.">Copy pending cards</button><button class="btn small" id="copyUncheckedCardIdsBtn" type="button" title="Copy names, print IDs, and lookup errors for cards whose data could not be verified, so they can be identified manually.">Copy unchecked IDs</button></div>
-      <div class="implementation-progress bulk-card-progress hidden" id="bulkCardDataProgress" role="status" aria-live="polite" data-state="loading"><div class="implementation-progress-track" id="bulkCardDataProgressTrack" role="progressbar" aria-label="Card data lookup" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="implementation-progress-fill" id="bulkCardDataProgressFill"></div></div><span id="bulkCardDataMessage">Waiting to retry card data lookups.</span></div>
-      <div class="implementation-progress bulk-card-progress hidden" id="bulkCardCheckProgress" role="status" aria-live="polite" data-state="loading"><div class="implementation-progress-track" id="bulkCardCheckProgressTrack" role="progressbar" aria-label="Card status refresh" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="implementation-progress-fill" id="bulkCardCheckProgressFill"></div></div><span id="bulkCardCheckMessage">Waiting to refresh card statuses.</span></div>
-      <div class="library-top-controls">
-        <div class="library-filters" id="registeredCardFilters">
-          <input id="registeredCardSearch" placeholder="Search name, set code, or number…" autocomplete="off" aria-label="Search registered cards">
-          <select id="registeredCardStatusFilter" aria-label="Filter by support status"><option value="all">Any status</option><option value="implemented">Implemented</option><option value="registered">Registered · needs implementation</option><option value="unchecked">Not checked</option></select>
-          <select id="registeredCardTypeFilter" aria-label="Filter by card type"><option value="all">All types</option><option value="Pokemon">Pokémon</option><option value="Trainer">Trainer</option><option value="Energy">Energy</option><option value="Unknown">Unknown type</option></select>
-          <select id="registeredCardSubtypeFilter" aria-label="Filter by card subtype"><option value="all">All subtypes</option></select>
-          <select id="registeredCardDeckFilter" aria-label="Filter by deck"><option value="all">All decks</option></select>
-          <select id="registeredCardSetFilter" aria-label="Filter by expansion"><option value="all">All expansions</option></select>
-          <button class="btn small library-reset" id="resetLibraryFiltersBtn" type="button">Reset</button>
-        </div>
-        <form class="library-search app-hidden" id="cardSearchForm"><input id="cardSearchInput" placeholder="Search Pokémon, Trainer, or Energy on Limitless" autocomplete="off"><button class="btn primary" type="submit">Search cards</button></form>
-      </div>
-      <div class="library-workspace">
-        <aside class="card-detail-drawer" id="cardDetailDrawer" aria-label="Selected card details">
-          <div class="drawer-heading"><div><span class="panel-kicker">CARD RECORD</span><strong>Details</strong></div><button class="btn small" id="closeCardDetailBtn" type="button" aria-label="Clear card selection">✕</button></div>
-          <div class="library-detail" id="libraryCardDetail"><div class="inspector-empty">Select a card to inspect its rules.</div></div>
-          <div class="library-context" id="libraryContext"><div><strong>Card data</strong><span id="libraryCardDataStatus">Not checked</span></div><div><strong>Artwork</strong><span id="libraryCardImageStatus">Not loaded</span></div><div><strong>Effect support</strong><span id="libraryImplementationState">Select a card</span></div><div><strong>Registered in decks</strong><span class="deck-usage-list" id="libraryDeckUsage">—</span></div></div>
-          <div class="library-card-actions"><button class="btn" id="loadRegisteredCardBtn" hidden>Check card text</button><button class="btn primary" id="implementLibraryCardBtn" disabled>Save data &amp; check support</button><button class="btn" id="copyEffectBriefBtn" disabled>Copy implementation brief</button><button class="btn danger" id="deleteLibraryCardBtn" type="button" hidden>Delete card</button></div>
-          <div class="implementation-progress hidden" id="implementationProgress" role="status" aria-live="polite"><div class="implementation-progress-track"><div class="implementation-progress-fill" id="implementationProgressFill"></div></div><span id="implementationResult">Waiting for card data.</span></div>
-        </aside>
-        <section class="library-results-panel" aria-label="Card list">
-          <div class="library-status" id="cardLibraryStatus" aria-live="polite">0 of 0 cards</div>
-          <div class="card-library-grid" id="cardLibraryResults" aria-label="Card collection"></div>
-        </section>
-      </div>
     </section>
   </div>
   <input class="file-input" type="file" id="deckFile" accept=".txt,.deck,text/plain">
@@ -8118,12 +8118,36 @@
       $('menuCampaignAction').textContent = run ?
         (run.results.length===5 ? 'View campaign →' : 'Continue campaign →') : 'Start a campaign →';
     }
-    function setView(view) {
+    const hubRoutes = {menu:'', setup:'#playmat/setup', match:'#playmat', decks:'#decks', library:'#library', statistics:'#statistics'};
+    const hubPageIds = {setup:'setupModal', decks:'deckManagerModal', library:'cardLibraryModal'};
+    function showAddressedPage() {
+      const view = Object.keys(hubRoutes).find(key=>hubRoutes[key] === window.location?.hash);
+      if (!view) return;
+      if (view === 'match') {
+        if (game) { setView('match'); render(); }
+        else if ($('resumeCard').hidden || !resumeSavedMatch()) {
+          window.history.replaceState(null, '', hubRoutes.setup);
+          openStartGame();
+        }
+      } else if (view === 'setup') openStartGame(window.history?.state?.matchup || {});
+      else if (view === 'decks') openDeckManager();
+      else if (view === 'library') openCardLibrary();
+      else if (view === 'statistics') openMatchupStatistics();
+      else setView('menu');
+    }
+    function setView(view, matchup = null) {
+      const hash = hubRoutes[view];
+      if (window.history?.pushState && window.location.hash !== hash) {
+        window.history.pushState({matchup}, '', window.location.pathname + window.location.search + hash);
+      }
+      if (view !== 'setup' && setupCoinAnimation) clearCoinDecision();
+      for (const [key,id] of Object.entries(hubPageIds)) $(id).classList.toggle('hidden',key !== view);
+      document.title = ({menu:'Tomtom TCG Hub', setup:'New match', match:'Playmat', decks:'Deck Manager', library:'Card Library', statistics:'Statistics'})[view] + (view === 'menu' ? '' : ' · Tomtom TCG Hub');
       if (view !== 'match' && typeof clearPlaymatEffects === 'function') clearPlaymatEffects();
       if (view!=='match' && typeof setMobileMatchPanel==='function') setMobileMatchPanel(null);
       $('matchLogBtn').hidden=view!=='match';
       $('playmatSettings').open = false;
-      for (const id of ['homeBtn','startGameBtn']) $(id).hidden = view !== 'match';
+      $('startGameBtn').hidden = view !== 'match';
       if (view !== 'match') { closeCardActionMenu(); finishPanelResize(null,true); }
       $('statisticsPage').classList.toggle('app-hidden', view !== 'statistics');
       $('mainMenu').classList.toggle('app-hidden', view !== 'menu');
@@ -8338,6 +8362,7 @@
     function openStartGame({campaignRound = null, rematch = null, suggestedMatchup = null} = {}) {
       if (coinPresentationPending) { showToast('Wait for the coin result before starting another match.'); return; }
       if (activeBoardChoiceResolver) { showToast('Finish or cancel the current choice first.'); return; }
+      setView('setup', {campaignRound, rematch, suggestedMatchup});
       campaignSetup = campaignRound;
       populateDeckSelectors();
       const matchup = campaignRound || rematch || suggestedMatchup;
@@ -8357,7 +8382,7 @@
       for (const id of ['youRegisteredDeck','codexRegisteredDeck','yamiStyleSelect','yamiDifficultySelect']) $(id).disabled = !!campaignRound;
       $('yamiStyleSelect').closest('.matchup-yami-settings')?.classList.toggle('hidden',!!campaignRound);
       renderPlaymatChoices();
-      if (!coinResult) clearCoinDecision();
+      clearCoinDecision();
       showValidation('you'); showValidation('codex');
       const showDetails = !mobileMatchLayout();
       $('matchupYamiSettings').open = showDetails;
@@ -8991,7 +9016,7 @@
       if (view === 'paste') previewDeckImport();
     }
     function openDeckManager() {
-      $('deckManagerModal').classList.remove('hidden');
+      setView('decks');
       renderDeckEditorOptions(); startNewDeck(); setDeckManagerView('library');
       $('deckManagerStatus').textContent = 'Choose a deck to play or edit, or create a new deck from a pasted list.';
     }
@@ -9479,7 +9504,7 @@
       $('cardLibraryStatus').textContent = `Reloaded ${registeredCards.length} registered cards from this browser.`;
     }
     function openCardLibrary() {
-      $('cardLibraryModal').classList.remove('hidden');
+      setView('library');
       if (selectedLibraryCard && !registeredCards.some(card => cardCatalogKey(card) === cardCatalogKey(selectedLibraryCard))) selectedLibraryCard = null;
       populateRegisteredCardDeckFilter();
       resetLibraryFilters();
@@ -10113,6 +10138,7 @@
     async function handleStartAction({first = null} = {}) {
       if (deckResolutionBusy || setupCoinAnimation || $('setupModal').classList.contains('hidden')) return;
       const begin = () => {
+        if ($('setupModal').classList.contains('hidden')) return;
         if (first === 'you' || first === 'codex') {
           coinResult = {face:null,first,method:'chosen'};
           startMatch();
@@ -10226,7 +10252,7 @@
       $('setupModal').classList.add('hidden');
       logEvent(approvedCoin.method === 'chosen' ? `${PLAYER_NAMES[approvedCoin.first]} was chosen to start first.` : `${approvedCoin.face} assigned first turn to ${PLAYER_NAMES[approvedCoin.first]}.`);
       try { resolveOpeningMulligans(); }
-      catch (error) { game = null; setView('menu'); $('setupModal').classList.remove('hidden'); setSetupStatus(error.message, true); return; }
+      catch (error) { game = null; setView('setup'); setSetupStatus(error.message, true); return; }
       const codex = player('codex');
       const openingCandidates = codex.hand.filter(card => codex.openingBasicIds.includes(card.id));
       if (hasIonoFanStrategy()) {
@@ -22233,9 +22259,11 @@
     window.matchMedia('(max-width: 600px) and (orientation: portrait)').addEventListener?.('change',()=>{
       if (!$('statisticsPage').classList.contains('app-hidden')) renderStatisticsTable();
     });
-    $("statisticsBack").addEventListener("click", () => { setView("menu"); $("menuStatistics").focus(); });
     $('menuManageDecks').addEventListener('click', openDeckManager);
-    $('homeBtn').addEventListener('click', () => {
+    $('homeBtn').addEventListener('click', event => {
+      if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      if (deckResolutionBusy) { showToast('Checking the selected decks.'); return; }
       if (activeBoardChoiceResolver) { showToast('Finish or cancel the current choice first.'); return; }
       $('setupModal').classList.add('hidden');
       $('deckManagerModal').classList.add('hidden');
@@ -22244,7 +22272,7 @@
     });
     $('setupManageDecksBtn').addEventListener('click', openDeckEditorForSetup);
     $('setupManageCardsBtn').addEventListener('click', openCardLibrary);
-    $('closeDeckManagerBtn').addEventListener('click', () => $('deckManagerModal').classList.add('hidden'));
+    $('closeDeckManagerBtn').addEventListener('click', () => setView('menu'));
     $('deckLibraryTab').addEventListener('click', () => setDeckManagerView('library'));
     $('playmatsTab').addEventListener('click', () => setDeckManagerView('playmats'));
     $('uploadPlaymatBtn').addEventListener('click', () => $('playmatUploadFile').click());
@@ -22376,7 +22404,7 @@
     $('registeredCardSubtypeFilter').addEventListener('change', renderRegisteredCardList);
     $('registeredCardDeckFilter').addEventListener('change', renderRegisteredCardList);
     $('registeredCardSetFilter').addEventListener('change', renderRegisteredCardList);
-    $('closeCardLibraryBtn').addEventListener('click', () => $('cardLibraryModal').classList.add('hidden'));
+    $('closeCardLibraryBtn').addEventListener('click', () => setView('menu'));
     $('cardSearchForm').addEventListener('submit', event => { event.preventDefault(); searchCardLibrary($('cardSearchInput').value); });
     $('cardLibraryResults').addEventListener('click', event => {
       if (implementingCard) return;
@@ -22791,8 +22819,8 @@
         else if (activeCardChoiceResolver) finishCardChoice(null);
         else if (activeBoardChoiceResolver) finishBoardChoice(null);
         else if (!$('discardViewer').classList.contains('hidden')) $('discardViewer').classList.add('hidden');
-        else if (!$('cardLibraryModal').classList.contains('hidden')) $('cardLibraryModal').classList.add('hidden');
-        else if (!$('deckManagerModal').classList.contains('hidden')) $('deckManagerModal').classList.add('hidden');
+        else if (!$('cardLibraryModal').classList.contains('hidden')) setView('menu');
+        else if (!$('deckManagerModal').classList.contains('hidden')) setView('menu');
         else if (!$('campaignModal').classList.contains('hidden')) $('campaignModal').classList.add('hidden');
         else if (openCardActionKey) closeCardActionMenu(true);
         else if (mobileMatchLayout() && $('matchLayout').dataset.mobilePanel) setMobileMatchPanel(null,true);
@@ -22802,10 +22830,12 @@
         }
       }
     });
+    window.addEventListener('hashchange', showAddressedPage);
     initializePanelLayout();
     refreshResumeCard();
     applyFontSizeSettings();
     showValidation('you'); showValidation('codex'); render();
+    if (window.location?.hash) showAddressedPage();
   </script>
   <script src="assets/pokedex-sync.js?v=5"></script>
   <script src="assets/hub-collection.js?v=1"></script>
