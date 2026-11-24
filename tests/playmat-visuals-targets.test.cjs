@@ -14,6 +14,24 @@ function ready() {
 }
 function advance(r,timers) {const timer=timers.get(r.api.visualState().timer);assert.ok(timer);timers.delete(r.api.visualState().timer);timer.callback()}
 
+test('an attack with blocked damage displays feedback before the next draw',async()=>{
+  const {r,d,g,timers}=ready();
+  r.api.stagedKnockouts(true);
+  const turn=g.turnNumber;
+  d.attackDamageImmunityUntilTurn=turn;
+  assert.equal(await r.api.attack('you',0),true);
+  assert.equal(r.api.visualState().active.kind,'attack');
+  advance(r,timers);
+  assert.equal(r.api.visualState().active.kind,'attack-feedback');
+  assert.match(r.document.getElementById('playmatEffects').innerHTML,/Damage blocked/);
+  assert.equal(d.damage,0);
+  assert.equal(g.turnNumber,turn);
+  advance(r,timers);
+  await tick();
+  assert.equal(g.turnNumber,turn+1);
+  assert.equal(r.api.visualState().active.kind,'zone-move');
+});
+
 test('opening Active placement reaches the field before setup can finish',()=>{
   const {r,g,p,timers}=ready();
   r.api.stagedKnockouts(true);

@@ -3079,3 +3079,94 @@ button.recap-marker:hover, button.recap-marker:focus-visible { border-color: #f5
 @media (prefers-reduced-motion:reduce) {
   .battle-center, .player-row { transition:none; }
 }
+
+/* Type accents share the strike timing but use distinct shapes and motion. */
+.fx-type-accent {
+  position:absolute; width:clamp(54px,13vw,112px); aspect-ratio:1;
+  translate:-50% -50%; border-radius:50%; pointer-events:none;
+  animation:fx-type-accent calc(var(--fx-duration) * .32) calc(var(--fx-duration) * .62) ease-out both;
+}
+.playmat-effects[data-kind="attack"][data-element="fire"] .fx-type-accent {
+  border-radius:72% 28% 62% 38%;
+  background:radial-gradient(ellipse at 45% 78%,#fff3aa 5%,#ffae44 32%,#ff59277d 61%,transparent 72%);
+  animation-name:fx-flame-rise;
+}
+.playmat-effects[data-kind="attack"][data-element="fire"] .fx-spark {
+  background:linear-gradient(#fff4a4,#ff9a27 44%,#e64021);
+}
+.playmat-effects[data-kind="attack"][data-element="water"] .fx-type-accent {
+  border:3px solid #b7f0ff;
+  box-shadow:0 0 0 8px #5dcfff70, 0 0 0 18px #3c91ff40, inset 0 0 22px #67ccff;
+  scale:1 .64;
+}
+.fx-lightning-path {
+  position:absolute; width:var(--bolt-length); height:14px; margin-top:-7px;
+  transform:rotate(var(--bolt-angle)); transform-origin:left center;
+  background:linear-gradient(90deg,#ffb826,#fffceb 62%,#ffe879);
+  clip-path:polygon(0 44%,22% 29%,37% 63%,61% 20%,76% 51%,100% 38%,80% 77%,60% 49%,36% 92%,21% 59%,0 63%);
+  animation:fx-bolt-strike calc(var(--fx-duration) * .23) calc(var(--fx-duration) * .47) ease-out both;
+}
+.playmat-effects[data-kind="attack"][data-element="lightning"] .fx-type-accent {
+  background:radial-gradient(circle,#fffccb 0%,#ffe15f88 29%,transparent 64%);
+}
+.playmat-effects[data-kind="attack"][data-element="grass"] .fx-type-accent {
+  background:repeating-conic-gradient(from 20deg,#c1ef7288 0deg 12deg,transparent 12deg 46deg);
+  mask-image:radial-gradient(circle,transparent 14%,#000 34%,transparent 69%);
+}
+.playmat-effects[data-kind="attack"][data-element="grass"] .fx-spark {
+  background:linear-gradient(130deg,#d9ff92 0%,#7ed158 46%,#438844 50%,#9ee667);
+}
+.playmat-effects[data-kind="attack"][data-element="psychic"] .fx-type-accent {
+  border:2px solid #ead2ff;
+  box-shadow:0 0 0 9px #b66bdf70,0 0 0 17px #ae75e13c,inset 0 0 27px #ca85fa9c;
+  animation-name:fx-psychic-ripple;
+}
+.playmat-effects[data-kind="attack"][data-element="fighting"] .fx-type-accent {
+  border:3px solid #ffe0bc; border-radius:20%;
+  box-shadow:0 0 0 7px #ffb27460,0 0 0 17px #ee92502c;
+}
+.playmat-effects[data-kind="attack"][data-element="darkness"] .fx-type-accent {
+  background:radial-gradient(circle,#171024 12%,#27203ac9 48%,#7655a173 61%,transparent 73%);
+  box-shadow:0 0 20px #52287e50;
+}
+.playmat-effects[data-kind="attack"][data-element="metal"] .fx-type-accent {
+  border-radius:12%;
+  background:conic-gradient(from 35deg,transparent,#dbefff,transparent 28%,transparent 48%,#c6ddeb,transparent 77%);
+  mask-image:radial-gradient(circle,transparent 9%,#000 25%,transparent 71%);
+}
+.playmat-effects[data-kind="attack"][data-element="metal"] .fx-spark {
+  background:linear-gradient(135deg,#597483,#f8ffff 47%,#7a9cae 54%,#d6e9ed);
+}
+@keyframes fx-type-accent { from {opacity:.9; transform:scale(.3)} to {opacity:0; transform:scale(1.75) rotate(20deg)} }
+@keyframes fx-flame-rise { from {opacity:.9; transform:translateY(9px) scale(.55)} to {opacity:0; transform:translateY(-47px) rotate(-18deg) scale(1.35)} }
+@keyframes fx-bolt-strike { 0% {opacity:0} 22%,55% {opacity:1} 100% {opacity:0} }
+@keyframes fx-psychic-ripple { from {opacity:.9; transform:scale(.42) skew(-15deg,8deg)} to {opacity:0; transform:scale(1.6) skew(18deg,-12deg)} }
+.fx-attack-feedback {
+  position:absolute; translate:-50% -50%; width:max-content; max-width:min(160px,42vw);
+  display:grid; gap:2px; padding:5px 8px; text-align:center; border-radius:8px;
+  background:#132842f5; color:#fff1d7; border:1px solid #adbed4; font-size:12px;
+  animation:fx-feedback-arrival var(--fx-duration) ease-out both;
+}
+@keyframes fx-feedback-arrival {
+  0% { opacity:0; transform:scale(.9); }
+  18%,80% { opacity:1; transform:scale(1); }
+  100% { opacity:0; }
+}
+.fx-attack-feedback small { color:#e1eafa; font-size:10px; }
+.fx-knockout-sweep { position:absolute; overflow:hidden; border-radius:12px; pointer-events:none; }
+.fx-knockout-sweep::after {
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(105deg,transparent 10%,#be243a24 37%,#ff666e70 55%,transparent 78%);
+  animation:fx-ko-sweep calc(var(--fx-duration) * .7) ease-out both;
+}
+@keyframes fx-ko-sweep { from {transform:translateX(-80%);opacity:0} 26% {opacity:1} to {transform:translateX(65%);opacity:0} }
+.fx-ko-burst { --fx-color:#ff777c; }
+.slot-card:has(.condition-chip) { outline:1px solid var(--condition-glow,#c1a3f3); outline-offset:-2px; }
+.slot-card:has(.condition-chip[data-condition="burned"]) { --condition-glow:#ff9671; }
+.slot-card:has(.condition-chip[data-condition="paralyzed"]) { --condition-glow:#ffe08a; }
+.slot-card:has(.condition-chip[data-condition="asleep"]) { --condition-glow:#8bbaff; }
+.slot-card .condition-chip[data-condition="confused"] { background:#873669; }
+.slot-card:has(.condition-chip):is(.energy-drop-target,.evolution-drop-target,.tool-drop-target,.current-drop-destination) { outline:2px solid #87dfb6; }
+@media (prefers-reduced-motion:reduce) {
+  .fx-type-accent,.fx-lightning-path,.fx-knockout-sweep { display:none; }
+}

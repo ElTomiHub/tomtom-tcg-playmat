@@ -10,7 +10,7 @@
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="playmat.css?v=hub7">
+  <link rel="stylesheet" href="playmat.css?v=hub8">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -13674,7 +13674,7 @@
       try {
         if (!playmatEffectsEnabled || document.hidden) return;
         const batch = playmatEffectBatches.at(-1);
-        const isBattleEffect = item => stagedHandArrivals.has(item) || ['attack','ability','damage','knockout','prize','promotion','victory'].includes(item.kind);
+        const isBattleEffect = item => stagedHandArrivals.has(item) || ['attack','ability','damage','attack-feedback','knockout','prize','promotion','victory'].includes(item.kind);
         if (batch) { if (batch.length < 40 || isBattleEffect(effect)) batch.push(effect); return; }
         if (playmatEffectQueue.length >= 20) {
           const index = playmatEffectQueue.findIndex(item => !isBattleEffect(item));
@@ -13963,14 +13963,25 @@
       if (destination === 'bench') return effect.name+' moved to the Bench!';
       return '';
     }
-    function queueAttackVisualEffect(side, pokemon, attack, target) {
+    function queueAttackFeedback(side, pokemon, label, detail = '') {
+      queuePlaymatEffect({kind:'attack-feedback',side,cardId:pokemon?.id,
+        point:playmatPointFor(side,pokemon),label,detail});
+    }
+    function queueAttackVisualEffect(side, pokemon, attack, target, noImpact = false) {
       try {
         const element = normalizedEnergyType(pokemon.meta?.types?.[0] || 'Colorless');
-        queuePlaymatEffect({ kind: 'attack', side, name: pokemon.name, attack: attack.name, element, cardId:pokemon.id, targetId:target?.id, from: playmatPointFor(side, pokemon), point: playmatPointFor(oppositeSide(side), target) });
+        queuePlaymatEffect({ kind: 'attack', side, name: pokemon.name, attack: attack.name, element, cardId:pokemon.id, targetId:noImpact ? null : target?.id, from: playmatPointFor(side, pokemon), point: noImpact ? null : playmatPointFor(oppositeSide(side), target) });
       } catch { /* Optional decoration. */ }
     }
     function playmatEffectTheme(element) {
       return ({ fire: ['#ff9956','Fire'], water: ['#62caff','Water'], lightning: ['#ffe16b','Lightning'], grass: ['#a7df72','Grass'], psychic: ['#d6a1ff','Psychic'], fighting: ['#e9a572','Fighting'], darkness: ['#b79adf','Darkness'], metal: ['#c2dce7','Metal'], dragon: ['#f5cd69','Dragon'], fairy: ['#ffb2d7','Fairy'] })[element] || ['#e0e8f4','Colorless'];
+    }
+    function attackImpactAccent(element, from, point, position) {
+      const impact = `<i class="fx-type-accent" style="${position(point)}"></i>`;
+      if (element !== 'lightning') return impact;
+      const x = point.x-from.x, y = point.y-from.y;
+      const bolt = `<i class="fx-lightning-path" style="left:${from.x}px;top:${from.y}px;--bolt-length:${Math.hypot(x,y)}px;--bolt-angle:${Math.atan2(y,x)}rad"></i>`;
+      return bolt + impact;
     }
     function playmatEffectMarkup(effect, reduced) {
       const caption = (small, title, detail = '', className = '') => `<div class="fx-caption ${className}"><small>${escapeHtml(small)}</small><strong>${escapeHtml(title)}</strong>${detail ? `<span>${escapeHtml(detail)}</span>` : ''}</div>`;
@@ -14025,7 +14036,9 @@
         if (!reduced && effect.point) {
           const from = effect.from || effect.point;
           particles = `<div class="fx-charge" style="${at(from)}"></div><div class="fx-trail" style="${at(from)}--travel-x:${effect.point.x-from.x}px;--travel-y:${effect.point.y-from.y}px"></div><div class="fx-impact" style="${at(effect.point)}"></div><div class="fx-hit-flash" style="${at(effect.point)}"></div>`;
-          for (let i=0;i<12;i++) { const angle=i*Math.PI/6, radius=58+i%3*17; particles += `<i class="fx-spark" style="${at(effect.point)}--spark-x:${Math.round(Math.cos(angle)*radius)}px;--spark-y:${Math.round(Math.sin(angle)*radius)}px;--spark-rotation:${i*30}deg"></i>`; }
+          particles += attackImpactAccent(effect.element,from,effect.point,at);
+          const count = window.matchMedia?.('(max-width: 600px)').matches ? 7 : 12;
+          for (let i=0;i<count;i++) { const angle=i*2*Math.PI/count, radius=(count===7 ? 38 : 58)+i%3*13; particles += `<i class="fx-spark" style="${at(effect.point)}--spark-x:${Math.round(Math.cos(angle)*radius)}px;--spark-y:${Math.round(Math.sin(angle)*radius)}px;--spark-rotation:${i*30}deg"></i>`; }
         }
         return `<div style="--fx-color:${color}">${focus(effect.from)}${focus(effect.point, true)}${particles}<div class="fx-attack-lane" style="${lane}${bannerY}"><div class="fx-caption fx-attack-caption" aria-label="${escapeHtml(playmatActionAnnouncement(effect))}"><small>${escapeHtml(label)} attack</small><strong>${escapeHtml(effect.attack)}</strong><span>${escapeHtml(effect.name)}</span></div></div></div>`;
       }
@@ -14038,6 +14051,10 @@
         }).join('') : '';
         return `<div class="fx-ability-effect">${focus(point)}${sparks}<div class="fx-caption fx-ability-caption" style="${position}" aria-label="${escapeHtml(playmatActionAnnouncement(effect))}"><small>Ability</small><strong>${escapeHtml(effect.ability)}</strong></div></div>`;
       }
+      if (effect.kind === 'attack-feedback') {
+        return effect.point ? `<div class="fx-attack-feedback" style="${at(effect.point)}"><strong>${escapeHtml(effect.label)}</strong>${effect.detail ? `<small>${escapeHtml(effect.detail)}</small>` : ''}</div>`
+          : caption('Attack',effect.label,effect.detail);
+      }
       if (effect.kind === 'damage') return effect.point ? `<div class="fx-damage" style="${at(effect.point)}">−${Number(effect.amount)}</div>` : caption('Damage', `${effect.name} · ${Number(effect.amount)}`);
       if (effect.kind === 'knockout') {
         let moving = '';
@@ -14046,7 +14063,10 @@
           const size = effect.width && effect.height ? `--ko-width:${effect.width}px;--ko-height:${effect.height}px;` : '';
           moving = `<div class="fx-impact fx-ko-burst" style="${at(effect.point)}"></div><div class="fx-ko-card" style="${at(effect.point)}${size}--travel-x:${destination.x-x}px;--travel-y:${destination.y-y}px">${effect.image ? `<img src="${escapeHtml(effect.image)}" alt="">` : ''}<span>${escapeHtml(effect.name)}</span></div>`;
         }
-        return moving + caption((PLAYER_NAMES[effect.side] || 'Pokémon')+' · Knockout',playmatActionAnnouncement(effect),'','fx-ko-caption');
+        const field = $('matchField').getBoundingClientRect();
+        const sweep = !reduced && field.width > 0 && field.height > 0
+          ? `<div class="fx-knockout-sweep" style="left:${field.left}px;top:${field.top}px;width:${field.width}px;height:${field.height}px"></div>` : '';
+        return sweep + moving + caption((PLAYER_NAMES[effect.side] || 'Pokémon')+' · Knockout',playmatActionAnnouncement(effect),'','fx-ko-caption');
       }
       if (effect.kind === 'victory') {
         let confetti = '';
@@ -14098,7 +14118,8 @@
       const lunge = Math.min(15,distance*.12)/distance;
       const towards = `${dx*lunge}px ${dy*lunge}px`;
       const windup = `${-dx*lunge*.24}px ${-dy*lunge*.24}px`;
-      card?.animate?.([{translate:'0 0'}, {translate:windup,offset:.22}, {translate:towards,offset:.74}, {translate:'0 0'}],
+      card?.animate?.([{translate:'0 0',scale:1}, {translate:windup,scale:.98,offset:.22},
+        {translate:towards,scale:1.07,offset:.74}, {translate:'0 0',scale:1}],
         {duration:duration*.46,easing:'ease-out'});
     }
     function animateDamageHealth(effect, previous, duration) {
@@ -14113,6 +14134,7 @@
         health.textContent = String(Math.round(remaining+(previous-remaining)*(1-progress)**2));
         if (progress<1) requestAnimationFrame(tick);
       }
+      health.closest('.card-health-badge')?.animate?.([{scale:1, color:'#fff1d2'}, {scale:1.15,color:'#ffb799'}, {scale:1}], {duration:countDuration,easing:'ease-out'});
       health.textContent = String(previous);
       requestAnimationFrame(tick);
     }
@@ -14152,7 +14174,7 @@
         root.dataset.kind = effect.kind; root.dataset.element = effect.element || '';
         root.classList.toggle('reduced-motion', reduced);
         root.classList.toggle('fast-motion', fastPlaymatEffects);
-        const duration = effect.playedCue ? (fastPlaymatEffects ? 570 : 1050) : effect.preview ? (fastPlaymatEffects ? 650 : 1150) : fastPlaymatEffects ? (effect.kind === 'victory' ? 1200 : 380) : reduced ? 850 : ({ coin: 1450, attack: 1200, ability: 950, damage: 650, knockout: 1000, victory: 3100, 'card-move': 720, 'zone-move':620, promotion:720, prize: 900 }[effect.kind] || 900);
+        const duration = effect.playedCue ? (fastPlaymatEffects ? 570 : 1050) : effect.preview ? (fastPlaymatEffects ? 650 : 1150) : fastPlaymatEffects ? (effect.kind === 'victory' ? 1200 : 380) : reduced ? 850 : ({ coin: 1450, attack: 1200, ability: 950, damage: 650, knockout: 1000, victory: 3100, 'card-move': 720, 'zone-move':620, promotion:720, prize:900, 'attack-feedback':560 }[effect.kind] || 900);
         root.style.setProperty('--fx-duration', `${duration}ms`);
         root.innerHTML = playmatEffectMarkup(effect, reduced);
         if (effect.kind==='attack' && !reduced) {
@@ -14160,11 +14182,20 @@
           setTimeout(()=>{
             if (activePlaymatEffect !== effect || !effect.targetId) return;
             const target = boardCardElements(oppositeSide(effect.side)).find(card => card.dataset.card === effect.targetId);
+            if (effect.element === 'fighting') {
+              $('battleCenter').animate?.([{translate:'0'}, {translate:'-3px'}, {translate:'3px'}, {translate:'0'}],
+                {duration:duration*.2,easing:'ease-out'});
+            }
             target?.animate?.([{scale:1}, {scale:.96,offset:.24}, {scale:1}], {duration:duration*.22,easing:'ease-out'});
           },duration*.62);
         }
+        if (effect.kind === 'attack-feedback' && !reduced) {
+          const card = boardCardElements(effect.side).find(item=>item.dataset.card===effect.cardId);
+          card?.animate?.([{translate:'0'}, {translate:'-3px'}, {translate:'3px'}, {translate:'0'}],
+            {duration:180,easing:'ease-out'});
+        }
         if (Number.isFinite(previousHealth)) animateDamageHealth(effect,previousHealth,duration);
-        $('playmatEffectAnnouncement').textContent = playmatActionAnnouncement(effect) || (effect.kind === 'coin' ? `Coin flip: ${effect.heads ? 'heads' : 'tails'}.` : effect.kind === 'attack' ? `${effect.name} used ${effect.attack}.` : effect.kind === 'damage' ? `${effect.name} took ${effect.amount} damage.` : effect.kind === 'knockout' ? `${effect.name} was Knocked Out.` : effect.kind === 'card-move' ? `${PLAYER_NAMES[effect.side]} played ${effect.name}. ${effect.detail || ''}` : effect.kind === 'zone-move' ? `${PLAYER_NAMES[effect.side]}: ${effect.faceDown?`${effect.count} cards`:effect.name}, ${effect.fromZone} to ${effect.toZone}.` : effect.kind === 'promotion' ? `${effect.name} moved to the Active Spot.` : effect.kind === 'prize' ? `${effect.side === 'you' ? 'You' : 'Yami'} took ${effect.count} Prize cards.` : effect.winner === 'you' ? 'Victory! You won the match.' : effect.winner ? 'Yami won the match.' : 'The match is a draw.');
+        $('playmatEffectAnnouncement').textContent = playmatActionAnnouncement(effect) || (effect.kind === 'attack-feedback' ? [effect.label,effect.detail].filter(Boolean).join('. ') : effect.kind === 'coin' ? `Coin flip: ${effect.heads ? 'heads' : 'tails'}.` : effect.kind === 'attack' ? `${effect.name} used ${effect.attack}.` : effect.kind === 'damage' ? `${effect.name} took ${effect.amount} damage.` : effect.kind === 'knockout' ? `${effect.name} was Knocked Out.` : effect.kind === 'card-move' ? `${PLAYER_NAMES[effect.side]} played ${effect.name}. ${effect.detail || ''}` : effect.kind === 'zone-move' ? `${PLAYER_NAMES[effect.side]}: ${effect.faceDown?`${effect.count} cards`:effect.name}, ${effect.fromZone} to ${effect.toZone}.` : effect.kind === 'promotion' ? `${effect.name} moved to the Active Spot.` : effect.kind === 'prize' ? `${effect.side === 'you' ? 'You' : 'Yami'} took ${effect.count} Prize cards.` : effect.winner === 'you' ? 'Victory! You won the match.' : effect.winner ? 'Yami won the match.' : 'The match is a draw.');
         const epoch = playmatEffectEpoch;
         playmatEffectTimer = setTimeout(() => { if (epoch === playmatEffectEpoch) { activePlaymatEffect = null; playmatEffectTimer = null; finishVisualTransition(effect);
           const destination = effect.destination || effect.toZone;
@@ -15193,9 +15224,13 @@
       const attacker=player(attackerSide);
       const result=calculateAttackDamageModifiers(attackerSide,defenderSide,target,targetZone,damage,modifiers,applyDefensiveEffects,sourcePokemon,ignoreWeaknessResistance);
       const {applied,weakness,resistance,reductions}=result;
+      if (applied === 0 && typeof queueAttackFeedback === 'function') {
+        queueAttackFeedback(defenderSide,target,'Damage blocked',reductions[0] || '');
+      }
       if(result.prevented){logEvent(reductions[0]+' prevented '+damage+' attack damage to '+target.name+'.');return {applied:0};}
       if(result.growlApplied)game.growlReduction=null;
       target.damage = Number(target.damage || 0) + applied;
+      if (applied > 0 && typeof queuePokemonVisualEffect === 'function') queuePokemonVisualEffect('damage', defenderSide, target, applied);
       if (applied>0 && targetZone==='active' && attackerSide!==defenderSide && typeof toolEffectRuleFor==='function') {
         for (const tool of target.tools || []) {
           const effect = toolEffectRuleFor(tool)?.effect;
@@ -15215,7 +15250,6 @@
           : hasAttackReaction && !blockedAttackReaction ? target.attackRetaliation.count : 0
         : 0;
       if(reaction && attackingPokemon) { attackingPokemon.damage=Number(attackingPokemon.damage || 0)+reaction*10;queuePokemonVisualEffect('damage',attackerSide,attackingPokemon,reaction*10);logEvent(target.name+' placed '+reaction+' retaliation damage counters on '+attackingPokemon.name+'.'); }
-      if (applied > 0 && typeof queuePokemonVisualEffect === 'function') queuePokemonVisualEffect('damage', defenderSide, target, applied);
       const modifierLog = [weakness ? `${weakness}× Weakness` : '', resistance ? `${resistance} Resistance` : '', ...reductions].filter(Boolean).join('; ');
       logEvent(`${target.name} took ${applied} damage from ${sourceName}${modifierLog ? ` (${modifierLog})` : applied !== damage ? ` (from ${damage})` : ''}.`);
       if(reaction && attackingPokemon) {if(!deferReactiveKnockouts)await resolveReactiveAttackKnockouts(attackerSide,attackingPokemon,target);return {applied,retaliated:true};}
@@ -15646,6 +15680,7 @@
         if (!heads) {
           const committed = await runAttackTransaction(async () => {
             attacker.damage = Number(attacker.damage || 0) + 30; p.attackedThisTurn = true;
+            if (typeof queueAttackFeedback === 'function') queueAttackFeedback(side,attacker,'Attack stopped','Confusion');
             queuePokemonVisualEffect('damage',side,attacker,30);
             logEvent(`${attacker.name} flipped tails for Confusion and took 30 damage instead of attacking.`);
             if (attacker.damage >= effectivePokemonHp(attacker)) await resolveKnockout(defenderSide,side);
@@ -15915,7 +15950,14 @@
           logEvent(p.name + ' discarded ' + choices.boardEnergyIds.length + ' Water Energy card(s) for ' + option.attack.name + '.');
         }
         if (typeof recordMatchActivity === 'function') recordMatchActivity('attack', side, attacker);
-        if (typeof queueAttackVisualEffect === 'function') queueAttackVisualEffect(side, attacker, option.attack, manualTarget || choices.target || target);
+        const missed = !option.manual && damage === 0 &&
+          ['assault_gate','lunatone_cosmo_beam','coin_damage','coin_until_tails_damage'].includes(effect?.type);
+        if (typeof queueAttackVisualEffect === 'function') queueAttackVisualEffect(side, attacker, option.attack, manualTarget || choices.target || target, missed);
+        if (missed && typeof queueAttackFeedback === 'function') {
+          const prerequisite = effect.type === 'assault_gate' || effect.type === 'lunatone_cosmo_beam';
+          queueAttackFeedback(side,attacker,prerequisite ? 'No effect' : 'No damage',
+            prerequisite ? 'Attack condition was not met' : 'No heads');
+        }
         if (option.manual) {
           logEvent(`${p.name} used ${option.attack.name} with ${attacker.name}. Manual effect resolution: ${option.attack.effect || 'follow the printed card text'}`);
           if (damage > 0) await applyDamageToPokemon(side, defenderSide, manualTarget, manualTarget.id === defender.active?.id ? 'active' : 'bench', damage, false, option.attack.name, false);
@@ -20284,10 +20326,12 @@
           if (condition === 'poisoned') {
             const poisonDamage=(active.conditions || []).find(item=>item.type==='poisoned')?.damage || 10;
             active.damage = Number(active.damage || 0) + poisonDamage;
+            if (typeof queuePokemonVisualEffect === 'function') queuePokemonVisualEffect('damage',side,active,poisonDamage);
             logEvent(active.name+' took '+poisonDamage+' Poison damage.');
           } else if (condition === 'burned') {
             active.damage = Number(active.damage || 0) + 20;
             const removed = typeof flipEffectCoin === 'function' ? await flipEffectCoin(`${active.name} · Burn check`) : randomCoin();
+            if (typeof queuePokemonVisualEffect === 'function') queuePokemonVisualEffect('damage',side,active,20);
             logEvent(`${active.name} took 20 Burn damage; the condition ${removed ? 'was removed' : 'remains'}.`);
             if (removed) active.conditions = (active.conditions || []).filter(item => item.type !== 'burned');
           } else {
