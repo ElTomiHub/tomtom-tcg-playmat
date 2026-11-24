@@ -10,7 +10,7 @@
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="playmat.css?v=hub9">
+  <link rel="stylesheet" href="playmat.css?v=hub10">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -7459,6 +7459,7 @@
     function summaryOpponentStyle(summary) {
       return summary.yamiStyle ? [YAMI_STYLE_LABELS[summary.yamiStyle], YAMI_DIFFICULTY_LABELS[summary.yamiDifficulty || 'competitor']].filter(Boolean).join(' · ') : '';
     }
+    let matchSummaryPreviewMarkup = '', revealedMasteryMatchId;
     function renderMatchSummaryCard() {
       const panel = $('matchSummaryCard'), summary = matchFinishPresentationBusy() ? null : buildMatchSummary();
       panel.hidden = !summary;
@@ -7472,8 +7473,25 @@
       $('matchSummaryResult').textContent = result;
       $('matchSummaryMeta').textContent = [summary.reason, summaryOpponentStyle(summary) && 'Yami: ' + summaryOpponentStyle(summary)].filter(Boolean).join(' · ');
       const metrics = [[summary.turns,'Turns'],[stats.pokemonPlayed,'Pokémon played'],[stats.energyAttached,'Energy attached'],[stats.attacks,'Attacks'],[stats.knockedOut,'Your Pokémon KO’d']];
-      $('matchSummaryPreview').innerHTML = '<dl class="summary-metrics">' + metrics.map(([count,label]) =>
+      const preview = $('matchSummaryPreview');
+      const previewMarkup = '<dl class="summary-metrics">' + metrics.map(([count,label]) =>
         `<div><dt>${label}</dt><dd>${count}</dd></div>`).join('') + '</dl>' + masteryAwardsMarkup(summary.masteryAwards);
+      if (matchSummaryPreviewMarkup !== previewMarkup) {
+        preview.innerHTML = previewMarkup;
+        matchSummaryPreviewMarkup = previewMarkup;
+      }
+      if (summary.masteryAwards?.length && revealedMasteryMatchId !== summary.id) {
+        revealedMasteryMatchId = summary.id;
+        if (playmatEffectsEnabled && !prefersReducedPlaymatMotion()) {
+          preview.querySelectorAll('.mastery-awards > span').forEach((badge, index)=>{
+            badge.animate?.([
+              {opacity:0, transform:'translateY(5px) scale(.96)', boxShadow:'0 0 0 #f4ca6900'},
+              {opacity:1, transform:'none', boxShadow:'0 0 14px #f4ca695e', offset:.65},
+              {opacity:1, transform:'none', boxShadow:'0 0 0 #f4ca6900'}
+            ], {duration:430, delay:Math.min(index * 65,260), fill:'backwards', easing:'ease-out'});
+          });
+        }
+      }
       const record = (label, stats) => `<div><strong>${escapeHtml(label)}</strong><span>${deckRecordText(stats)}</span></div>`;
       $('matchSummaryDeckRecord').innerHTML = record('Your deck record', records.stats?.bySide?.you) +
         record('Against ' + records.opponent.name, records.matchup?.bySide?.you);

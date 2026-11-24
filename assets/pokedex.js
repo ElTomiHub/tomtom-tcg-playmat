@@ -408,6 +408,7 @@
   function showCardPreview(image,touch) {
     if (!image.isConnected) return;
     preview.dataset.touch = String(touch);
+    preview.toggleAttribute('data-foil', image.hasAttribute('data-preview-foil'));
     previewImage.src = image.currentSrc || image.src;
     el('cardPreviewCaption').textContent = image.dataset.previewLabel;
     if (touch) preview.removeAttribute('style');
@@ -485,7 +486,7 @@
   document.addEventListener('visibilitychange',dismissCardPreview);
   document.addEventListener('keydown',event=>{if (event.key==='Escape') dismissCardPreview();});
   previewImage.addEventListener('error',dismissCardPreview);
-  function photo(url, fallback, previewLabel) {
+  function photo(url, fallback, previewCard) {
     if (!url) return node('span', fallback, 'fallback');
     const image = node('img');
     image.src = url;
@@ -494,7 +495,11 @@
     image.decoding = 'async';
     image.referrerPolicy = 'no-referrer';
     image.draggable = false;
-    if (previewLabel) image.dataset.previewLabel = previewLabel;
+    if (previewCard) {
+      image.dataset.previewLabel = cardPreviewLabel(previewCard);
+      const variant = normalizeVariant(previewCard.variant);
+      image.toggleAttribute('data-preview-foil', variant === 'holo' || variant === 'reverse-holo' || variant.endsWith('-reverse-holo'));
+    }
     image.addEventListener('error', () => image.replaceWith(node('span',fallback,'fallback')), {once:true});
     return image;
   }
@@ -502,7 +507,7 @@
   function cardTile(card, {style = '', choose, featured = false} = {}) {
     const article = node('article',null,style ? 'card ' + style : 'card');
     if (featured) article.append(node('span','Featured card','featured-label'));
-    article.append(photo(card.image,'Photo unavailable',cardPreviewLabel(card)), node('h3',title(card)));
+    article.append(photo(card.image,'Photo unavailable',card), node('h3',title(card)));
     if (card.set || card.number) article.append(node('small',[card.set,card.number].filter(Boolean).join(' · ')));
     article.append(variantBadge(card.variant),priceUI.cardPrice(card));
     if (card.notes && !choose) article.append(node('small',card.notes,'print-notes'));
@@ -677,7 +682,7 @@
     });
     open.className = 'species-open';
     open.setAttribute('aria-label', 'View registered cards for ' + name);
-    const picture = photo(image,'No image',cover?.image ? cardPreviewLabel(cover) : '');
+    const picture = photo(image,'No image',cover?.image ? cover : null);
     if (owned && image !== artwork) picture.addEventListener('error', () => {
       open.querySelector('.fallback')?.replaceWith(photo(artwork,'No image'));
     }, {once:true});
@@ -800,7 +805,7 @@
     open.setAttribute('aria-label','Open '+title(card));
     const badge = node('span',variantIcons[card.variant] || '◇','tile-marker variant-marker');
     badge.title = displayVariant(card.variant);
-    open.append(photo(card.image,'No image',cardPreviewLabel(card)),badge);
+    open.append(photo(card.image,'No image',card),badge);
     tile.append(open,node('h3',title(card),'special-card-title'),
       node('small',[card.set,card.number].filter(Boolean).join(' · ')));
     if (reorderingSpecial) {

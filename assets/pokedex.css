@@ -120,13 +120,15 @@ input, select, textarea { width: 100%; min-width: 0; }
   max-height: calc(100dvh - 24px); border: 1px solid #e4bd67; border-radius: 12px;
   background: #0b213bf5; box-shadow: 0 14px 50px #020b17b3;
 }
+.card-preview-art { position: relative; width: fit-content; max-width: 100%; overflow: hidden; border-radius: 6px; }
 .card-preview img { display: block; width: 100%; max-height: calc(100dvh - 90px); object-fit: contain; border-radius: 6px; }
 .card-preview p { margin: 8px 0 0; color: #fff0c7; font-size: 12px; line-height: 1.4; }
 .card-preview[data-touch="true"] {
   inset: 0; max-height: none; display: flex; flex-direction: column; justify-content: center; align-items: center;
   padding: 24px; border: 0; border-radius: 0; background: #020b17df;
 }
-.card-preview[data-touch="true"] img { width: min(100%,430px); max-height: 78dvh; }
+.card-preview[data-touch="true"] .card-preview-art { max-width: min(100%, 430px, 55.8dvh); }
+.card-preview[data-touch="true"] img { max-height: 78dvh; }
 .card-preview[data-touch="true"] p { max-width: 430px; text-align: center; }
 .species-name { display: flex; align-items: center; gap: 5px; min-height: 26px; }
 .species-name img { width: 26px; height: 26px; flex: none; object-fit: contain; }
@@ -391,4 +393,32 @@ button.danger:hover { background: #5a2834; }
   .filter-fields > label { flex-basis: calc(50% - 4px); }
   .filter-fields > label:first-child { flex-basis: 100%; }
   .grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+
+button:active:not(:disabled) { filter: brightness(.92); }
+
+@media (prefers-reduced-motion: no-preference) {
+  button:active:not(:disabled, .species-open) { transform: translateY(1px); }
+
+  dialog {
+    transition: opacity 160ms ease, display 160ms allow-discrete, overlay 160ms allow-discrete;
+  }
+  dialog:not([open]) { opacity: 0; pointer-events: none; }
+  @starting-style {
+    dialog[open] { opacity: 0; }
+  }
+
+  .card-preview[data-foil]:not([hidden]) .card-preview-art::after {
+    content: "";
+    position: absolute;
+    inset: -15%;
+    pointer-events: none;
+    background: linear-gradient(115deg, transparent 35%, #9ad7ff26 43%, #fff8d94d 50%, #e7a5ff26 57%, transparent 65%);
+    animation: card-preview-sheen 680ms ease-out both;
+  }
+  @keyframes card-preview-sheen {
+    from { transform: translateX(-75%); opacity: 0; }
+    25%, 70% { opacity: 1; }
+    to { transform: translateX(75%); opacity: 0; }
+  }
 }

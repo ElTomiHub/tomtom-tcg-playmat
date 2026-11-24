@@ -3201,3 +3201,20 @@ button.recap-marker:hover, button.recap-marker:focus-visible { border-color: #f5
   #cardChoiceOverlay[data-deck-search="true"] .choice-card { animation:none; }
   .fx-shuffle-card { display:none; }
 }
+
+.btn:active:not(:disabled) { filter: brightness(.92); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .btn:active:not(:disabled) { transform: translateY(1px) scale(.98); }
+
+  .modal-backdrop, #matchCardZoom, #playmatConfirmDialog {
+    transition: opacity 160ms ease, display 160ms allow-discrete, overlay 160ms allow-discrete;
+  }
+  .modal-backdrop.hidden, #matchCardZoom:not([open]), #playmatConfirmDialog:not([open]) {
+    opacity: 0;
+    pointer-events: none;
+  }
+  @starting-style {
+    .modal-backdrop:not(.hidden), #matchCardZoom[open], #playmatConfirmDialog[open] { opacity: 0; }
+  }
+}
