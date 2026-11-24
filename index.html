@@ -219,7 +219,7 @@
           <p class="summary-meta" id="matchSummaryMeta"></p>
           <div id="matchSummaryPreview"></div>
           <div class="summary-records" id="matchSummaryDeckRecord"></div>
-          <div class="summary-card-actions"><button class="btn small" id="revengeMatchBtn" type="button" hidden>Revenge · Flip coin</button> <button class="btn small primary" id="viewMatchSummaryBtn">View full summary</button> <button class="btn small" id="reviewMatchCoachBtn" type="button" hidden>Review decisions</button> <button class="btn small" id="saveMatchRecordingBtn" type="button" hidden>Save recording</button> <button class="btn small" id="retryMatchSaveBtn" type="button" hidden>Retry saving result</button> <button class="btn small" id="matchCampaignBtn" type="button" hidden>Campaign progress</button></div>
+          <div class="summary-card-actions"><button class="btn small" id="revengeMatchBtn" type="button" hidden>Revenge · Flip coin</button> <button class="btn small primary" id="viewMatchSummaryBtn">View full summary</button> <button class="btn small" id="reviewMatchCoachBtn" type="button" hidden>Review decisions</button> <button class="btn small" id="downloadMatchRecordingBtn" type="button" hidden>Download recording</button> <button class="btn small" id="saveMatchRecordingBtn" type="button" hidden>Save to history</button> <button class="btn small" id="retryMatchSaveBtn" type="button" hidden>Retry saving result</button> <button class="btn small" id="matchCampaignBtn" type="button" hidden>Campaign progress</button></div>
           <p class="summary-save-status" id="matchSummarySaved"></p>
         </section>
         <div class="log-list" id="moveLog" role="region" aria-labelledby="moveLogHeading" tabindex="0"><div class="empty-log">Moves will appear here as the match progresses.</div></div>
@@ -7458,6 +7458,7 @@
       panel.hidden = !summary;
       $('matchCampaignBtn').hidden = !summary || !game.campaign;
       $('revengeMatchBtn').hidden = !summary || summary.cancelled || !!game.campaign || !game.deckIds?.you || !game.deckIds?.codex;
+      $('downloadMatchRecordingBtn').hidden = !summary || pendingRecording?.id !== game?.matchHistory?.id;
       if (!summary) return;
       const result = summaryResult(summary), stats = summary.players.you, records = matchDeckRecords(summary);
       panel.dataset.result = result.toLowerCase();
@@ -7634,7 +7635,7 @@
       }
       if (game.phase !== 'finished') return;
       matchRecording = null;
-      record.endedAt = new Date().toISOString();
+      record.endedAt = game.matchHistory.endedAt || new Date().toISOString();
       record.result = {winner:game.winner, cancelled:!!game.matchCancelled, reason:game.finishReason};
       if (game.yamiStyle) {
         record.yamiStyle = game.yamiStyle;
@@ -7643,7 +7644,8 @@
       pendingRecording = record;
       $('saveMatchRecordingBtn').hidden = false;
       $('saveMatchRecordingBtn').disabled = false;
-      $('saveMatchRecordingBtn').textContent = 'Save recording';
+      $('saveMatchRecordingBtn').textContent = 'Save to history';
+      $('downloadMatchRecordingBtn').hidden = false;
     }
     async function saveFinishedRecording() {
       const record = pendingRecording, button = $('saveMatchRecordingBtn');
@@ -7661,8 +7663,7 @@
       try {
         await recordingSave;
         if (pendingRecording === record) {
-          pendingRecording = null;
-          button.textContent = 'Recording saved';
+          button.textContent = 'Saved to history';
         }
         showToast('Match recording saved in deck history.');
       } catch {
@@ -7694,6 +7695,24 @@
             <button type="button" class="btn small" data-download-recording="${index}">Download log</button></div>`;
         }).join('');
     }
+    function matchRecordingFilename(record) {
+      const players = record.steps?.[0]?.players || {};
+      const component = (name,fallback) => String(name || fallback).normalize('NFKC')
+        .replace(/^\s*\[[^\]]+\]\s*/,'').replace(/[<>:"/\\|?*\u0000-\u001f]/g,'-')
+        .replace(/\s+/g,'-').replace(/-+/g,'-').replace(/^[. -]+|[. -]+$/g,'').slice(0,64).replace(/[. -]+$/g,'') || fallback;
+      const own = component(players.you?.deckName,'Toma-deck'), foe = component(players.codex?.deckName,'Yami-deck');
+      const result = record.result?.cancelled ? 'Cancelled' : record.result?.winner === 'you' ? 'Win' : record.result?.winner === 'codex' ? 'Loss' : 'Draw';
+      const end = typeof record.endedAt === 'string' ? new Date(record.endedAt) : null;
+      let timestamp = 'unknown-end-time';
+      if (end && Number.isFinite(end.getTime())) {
+        const parts = Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(end).map(part=>[part.type,part.value]));
+        timestamp = parts.year+'-'+parts.month+'-'+parts.day+'_'+parts.hour+'-'+parts.minute+'-'+parts.second+'-'+String(end.getUTCMilliseconds()).padStart(3,'0')+'_JST';
+      }
+      return own+'_vs_'+foe+'_'+result+'_'+timestamp+'.json';
+    }
+    function downloadFinishedRecording() {
+      if (game?.phase === 'finished' && pendingRecording?.id === game.matchHistory?.id) downloadMatchRecording(pendingRecording);
+    }
     function downloadMatchRecording(record) {
       const {cards,steps,...header} = record;
       const card = ref => ref === null ? null : {name:cards[ref].name,print:cards[ref].print};
@@ -7703,7 +7722,7 @@
         players:Object.fromEntries(Object.entries(step.players).map(([side,p])=>[side,{
           ...p,hand:p.hand.map(card),discard:p.discard.map(card),active:pokemon(p.active),bench:p.bench.map(pokemon)
         }]))}));
-      downloadJsonFile({...header,steps:exportSteps}, datedDownloadName('pokemon-match'));
+      downloadJsonFile({...header,steps:exportSteps}, matchRecordingFilename(record));
     }
     function renderMatchReplay(index) {
       if (!replayRecord) return;
@@ -21094,7 +21113,7 @@
       $('undoBtn').disabled = !lastUndoSnapshot || coinPresentationPending || game?.phase === 'finished';
       $('forfeitMatchBtn').disabled = !canEndMatch(false);
       $('cancelMatchBtn').disabled = !canEndMatch(true);
-      if (game?.phase !== 'finished') $('saveMatchRecordingBtn').hidden = true;
+      if (game?.phase !== 'finished') { $('saveMatchRecordingBtn').hidden = true; $('downloadMatchRecordingBtn').hidden = true; }
       renderPlaymatTurnStatus(side, canPass, visualBusy);
       renderTurnActionStatus(side, canPass);
       $('attachBtn').hidden = !(selectedHand && current.meta?.category === 'Energy');
@@ -21770,6 +21789,7 @@
     $('viewMatchSummaryBtn').addEventListener('click', openCurrentMatchSummary);
     $('closeMatchHistoryBtn').addEventListener('click', () => $('matchHistoryModal').classList.add('hidden'));
     $('saveMatchRecordingBtn').addEventListener('click',saveFinishedRecording);
+    $('downloadMatchRecordingBtn').addEventListener('click',downloadFinishedRecording);
     $('retryMatchSaveBtn').addEventListener('click',()=>{
       if (game?.phase!=='finished' || game.matchCancelled) return;
       clearSavedMatch();

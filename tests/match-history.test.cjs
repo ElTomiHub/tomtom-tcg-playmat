@@ -1,5 +1,6 @@
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
+const vm = require('node:vm');
 const { loadFixture, createEngineRunner, controlPlaymatTimers } = require('./integration-harness.cjs');
 function ready(dragon=false) {
   const fixture=loadFixture();if(dragon)fixture.decks.human={...fixture.decks.ai,id:'history-dragon'};else fixture.decks.ai={...fixture.decks.human,id:'history-opponent'};
@@ -32,7 +33,51 @@ test('the replay is captured automatically and archived only when requested afte
   assert.match(g.log[1].message,/Yami played Control on Master/);
   assert.equal(record.steps[0].phase,'setup');
   assert.equal(record.steps.at(-1).phase,'finished');
-  assert.equal(button.textContent,'Recording saved');
+  assert.equal(button.textContent,'Saved to history');
+  await r.document.getElementById('downloadMatchRecordingBtn').click();
+  assert.equal(JSON.parse(await r.context.window.__downloadBlob.text()).id,record.id);
+});
+
+test('finished recording downloads without archiving or available browser recording storage',async()=>{
+  const {r,g}=ready();let archives=0;
+  r.context.recordingTransaction=async()=>{archives++;throw new Error('Storage unavailable');};
+  const download=r.document.getElementById('downloadMatchRecordingBtn');
+  assert.equal(download.hidden,true);await download.click();assert.equal(r.context.window.__downloadBlob,undefined);
+  r.api.finishMatch('you','Download without registering');
+  assert.equal(download.hidden,false);await download.click();
+  const exported=JSON.parse(await r.context.window.__downloadBlob.text());
+  assert.equal(archives,0);assert.equal(exported.kind,'pokemon-tcg-match-recording');
+  assert.equal(exported.result.winner,'you');assert.equal(exported.steps.at(-1).phase,'finished');
+  assert.equal(exported.endedAt,g.matchHistory.endedAt);
+  const filename=r.context.window.__downloadFilename;
+  assert.match(filename,/_vs_.*_Win_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}-\d{3}_JST\.json$/);
+  await download.click();assert.equal(r.context.window.__downloadFilename,filename);
+  await r.document.getElementById('saveMatchRecordingBtn').click();assert.equal(archives,1);
+  await download.click();assert.equal(JSON.parse(await r.context.window.__downloadBlob.text()).id,exported.id);
+});
+
+test('recording filenames use deck names, Toma’s result and the original finish time in JST',()=>{
+  const {r}=ready();
+  const record={endedAt:'2026-11-23T15:05:06.123Z',result:{winner:'you'},
+    steps:[{players:{you:{deckName:'[T] Iono Fan'},codex:{deckName:'[M] Future: Princess / Test?'}}}]};
+  r.context.downloadRecord=record;
+  const filename=()=>vm.runInContext('matchRecordingFilename(downloadRecord)',r.context);
+  assert.equal(filename(),'Iono-Fan_vs_Future-Princess-Test_Win_2026-11-24_00-05-06-123_JST.json');
+  record.result.winner='codex';assert.match(filename(),/_Loss_/);
+  record.result.winner=null;assert.match(filename(),/_Draw_/);
+  record.result.cancelled=true;assert.match(filename(),/_Cancelled_/);
+  record.steps[0].players.you.deckName='ヒスイ ウインディ';assert.match(filename(),/^ヒスイ-ウインディ_vs_/);
+  record.steps[0].players.you.deckName='<>:/\\|?*';record.endedAt='invalid';assert.match(filename(),/^Toma-deck_vs_.*_unknown-end-time\.json$/);
+});
+
+test('recording download is hidden and cannot export the previous game after a new match begins',async()=>{
+  const {r,fixture}=ready();r.api.finishMatch('you','First match');
+  await r.document.getElementById('downloadMatchRecordingBtn').click();
+  const previous=r.context.window.__downloadBlob;
+  r.api.setup(fixture,r.random,r.choose,()=>true);
+  assert.equal(r.document.getElementById('downloadMatchRecordingBtn').hidden,true);
+  await r.document.getElementById('downloadMatchRecordingBtn').click();
+  assert.equal(r.context.window.__downloadBlob,previous);
 });
 test('opening Pokémon are counted once, including the automatically placed opponent Active',()=>{
   const {r,g}=ready();for(const side of ['you','codex']){const p=g.players[side];assert.equal(g.matchHistory.players[side].pokemonPlayed,[p.active,...p.bench].filter(Boolean).length);assert.equal(g.matchHistory.players[side].energyAttached,0)}assert.equal(r.api.matchSummary(),null);
