@@ -3001,3 +3001,45 @@ button.recap-marker:hover, button.recap-marker:focus-visible { border-color: #f5
   .recap-track { padding-left: 4px; }
   .recap-marker { padding: 5px 4px; }
 }
+
+/* Card interaction feedback */
+.hand-head-actions { display:flex; flex:none; align-items:center; gap:4px; }
+#groupHandBtn { min-height:24px; padding:2px 7px; white-space:nowrap; }
+.hand-cards .hand-card.hand-stack-copy { margin-inline-start:-18px; }
+.hand-stack-count {
+  position:absolute; top:2px; left:3px; padding:1px 5px; border-radius:8px;
+  background:#102640; color:#ffe9ad; border:1px solid #e4b960; font-size:11px; font-weight:800;
+  pointer-events:none;
+}
+#playmatPanel[data-effects="on"] :is(.slot-card,.hand-card) { transition:transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease; }
+#playmatPanel[data-effects="on"] .hand-cards .hand-card.selected,
+#playmatPanel[data-effects="on"] .slot-card.selected { transform:translateY(-2px) scale(1.035); z-index:2; }
+#playmatPanel :is(.slot-card,.hand-card):focus-visible { outline:2px solid #8de6be; outline-offset:-3px; z-index:3; }
+#playmatPanel .current-drop-destination { outline:2px solid #87dfb6; outline-offset:-3px; border-radius:8px; }
+@media (hover:hover) and (pointer:fine) {
+  #playmatPanel[data-effects="on"] .slot-card:hover,
+  #playmatPanel[data-effects="on"] .hand-cards .hand-card:hover { transform:translateY(-3px) scale(1.025); z-index:3; }
+}
+.inspector-zoom-button { margin:3px 0 6px; }
+#matchCardZoom {
+  width:min(760px,calc(100vw - 24px)); max-height:calc(100dvh - 24px); box-sizing:border-box;
+  overflow:auto; overscroll-behavior:contain; padding:clamp(10px,2vw,20px);
+  background:#0e233c; color:#fff5dc; border:1px solid #c8a35e; border-radius:14px;
+}
+#matchCardZoom::backdrop { background:#040b19ce; }
+#matchCardZoom header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+#matchCardZoom h2 { margin:0; font-size:clamp(18px,3vw,24px); }
+#matchCardZoomBody { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; align-items:start; }
+#matchCardZoomBody .inspector-rules { font-size:15px; line-height:1.45; }
+.match-zoom-art { display:grid; place-items:center; }
+.match-zoom-art img { width:100%; height:auto; max-height:70dvh; object-fit:contain; border-radius:10px; filter:none; }
+.match-zoom-art:not([data-state="ready"]) img, .match-zoom-art[data-state="ready"] .inspector-art-status { display:none; }
+@media (max-width:600px) {
+  #matchLayout #groupHandBtn { font-size:9px; }
+  .hand-cards .hand-card.hand-stack-copy { margin-inline-start:-10px; }
+  #matchCardZoomBody { grid-template-columns:1fr; }
+  .match-zoom-art img { max-height:52dvh; }
+}
+@media (prefers-reduced-motion:reduce) {
+  #playmatPanel[data-effects="on"] :is(.slot-card,.hand-card) { transition:none; }
+}

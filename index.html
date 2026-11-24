@@ -10,7 +10,7 @@
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="playmat.css?v=hub5">
+  <link rel="stylesheet" href="playmat.css?v=hub6">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -147,7 +147,7 @@
           </div>
         </section>
         <section class="hand-panel">
-          <div class="hand-head"><div class="hand-title" id="handTitle">Your hand <small>—</small></div><button class="btn small" id="toggleHandSizeBtn" type="button" aria-controls="handCards" aria-expanded="false">Expand hand</button></div>
+          <div class="hand-head"><div class="hand-title" id="handTitle">Your hand <small>—</small></div><div class="hand-head-actions"><button class="btn small" id="groupHandBtn" type="button" aria-label="Group duplicates" title="Group duplicate prints" hidden>Stack</button><button class="btn small" id="toggleHandSizeBtn" type="button" aria-controls="handCards" aria-expanded="false">Expand hand</button></div></div>
           <div class="hand-cards" id="handCards"><div class="hand-empty">Your cards will appear here after setup.</div></div>
         </section>
       </section>
@@ -490,6 +490,10 @@
   <div class="card-choice-overlay hidden" id="cardChoiceOverlay" role="dialog" aria-modal="true" aria-labelledby="cardChoiceTitle">
     <section class="card-choice-panel"><header class="card-choice-head"><div><h2 id="cardChoiceTitle">Choose a card</h2><p id="cardChoiceDescription">Select a card to continue.</p></div><button class="btn small" id="cardChoiceCloseBtn" type="button" aria-label="Cancel selection">✕</button></header><div class="card-choice-grid" id="cardChoiceGrid"></div><div class="card-choice-picks" id="cardChoicePicks" role="group" aria-label="Selected cards" hidden></div><footer class="card-choice-foot"><span class="card-choice-count" id="cardChoiceCount" aria-live="polite"></span><div class="card-choice-actions"><button class="btn small" id="cardChoiceCancelBtn" type="button">Cancel</button><button class="btn small primary" id="cardChoiceConfirmBtn" type="button" disabled>Confirm selection</button></div></footer></section>
   </div>
+  <dialog id="matchCardZoom" aria-labelledby="matchCardZoomTitle">
+    <header><h2 id="matchCardZoomTitle"></h2><form method="dialog"><button class="btn small" autofocus>Close</button></form></header>
+    <div id="matchCardZoomBody"></div>
+  </dialog>
   <dialog class="card-choice-panel playmat-confirm-dialog" id="playmatConfirmDialog" aria-labelledby="playmatConfirmTitle" aria-describedby="playmatConfirmMessage">
     <header class="card-choice-head"><div><h2 id="playmatConfirmTitle"></h2><p id="playmatConfirmMessage"></p></div></header>
     <ul id="playmatConfirmActions" hidden></ul>
@@ -14117,7 +14121,17 @@
             render();
             if (!visualTransitionBusy()) { announceTurnStart(); scheduleLocalAiTurn(3000); }
           }
-          showNextPlaymatEffect(); } }, duration);
+          showNextPlaymatEffect();
+          if (!reduced && effect.side === viewedSide()) {
+            const arriving = stagedHandArrivals.get(effect) || stagedPrizeCards.get(effect);
+            if (arriving?.length) for (const card of $('handCards').querySelectorAll('[data-hand-card]')) {
+              if (arriving.includes(card.dataset.handCard)) card.animate?.([
+                {opacity:.4, transform:'perspective(420px) rotateY(-35deg) translateY(5px)'},
+                {opacity:1, transform:'perspective(420px) rotateY(0) translateY(0)'}
+              ], {duration:fastPlaymatEffects ? 100 : 200,easing:'ease-out'});
+            }
+          }
+        } }, duration);
       } catch { clearPlaymatEffects(); }
     }
     function normalizedEnergyType(value) {
@@ -19733,6 +19747,7 @@
       clearHandTargetPreview();
       if (typeof clearHandReorderTarget==='function') clearHandReorderTarget();
       draggedHandCard = null;
+      clearDropDestination();
       for (const side of ['you','codex']) {
         boardCardElements(side).forEach(element=>element.classList.remove('energy-drop-target','evolution-drop-target','tool-drop-target'));
         $(side+'Row').querySelectorAll('[data-bench-drop-side], [data-place="bench"], [data-place="active"]').forEach(element=>element.classList.remove('pokemon-drop-target'));
@@ -19862,7 +19877,7 @@
     }
     function canReorderHandCard(card, side) {
       return !!card && side==='you' && viewedSide()===side && ['setup','play'].includes(game?.phase) &&
-        player(side)?.hand.length>1 && player(side).hand.includes(card) && !matchCheckpointBusy() && !visualTransitionBusy() && !$('playmatConfirmDialog').open;
+        player(side)?.hand.length>1 && player(side).hand.includes(card) && !matchCheckpointBusy() && !visualTransitionBusy() && !gameplayEffectsBusy() && !$('playmatConfirmDialog').open;
     }
     function clearHandReorderTarget() {
       $('handCards').querySelector('.hand-reorder-target')?.classList.remove('hand-reorder-target');
@@ -19903,6 +19918,30 @@
         if (player(side).bench.length < 5) $(side+'Row').querySelectorAll('[data-bench-drop-side]').forEach(element=>element.classList.add('pokemon-drop-target'));
         if (game.phase === 'setup' && player(side).openingBasicIds.includes(card.id)) $(side+'ActiveZone').classList.add('pokemon-drop-target');
       }
+    }
+    function clearDropDestination() {
+      $('playmatPanel').querySelector('.current-drop-destination')?.classList.remove('current-drop-destination');
+    }
+    function highlightDropDestination(element, intent) {
+      clearDropDestination();
+      if (!intent) return;
+      const destination = intent.target ? element.closest('[data-card], .pokemon-card-stack') :
+        intent.place === 'bench' ? element.closest('[data-bench-drop-side]') :
+        intent.place === 'active' ? $(intent.side+'ActiveZone') :
+        intent.place === 'hand' ? $('handCards') : element.closest('#battleCenter');
+      destination?.classList.add('current-drop-destination');
+    }
+    function animateRejectedDrop(drag) {
+      if (!drag || drag.match !== game || !playmatEffectsEnabled || prefersReducedPlaymatMotion()) return;
+      const cards = drag.kind === 'board' ? boardCardElements(drag.side) : [...$('handCards').querySelectorAll('[data-hand-card]')];
+      const source = cards.find(card => (card.dataset.handCard || card.dataset.card) === drag.cardId);
+      source?.animate?.([{translate:'0'}, {translate:'-4px'}, {translate:'4px'}, {translate:'0'}],
+        {duration:180,easing:'ease-out'});
+    }
+    function finishNativeCardDrag(event) {
+      const drag = draggedHandCard;
+      clearEnergyDrag();
+      if (event.dataTransfer?.dropEffect === 'none') animateRejectedDrop(drag);
     }
     function animateCardLanding(intent, point) {
       if (game!==intent.match || !playmatEffectsEnabled || prefersReducedPlaymatMotion() || !point) return;
@@ -20524,14 +20563,39 @@
     function mulliganBonusBadge(benchOnly) {
       return `<span class="mulligan-badge" title="${benchOnly ? 'Mulligan bonus · Bench only during setup' : 'Mulligan bonus'}">${benchOnly ? 'Bonus · Bench only' : 'Mulligan bonus'}</span>`;
     }
+    function handPrintKey(card) {
+      return JSON.stringify([cardMetadataKey(card), card.language || card.meta?.language || '']);
+    }
+    function groupHandDuplicates() {
+      const side = viewedSide(), hand = player(side)?.hand;
+      if (!hand?.length || !canReorderHandCard(hand[0],side)) return;
+      const groups = new Map();
+      for (const card of hand) {
+        const key = handPrintKey(card);
+        if (!groups.has(key)) groups.set(key,[]);
+        groups.get(key).push(card);
+      }
+      hand.splice(0,hand.length,...[...groups.values()].flat());
+      renderHand(side);
+      queueMatchAutosave();
+    }
     function renderHand(side) {
       const p = player(side);
-      const hand = handForPresentation(side);
+      const hand = handForPresentation(side), keys = hand.map(handPrintKey);
+      const group = $('groupHandBtn');
+      group.hidden = side !== 'you' || new Set(keys).size === keys.length;
+      const separatedCopies = keys.some((key,index) => index > 0 && keys[index-1] !== key && keys.indexOf(key) < index);
+      group.disabled = !separatedCopies || !canReorderHandCard(hand[0],side);
       const bonusCount = game?.phase === 'setup' && side === 'you' ? p?.bonusOpeningIds?.length || 0 : 0;
       $('handTitle').innerHTML = `${side === 'you' ? 'Your hand' : 'Yami’s hand'} <small>${p ? hand.length + ' cards' : '—'}</small>${bonusCount ? `<span class="mulligan-hand-count">${bonusCount} mulligan bonus</span>` : ''}`;
       if (openingCardIsHidden(side)) { $('handCards').innerHTML = '<div class="hand-empty">Opponent cards stay hidden until setup is complete.</div>'; return; }
       if (!hand.length) { $('handCards').innerHTML = '<div class="hand-empty">No cards in hand.</div>'; return; }
-      $('handCards').innerHTML = hand.map(card => {
+      $('handCards').innerHTML = hand.map((card,index) => {
+        const stacked = keys[index] === keys[index-1];
+        let copies = 1;
+        if (stacked && keys[index] !== keys[index+1]) {
+          for (let previous=index-1; previous>=0 && keys[previous]===keys[index]; previous--) copies++;
+        }
         const isSelected = selected?.side === side && selected?.zone === 'hand' && selected?.id === card.id;
         const image = imageFor(card);
         const art = image ? `<img class="card-art" src="${escapeHtml(image)}" alt="${escapeHtml(card.name)}" loading="lazy" draggable="false">` : '';
@@ -20539,8 +20603,17 @@
         const bonus = isMulliganBonusCard(side, card);
         const kind = handDragKind(card), benchOnly = bonus && kind === 'basic';
         const dragHint = kind === 'basic' ? game.phase === 'setup' && !benchOnly ? 'drag to your Active Spot or Bench' : 'drag onto your Bench' : kind === 'energy' ? 'drag onto a Pokémon' : kind === 'evolve' ? 'drag onto its previous Evolution' : kind === 'stadium' ? 'drag to the center of the mat' : kind === 'trainer' ? 'drag to the center of the mat to play' : '';
-        return `<button class="hand-card${isSelected ? ' selected' : ''}${bonus ? ' mulligan-bonus' : ''}" data-hand-card="${escapeHtml(card.id)}" draggable="${canDragHandCard(card,side) || canReorderHandCard(card,side)}" title="${escapeHtml(card.name)}${dragHint ? ' · Click to inspect or '+dragHint : ''}">${art}${bonus ? mulliganBonusBadge(benchOnly) : ''}<span class="card-kind">${escapeHtml(type)}</span><span class="card-label">${escapeHtml(card.name)}</span></button>`;
+        return `<button class="hand-card${stacked ? ' hand-stack-copy' : ''}${isSelected ? ' selected' : ''}${bonus ? ' mulligan-bonus' : ''}" data-hand-card="${escapeHtml(card.id)}" draggable="${canDragHandCard(card,side) || canReorderHandCard(card,side)}" title="${escapeHtml(card.name)}${dragHint ? ' · Click to inspect or '+dragHint : ''}">${art}${bonus ? mulliganBonusBadge(benchOnly) : ''}<span class="card-kind">${escapeHtml(type)}</span>${copies > 1 ? `<span class="hand-stack-count" aria-label="${copies} copies">×${copies}</span>` : ''}<span class="card-label">${escapeHtml(card.name)}</span></button>`;
       }).join('');
+    }
+    function openMatchCardZoom(card) {
+      if (!card) return;
+      const dialog = $('matchCardZoom'), body = $('matchCardZoomBody');
+      $('matchCardZoomTitle').textContent = card.name;
+      const sources = [...new Set([imageFor(card),imageFor(card,'high')].filter(Boolean))];
+      body.innerHTML = `<div class="match-zoom-art" data-state="loading"><span class="inspector-art-status">${sources.length ? 'Loading artwork…' : 'Artwork unavailable'}</span>${sources.length ? '<img alt="">' : ''}</div>${inspectorRulesMarkup(card.meta || {},String(card.language || card.meta?.language || '').toLowerCase())}`;
+      if (!dialog.open) dialog.showModal();
+      if (sources.length) loadInspectorArtwork(body.querySelector('.match-zoom-art'),card,sources);
     }
     function inspectorRulesMarkup(meta, language) {
       const english = language === 'en' || meta.textLanguage === 'en';
@@ -20630,7 +20703,7 @@
           ${sources.length ? `<img class="inspector-art" alt="${escapeHtml(card.name)}">` : ''}
           <span class="inspector-flip-hint">↻ Card details</span>
         </button>`;
-        inspector.innerHTML = `${heading}<div class="inspector-flip" data-face="artwork">${artwork}
+        inspector.innerHTML = `${heading}<button class="btn small inspector-zoom-button" type="button" data-inspector-zoom>Zoom card</button><div class="inspector-flip" data-face="artwork">${artwork}
           <section class="inspector-face inspector-details-face" aria-label="Card details" aria-hidden="true" inert>
             <div class="inspector-details-bar"><strong>Card details</strong><button type="button" class="btn small" data-inspector-face="artwork">↻ Artwork</button></div>
             <div class="inspector-details-scroll"><div class="inspector-live-details">${details}</div></div>
@@ -22198,6 +22271,7 @@
       render();
     });
     $('cardInspector').addEventListener('click', event => {
+      if (event.target.closest('[data-inspector-zoom]')) { openMatchCardZoom(findSelected()); return; }
       if(event.target.closest('[data-recover-grant]')){void recoverGrant(selected.side,findSelected());return;}
       const flip = event.target.closest('[data-inspector-face]');
       if (flip) {
@@ -22255,6 +22329,7 @@
       button.setAttribute('aria-expanded', String(expanded));
       button.textContent = expanded ? 'Tuck hand' : 'Expand hand';
     });
+    $('groupHandBtn').addEventListener('click',groupHandDuplicates);
     $('handCards').addEventListener('click', event => {
       const card = event.target.closest('[data-hand-card]');
       if (card) selectHand(card.dataset.handCard, event.detail === 0);
@@ -22354,6 +22429,7 @@
         const target = document.elementFromPoint(event.clientX,event.clientY);
         clearHandReorderTarget();
         if (target && handReorderTarget(target)) target.closest('[data-hand-card]').classList.add('hand-reorder-target');
+        highlightDropDestination(target, target && handDropIntent(target));
       },{passive:false});
       function returnTouchDrag(g, cardId, side) {
         if (!g.ghost?.animate || !playmatEffectsEnabled || prefersReducedPlaymatMotion()) return false;
@@ -22392,12 +22468,13 @@
           const drag = draggedHandCard;
           if (cancelled || !drag || !returnTouchDrag(g,drag.cardId,drag.side)) g.ghost?.remove();
           clearEnergyDrag();
+          if (!cancelled) animateRejectedDrop(drag);
         }
       }
       document.addEventListener('pointerup',event=>finish(event,false));
       document.addEventListener('pointercancel',event=>finish(event,true));
       function handleInspectTap(event) {
-        if (!mobileMatchLayout() || !game ||
+        if (!game ||
             activeBoardChoiceResolver || activeCardChoiceResolver || coinPresentationPending || visualTransitionBusy()) {
           lastTap = null;
           return;
@@ -22416,7 +22493,8 @@
           event.preventDefault();
           event.stopImmediatePropagation();
           renderInspector(current);
-          setMobileMatchPanel('inspector');
+          if (mobileMatchLayout()) setMobileMatchPanel('inspector');
+          else openMatchCardZoom(current);
           if (event.type==='pointerup') {
             cancelInspectTouchEnd = true;
             suppressClickUntil = Date.now()+400;
@@ -22451,7 +22529,7 @@
     $('handCards').addEventListener('dragstart',beginHandCardDrag);
     for (const id of ['youRow','codexRow','battleCenter']) {
       $(id).addEventListener('dragstart',beginBoardPokemonDrag);
-      $(id).addEventListener('dragend',clearEnergyDrag);
+      $(id).addEventListener('dragend',finishNativeCardDrag);
     }
     $('handCards').addEventListener('dragover',event=>{
       const target = handReorderTarget(event.target);
@@ -22469,14 +22547,21 @@
       } else if (handDropIntent(event.target)?.place==='hand') void dropHandCard(event);
     });
     $('handCards').addEventListener('dragleave',event=>{if (!$('handCards').contains(event.relatedTarget)) clearHandReorderTarget();});
-    $('handCards').addEventListener('dragend',clearEnergyDrag);
+    $('handCards').addEventListener('dragend',finishNativeCardDrag);
     for (const id of ['youRow','codexRow','battleCenter']) {
-      $(id).addEventListener('dragover',event=>{if(handDropIntent(event.target)){event.preventDefault();if(event.dataTransfer)event.dataTransfer.dropEffect='move';}});
+      $(id).addEventListener('dragover',event=>{
+        const intent = handDropIntent(event.target);
+        highlightDropDestination(event.target,intent);
+        if (intent) { event.preventDefault(); if (event.dataTransfer) event.dataTransfer.dropEffect='move'; }
+      });
+      $(id).addEventListener('dragleave',event=>{
+        if (!$(id).contains(event.relatedTarget)) clearDropDestination();
+      });
       $(id).addEventListener('drop',dropHandCard);
     }
     document.addEventListener('keydown', event => {
       if (event.key === 'Escape') {
-        if ($('playmatConfirmDialog').open) return;
+        if ($('playmatConfirmDialog').open || $('matchCardZoom').open) return;
         if (!$('problemReportModal').classList.contains('hidden')) $('problemReportModal').classList.add('hidden');
         else if (!$('backupToolsModal').classList.contains('hidden')) { resetRestorePreview(); $('backupToolsModal').classList.add('hidden'); }
         else if (!$('matchReplayModal').classList.contains('hidden')) closeMatchReplay();
