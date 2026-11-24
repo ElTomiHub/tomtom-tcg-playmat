@@ -10,7 +10,7 @@
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="playmat.css?v=hub8">
+  <link rel="stylesheet" href="playmat.css?v=hub9">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -9997,13 +9997,13 @@
       }
       return failures;
     }
-    function shuffled(cards) {
+    function shuffled(cards, deckOwner = null) {
       const result = cards.slice();
       for (let i = result.length - 1; i > 0; i--) {
         const j = Math.floor(engineRandom() * (i + 1));
         [result[i], result[j]] = [result[j], result[i]];
       }
-      if (typeof queueShuffleSound === 'function' && result.length > 1) queueShuffleSound();
+      if (deckOwner && result.length > 1 && typeof queueDeckShuffleEffect === 'function') queueDeckShuffleEffect(deckOwner);
       return result;
     }
     function newPlayer(name, parsed, deckName = '') {
@@ -10013,7 +10013,7 @@
       return { name, deckName, deck, hand, prizes: [], active: null, bench: [], discard: [], lost: [], mulligans: 0, bonusDraws: 0, openingBasicIds: [], energyAttachedThisTurn: false, supporterPlayedThisTurn: false, retreatedThisTurn: false, attackedThisTurn: false, turnsTaken: 0 };
     }
     function drawSevenAfterMulligan(p, side) {
-      p.deck = shuffled([...p.deck, ...p.hand]);
+      p.deck = shuffled([...p.deck, ...p.hand],p);
       p.hand = [];
       for (let i = 0; i < 7; i++) p.hand.push(p.deck.pop());
       p.hand.forEach(card => recordDeckCardStat(side, card, 'drawn'));
@@ -10479,7 +10479,8 @@
       const scripted = engineTestChoice('cards', { side, title, candidates: cards, visibleCards, minCount, maxCount });
       if (scripted.handled) return Promise.resolve(scripted.value).then(value => normalizeScriptedCards(value, cards, minCount, maxCount));
       if (side === 'codex' && localAiEnabled) return Promise.resolve(visibleCards.some(card => player(side)?.deck.includes(card)) ? aiInspectedCardChoices(cards,maxCount) : cards.slice(0,maxCount));
-      if(visibleCards.some(card=>player(side)?.deck.includes(card)))markDeckInformationRevealed(side);
+      const inspectingDeck = visibleCards.some(card=>player(side)?.deck.includes(card));
+      if (inspectingDeck) markDeckInformationRevealed(side);
       const mustFinish = required || resolutionInformationRevealed;
       $('cardChoiceCancelBtn').disabled=mustFinish;$('cardChoiceCloseBtn').disabled=mustFinish;
       $('cardChoiceTitle').textContent = title;
@@ -10490,6 +10491,12 @@
       activeCardChoice = { side, cards, visibleCards, min: minCount, max: maxCount, selected: new Set(), required, onePerCategory };
       const overlay = $('cardChoiceOverlay');
       overlay.dataset.docked = 'true';
+      overlay.dataset.deckSearch = String(inspectingDeck);
+      const deckPile = inspectingDeck && $(side+'Row').querySelector('.deck-pile-card');
+      if (deckPile && typeof prefersReducedPlaymatMotion === 'function' && playmatEffectsEnabled && !prefersReducedPlaymatMotion()) {
+        deckPile.animate?.([{transform:'translateY(0)'}, {transform:'translateY(-5px) rotate(-6deg)'}, {transform:'translateY(0)'}],
+          {duration:260,easing:'ease-out'});
+      }
       const panel = overlay.querySelector('.card-choice-panel');
       if (panel) positionPlaymatChoice(panel);
       renderCardChoice(); overlay.classList.remove('hidden');
@@ -10812,9 +10819,9 @@
     function shuffleHandIntoDeck(side, toBottom = false) {
       const p = player(side), cards = p.hand.splice(0);
       if (!cards.length) return 0;
-      if (toBottom) p.deck.unshift(...shuffled(cards));
-      else p.deck = shuffled([...p.deck, ...cards]);
       if (typeof queueHiddenCardMovement === 'function') queueHiddenCardMovement(side,'hand','deck',cards.length);
+      if (toBottom) p.deck.unshift(...shuffled(cards));
+      else p.deck = shuffled([...p.deck, ...cards],p);
       return cards.length;
     }
     function matchEffectRule(rules, card, text, actionName = '') {
@@ -11182,7 +11189,7 @@
       if (!picked || !liveRule() || picked.length > effect.count || new Set(picked).size !== picked.length ||
           currentWindow && (currentWindow.length !== looked.length || currentWindow.some((item,index) => item !== looked[index])) ||
           picked.some(item => !zone.includes(item) || !looked.includes(item) || !grassTrainerEligible(effect,item))) return false;
-      if (effect.look) owner.deck = shuffled(owner.deck.filter(item => !picked.includes(item)));
+      if (effect.look) owner.deck = shuffled(owner.deck.filter(item => !picked.includes(item)),owner);
       else {
         owner.discard = owner.discard.filter(item => !picked.includes(item));
         picked.forEach(resetRecoveredPokemon);
@@ -11325,7 +11332,7 @@
       }
       if (!picked || !stillLegal() || picked.length > limit() || new Set(picked).size !== picked.length ||
           picked.some(card => !p.deck.includes(card) || !eligible(card))) return false;
-      p.deck = shuffled(p.deck.filter(card => !picked.includes(card)));
+      p.deck = shuffled(p.deck.filter(card => !picked.includes(card)),p);
       for (const card of picked) {
         if (!toBench) { addRevealedDeckCardsToHand(side, p, [card]); continue; }
         card.enteredTurn = game.turnNumber;
@@ -11388,7 +11395,7 @@
           chosen.push(...selection);
         }
         if (new Set(chosen).size !== chosen.length || chosen.some(item => !p.deck.includes(item)) || supporterEffectRuleFor(card)?.effect !== effect) return false;
-        p.deck = shuffled(p.deck.filter(item => !chosen.includes(item))); addRevealedDeckCardsToHand(side, p, chosen);
+        p.deck = shuffled(p.deck.filter(item => !chosen.includes(item)),p); addRevealedDeckCardsToHand(side, p, chosen);
         logEvent(p.name + ' used ' + card.name + ': revealed ' + (chosen.map(item => item.name).join(', ') || 'no cards') + ', added them to hand, then shuffled.');
         return true;
       }
@@ -11402,7 +11409,7 @@
           if (selected === null) return false; chosen.push(...selected); groups.push(...selected.map(card=>({card,type})));
         }
         if (new Set(chosen).size !== chosen.length || groups.some(({card,type})=>!p.deck.includes(card) || card.meta?.category !== 'Trainer' || !(type === 'Tool' ? /tool/i.test(card.meta.trainerType) : String(card.meta.trainerType).toLowerCase() === 'item'))) return false;
-        p.deck = shuffled(p.deck.filter(item => !chosen.includes(item))); addRevealedDeckCardsToHand(side, p, chosen);
+        p.deck = shuffled(p.deck.filter(item => !chosen.includes(item)),p); addRevealedDeckCardsToHand(side, p, chosen);
         logEvent(`${p.name} used ${card.name}: revealed ${chosen.length ? chosen.map(item=>item.name).join(', ') : 'no cards'}, added them to hand, then shuffled.`); return true;
       }
       let eligible, djinnPicks;
@@ -11420,7 +11427,7 @@
       if (djinn && toBench) djinnPicks = djinnMissingChoices(candidates,Math.min(effect.count,5-p.bench.length,Math.max(0,p.deck.length-1)));
       const selected = djinnPicks ?? await chooseUpToEffectCards(side, `${card.name}: choose up to ${effect.count} ${toBench ? 'Basic Pokémon without a Rule Box for your Bench' : 'cards to reveal and add to your hand'}.`, candidates, toBench ? Math.min(effect.count,5-p.bench.length) : effect.count,p.deck);
       if (selected === null || new Set(selected).size !== selected.length || selected.some(item=>!p.deck.includes(item) || !candidates.includes(item) || !eligible(item)) || toBench && selected.length > 5-p.bench.length) return false;
-      p.deck = shuffled(p.deck.filter(item=>!selected.includes(item)));
+      p.deck = shuffled(p.deck.filter(item=>!selected.includes(item)),p);
       if (toBench) for (const pokemon of selected) { pokemon.enteredTurn = game.turnNumber; p.bench.push(pokemon); recordMatchActivity('pokemon',side,pokemon); }
       else addRevealedDeckCardsToHand(side, p, selected);
       logEvent(`${p.name} used ${card.name}: ${selected.length ? selected.map(item=>item.name).join(', ') : 'no cards'} ${toBench ? 'put onto the Bench' : 'revealed and added to hand'}; shuffled the deck.`); return true;
@@ -11455,7 +11462,7 @@
         await chooseUpToEffectCards(side,title+': reveal up to 1 '+effect.trainerType+' from the top '+windowCards.length+' cards.',candidates,1,windowCards);
       if(chosen===null || chosen.length>limit || new Set(chosen).size!==chosen.length || chosen.some(card=>!candidates.includes(card) || !eligible(card)) || !stillLegal())return false;
       const live=p.deck.slice(-windowCards.length);if(live.length!==ids.length || live.some((card,i)=>card.id!==ids[i]))return false;
-      p.deck=shuffled(p.deck.filter(card=>!chosen.includes(card)));addRevealedDeckCardsToHand(side, p, chosen);
+      p.deck = shuffled(p.deck.filter(card=>!chosen.includes(card)),p);addRevealedDeckCardsToHand(side, p, chosen);
       logEvent(p.name+' used '+title+': '+(chosen.length?'revealed '+chosen.map(card=>card.name).join(', ')+' and put the selection into hand':'took no card')+'; shuffled the other cards back.');return true;
     }
     function resetRecoveredPokemon(card) {
@@ -11487,7 +11494,7 @@
       if(chosen===null || chosen.length>effect.count || new Set(chosen).size!==chosen.length || chosen.some(item=>!candidates.includes(item) || !p.discard.includes(item) || !recoverable(item)) || !legal() || cost.some(item=>!p.hand.includes(item) || item===card))return false;
       for(const item of cost){p.hand.splice(p.hand.indexOf(item),1);p.discard.push(item);}
       for(const item of chosen){p.discard.splice(p.discard.indexOf(item),1);resetRecoveredPokemon(item);}
-      if(effect.type==='shuffle_discard_pokemon_energy'){p.deck=shuffled([...p.deck,...chosen]);logEvent(p.name+' used '+card.name+': shuffled '+chosen.map(item=>item.name).join(', ')+' into the deck.');}
+      if(effect.type==='shuffle_discard_pokemon_energy'){p.deck = shuffled([...p.deck,...chosen],p);logEvent(p.name+' used '+card.name+': shuffled '+chosen.map(item=>item.name).join(', ')+' into the deck.');}
       else {p.hand.push(...chosen);logEvent(p.name+' used '+card.name+': discarded '+cost.map(item=>item.name).join(', ')+' and recovered '+chosen.length+' Basic Energy.');}
       return true;
     }
@@ -11571,7 +11578,7 @@
         queueCardMovement(side, energy, 'pokemon', target, 'deck', attack.name);
         logEvent(`${attack.name} attached ${energy.name} to ${target.name}.`);
       }
-      p.deck = shuffled(p.deck);
+      p.deck = shuffled(p.deck,p);
       logEvent(`${p.name} shuffled after ${attack.name}.`);
       return true;
     }
@@ -11615,7 +11622,7 @@
         p.discard.push(removeCardFromHand(p, payment.id));
         logEvent(`${p.name} discarded ${payment.name} for ${card.name}.`);
       }
-      p.deck = shuffled(p.deck.filter(item => !chosen.includes(item)));
+      p.deck = shuffled(p.deck.filter(item => !chosen.includes(item)),p);
       addRevealedDeckCardsToHand(side, p, chosen);
       logEvent(`${p.name} used ${card.name}, revealed ${chosen.map(item => item.name).join(', ') || 'no cards'}, and shuffled.`);
       return true;
@@ -11631,7 +11638,7 @@
           await chooseUpToEffectCards(side, `${card.name}: choose a Basic Pokémon to Bench.`, candidates, 1,p.deck);
         const target = chosen?.[0];
         if (!chosen || target && (!p.deck.includes(target) || !basicPokemon(target) || p.bench.length >= 5)) return false;
-        p.deck = shuffled(p.deck.filter(item => item !== target));
+        p.deck = shuffled(p.deck.filter(item => item !== target),p);
         if (!target) { logEvent(`${p.name} found no Pokémon with ${card.name} and shuffled.`); return true; }
         target.enteredTurn = game.turnNumber; target.evolvedTurn = -1;
         p.bench.push(target);
@@ -11685,7 +11692,7 @@
             new Set(found.map(item => item.meta.category)).size !== found.length) return false;
         const live = p.deck.slice(-windowCards.length);
         if (live.length !== windowCards.length || live.some((item, index) => item !== windowCards[index])) return false;
-        p.deck = shuffled(p.deck.filter(item => !found.includes(item)));
+        p.deck = shuffled(p.deck.filter(item => !found.includes(item)),p);
         addRevealedDeckCardsToHand(side, p, found);
         logEvent(`${p.name} revealed ${found.map(item => item.name).join(', ') || 'no cards'} with ${card.name} and shuffled the rest back.`);
         return true;
@@ -11697,7 +11704,7 @@
       const chosen = ai ? revealed.slice(0, count) : await chooseCardsInApp(side, `${card.name}: choose ${count} card(s) to shuffle into the opposing deck.`, revealed, count, count);
       if (!chosen || chosen.length !== count || chosen.some(item => !foe.hand.includes(item)) || !canUseMorty(side)) return false;
       foe.hand = foe.hand.filter(item => !chosen.includes(item));
-      foe.deck = shuffled([...foe.deck, ...chosen]);
+      foe.deck = shuffled([...foe.deck, ...chosen],foe);
       logEvent(`${foe.name} shuffled ${chosen.map(item => item.name).join(', ')} into their deck.`);
       return true;
     }
@@ -11750,7 +11757,7 @@
           if (selection===null || selection.length>1 || selection.some(card=>!p.deck.includes(card) || !filter(card))) return false;chosen.push(...selection);
         }
         if (new Set(chosen).size!==chosen.length || chosen.some(card=>!p.deck.includes(card))) return false;
-        p.deck=shuffled(p.deck.filter(card=>!chosen.includes(card)));addRevealedDeckCardsToHand(side, p, chosen);logEvent(p.name+' used '+card.name+': revealed '+(chosen.map(card=>card.name).join(', ') || 'no cards')+' and shuffled.');return true;
+        p.deck = shuffled(p.deck.filter(card=>!chosen.includes(card)),p);addRevealedDeckCardsToHand(side, p, chosen);logEvent(p.name+' used '+card.name+': revealed '+(chosen.map(card=>card.name).join(', ') || 'no cards')+' and shuffled.');return true;
       }
       if (effect.type==='return_opponent_energy_attach') {
         const active=foe.active,own=p.active,energies=active?.energy || [];
@@ -11781,7 +11788,7 @@
         }
         if (new Set(chosen).size!==chosen.length || chosen.some(target=>![p.active,...p.bench].includes(target) || !pokemonHasType(target,'darkness')) || new Set(assignments.map(item=>item.energy)).size!==assignments.length || assignments.some(({energy})=>!p.deck.includes(energy) || !basicEnergyHasType(energy,'darkness'))) return false;
         for (const {target,energy} of assignments) { p.deck.splice(p.deck.indexOf(energy),1);target.energy.push(energy);recordMatchActivity('energy',side,energy);if(target===p.active)applyPokemonCondition(target,{type:'poisoned',appliedTurn:game.turnNumber,source:card.name}); }
-        p.deck=shuffled(p.deck);logEvent(p.name+' used '+card.name+': '+(assignments.map(({target,energy})=>energy.name+' → '+target.name+(target===p.active?' (Poisoned)':'')).join(', ') || 'no Energy attached')+'; shuffled.');return true;
+        p.deck = shuffled(p.deck,p);logEvent(p.name+' used '+card.name+': '+(assignments.map(({target,energy})=>energy.name+' → '+target.name+(target===p.active?' (Poisoned)':'')).join(', ') || 'no Energy attached')+'; shuffled.');return true;
       }
       return false;
     }
@@ -11794,7 +11801,7 @@
       if (effect.type==='search_pokemon_type') {
         const candidates=p.deck.filter(card=>pokemonHasType(card,effect.pokemonType)),chosen=await chooseUpToEffectCards(side,attack.name+': choose up to '+effect.count+' Darkness Pokémon to reveal.',candidates,effect.count,p.deck);
         if (chosen===null || chosen.length>effect.count || new Set(chosen).size!==chosen.length || chosen.some(card=>!p.deck.includes(card) || !candidates.includes(card))) return false;
-        p.deck=shuffled(p.deck.filter(card=>!chosen.includes(card)));addRevealedDeckCardsToHand(side, p, chosen);logEvent(p.name+' used '+attack.name+': revealed '+(chosen.map(card=>card.name).join(', ') || 'no Pokémon')+'; shuffled.');return true;
+        p.deck = shuffled(p.deck.filter(card=>!chosen.includes(card)),p);addRevealedDeckCardsToHand(side, p, chosen);logEvent(p.name+' used '+attack.name+': revealed '+(chosen.map(card=>card.name).join(', ') || 'no Pokémon')+'; shuffled.');return true;
       }
       const source=choices.damageSource,target=foe.active;
       if (!source) return !damagedBenchCandidates(p,effect).length;
@@ -11944,7 +11951,7 @@
           if (!chosen || chosen.length>1 || chosen.some(item=>!candidates.includes(item) || !owner.deck.includes(item))) return false;
           picked.push(...chosen);
         }
-        owner.deck = shuffled(owner.deck.filter(item=>!picked.includes(item)));
+        owner.deck = shuffled(owner.deck.filter(item=>!picked.includes(item)),owner);
         addRevealedDeckCardsToHand(side,owner,picked);
         logEvent(card.name + ' found ' + (picked.map(item=>item.name).join(', ') || 'no cards') + ' and shuffled the deck.');
         return true;
@@ -11978,7 +11985,7 @@
           if (!picked || picked.length>1 || picked.some(item=>!salvatoreEvolutionChoices(side,target).includes(item))) return false;
           if (picked.length && !await insertEvolution(side,target,picked[0],'deck')) return false;
         }
-        owner.deck = shuffled(owner.deck);
+        owner.deck = shuffled(owner.deck,owner);
         logEvent(card.name + ' shuffled the deck after searching for an Evolution Pokémon.');
         return true;
       }
@@ -12046,7 +12053,7 @@
         const target = tailored ? plan?.target : second && await choosePokemonOnBoard(side,card.name + ': choose a Pokémon to receive the Energy.',board());
         if (second && (!owner.deck.includes(second) || !candidates.includes(second) || energyType(second)===energyType(first) || !board().includes(target))) return false;
         if (first && !owner.deck.includes(first)) return false;
-        owner.deck = shuffled(owner.deck.filter(item=>item!==first && item!==second));
+        owner.deck = shuffled(owner.deck.filter(item=>item!==first && item!==second),owner);
         if (first) owner.hand.push(first);
         if (second) {
           target.energy.push(second);
@@ -12077,7 +12084,7 @@
           if (!chosen || !owner.deck.includes(chosen) || top.includes(chosen)) return false;
           top.push(chosen);
         }
-        owner.deck = [...shuffled(owner.deck.filter(item=>!top.includes(item))), ...top.reverse()];
+        owner.deck = [...shuffled(owner.deck.filter(item=>!top.includes(item)),owner), ...top.reverse()];
         logEvent(owner.name + ' shuffled and put ' + count + ' cards on top with ' + card.name + '.');
         return true;
       }
@@ -12087,7 +12094,7 @@
         if (!picked || supporterEffectRuleFor(card)?.effect !== newRule ||
             picked.some(item=>!candidates.includes(item) || !owner.deck.includes(item)) ||
             top.some((item,i)=>owner.deck.at(i-top.length)!==item)) return false;
-        owner.deck = shuffled(owner.deck.filter(item=>!picked.includes(item)));
+        owner.deck = shuffled(owner.deck.filter(item=>!picked.includes(item)),owner);
         owner.hand.push(...picked);
         logEvent(owner.name + ' revealed ' + (picked.map(item=>item.name).join(', ') || 'no Pokémon') + ' with ' + card.name + ' and shuffled.');
         return true;
@@ -12128,7 +12135,7 @@
       if (effect.type === 'shuffle_draw') {
         const count = effect.fullPrizesCount && p.prizes.length === 6 ? effect.fullPrizesCount : effect.count;
         const shuffledHand = shuffleHandIntoDeck(side);
-        if (effect.fullPrizesCount && !shuffledHand) p.deck = shuffled(p.deck);
+        if (effect.fullPrizesCount && !shuffledHand) p.deck = shuffled(p.deck,p);
         drawCards(side, count);
         logEvent(`Resolved ${card.name}: shuffle and draw ${count}.`); return true;
       }
@@ -12189,7 +12196,7 @@
         const items = opponent.hand.filter(item => item.meta?.category === 'Trainer' && String(item.meta?.trainerType || '').toLowerCase() === 'item');
         const itemIds = new Set(items.map(item => item.id));
         opponent.hand = opponent.hand.filter(item => !itemIds.has(item.id));
-        opponent.deck = shuffled([...opponent.deck, ...items]);
+        opponent.deck = shuffled([...opponent.deck, ...items],opponent);
         const drawn = drawCards(side, items.length);
         logEvent(`${p.name} played ${card.name}. ${opponent.name}'s revealed hand: ${revealed.length ? revealed.join(', ') : 'empty'}. ${items.length} Item card${items.length === 1 ? '' : 's'} were shuffled into the deck; ${p.name} drew ${drawn}.`);
         return true;
@@ -12208,7 +12215,7 @@
         if (!Array.isArray(chosen) || chosen.length > limit || new Set(chosen.map(item => item.id)).size !== chosen.length ||
             chosen.some(item => !candidates.includes(item) || !p.deck.includes(item) || !eligible(item))) return false;
         const ids = new Set(chosen.map(item => item.id));
-        p.deck = p.deck.filter(item => !ids.has(item.id)); addRevealedDeckCardsToHand(side, p, chosen); p.deck = shuffled(p.deck);
+        p.deck = p.deck.filter(item => !ids.has(item.id)); addRevealedDeckCardsToHand(side, p, chosen); p.deck = shuffled(p.deck,p);
         chosen.forEach(item => recordDeckCardStat(side, item, 'used'));
         logEvent(chosen.length ? `${p.name} used ${card.name} to reveal and add ${chosen.map(item => item.name).join(', ')} to hand, then shuffled.` : `${p.name} used ${card.name} but took no Pokémon; the deck was shuffled.`);
         return true;
@@ -12223,7 +12230,7 @@
         if (item && (!p.deck.includes(item) || !itemCards.includes(item)) || energy && (!p.deck.includes(energy) || !lightning.includes(energy))) return false;
         const chosenIds = new Set([item?.id, energy?.id].filter(Boolean));
         p.deck = p.deck.filter(candidate => !chosenIds.has(candidate.id));
-        addRevealedDeckCardsToHand(side, p, [item, energy].filter(Boolean)); p.deck = shuffled(p.deck);
+        addRevealedDeckCardsToHand(side, p, [item, energy].filter(Boolean)); p.deck = shuffled(p.deck,p);
         [item, energy].filter(Boolean).forEach(candidate => recordDeckCardStat(side, candidate, 'used'));
         logEvent(chosenIds.size ? `${p.name} used ${card.name} to reveal ${[item, energy].filter(Boolean).map(candidate => candidate.name).join(' and ')}, then shuffled.` : `${p.name} used ${card.name} but found no selected cards; the deck was shuffled.`);
         return true;
@@ -12238,7 +12245,7 @@
         if (!Array.isArray(chosen) || chosen.some(item => !p.deck.includes(item) || !lightningPokemon(item)) || !p.hand.includes(discard)) return false;
         removeCardFromHand(p, discard.id); p.discard.push(discard);
         const ids = new Set(chosen.map(item => item.id));
-        p.deck = p.deck.filter(item => !ids.has(item.id)); addRevealedDeckCardsToHand(side, p, chosen); p.deck = shuffled(p.deck);
+        p.deck = p.deck.filter(item => !ids.has(item.id)); addRevealedDeckCardsToHand(side, p, chosen); p.deck = shuffled(p.deck,p);
         recordDeckCardStat(side, discard, 'used'); chosen.forEach(item => recordDeckCardStat(side, item, 'used'));
         logEvent(`${p.name} discarded ${discard.name} for ${card.name}${chosen.length ? ` and added ${chosen.map(item => item.name).join(', ')} to hand` : ' and took no Pokémon'}; the deck was shuffled.`);
         return true;
@@ -12387,7 +12394,7 @@
         const replacement = chosen?.[0];
         if (!chosen || chosen.length>1 || !canUsePokemonAbility(pokemon,ability,side) ||
             replacement && (!p.deck.includes(replacement) || !eligible(replacement))) return false;
-        p.deck = shuffled(p.deck.filter(item=>item!==replacement));
+        p.deck = shuffled(p.deck.filter(item=>item!==replacement),p);
         if (replacement) {
           const attachments = [...pokemon.energy,...pokemon.tools];
           resetRecoveredPokemon(pokemon);
@@ -12405,7 +12412,7 @@
           const chosen = await pickEffectCard(side,ability.name + ': choose a card from your deck.',p.deck,
             list=>side==='codex' && typeof stageTwoAiProfile==='function' && stageTwoAiProfile()==='dracaufeu' ? stageTwoAiSearchChoice(list,1)[0] : list[0]);
           if (!chosen || !p.deck.includes(chosen) || !canUsePokemonAbility(pokemon,ability,side)) return false;
-          p.deck = shuffled(p.deck.filter(item=>item!==chosen));
+          p.deck = shuffled(p.deck.filter(item=>item!==chosen),p);
           p.hand.push(chosen);
           logEvent(p.name + ' used ' + ability.name + ' to take a card and shuffle.');
         } else {
@@ -12573,7 +12580,7 @@
           p.deck.splice(p.deck.findIndex(item => item.id === chosen.id), 1); addRevealedDeckCardsToHand(side, p, [chosen]);
           recordDeckCardStat(side, chosen, 'used');
         }
-        p.deck = shuffled(p.deck);
+        p.deck = shuffled(p.deck,p);
         pokemon.abilityUses ||= {}; pokemon.abilityUses[ability.name] = game.turnNumber;
         logEvent(chosen ? `${p.name} used ${ability.name} to reveal ${chosen.name} and put it into hand, then shuffled.` : `${p.name} used ${ability.name} but found no Evolution Pokémon; the deck was shuffled.`);
         return true;
@@ -12788,7 +12795,7 @@
       if (active) p.active = null;
       else p.bench.splice(p.bench.indexOf(pokemon), 1);
       for (const card of cards) resetRecoveredPokemon(card);
-      p.deck = shuffled([...p.deck, ...cards]);
+      p.deck = shuffled([...p.deck, ...cards],p);
       logEvent(`${p.name} used ${title} and shuffled ${pokemon.name} and its cards into the deck.`);
       if (active) {
         if (!p.bench.length) finishMatch(oppositeSide(side), 'no Pokémon left in play');
@@ -12835,8 +12842,8 @@
       discardInvalidDragonEnergy(p,card);
       logEvent(`${p.name} evolved ${target.name} into ${card.name}.`);
       if (typeof enforcePokemonToolCapacity === 'function' && !await enforcePokemonToolCapacity(side,card)) return false;
-      if (source === 'hand' && typeof recordPlayedCard === 'function') recordPlayedCard(side,card,'Evolution',card,'pokemon');
-      if (source === 'deck' && typeof queueCardMovement === 'function') queueCardMovement(side,card,'pokemon',card,'deck','Evolution');
+      if (source === 'hand' && typeof recordPlayedCard === 'function') recordPlayedCard(side,card,'Evolution',card,'pokemon',target);
+      if (source === 'deck' && typeof queueCardMovement === 'function') queueCardMovement(side,card,'pokemon',card,'deck','Evolution',false,target);
       if (source === 'hand' && await resolveOnEvolveAbilities(card, side) === false) return false;
       if (effectivePokemonHp(card) && effectivePokemonHp(card) <= Number(card.damage || 0)) {
         if (targetZone === 'active') await resolveKnockout(oppositeSide(side), side);
@@ -12869,7 +12876,7 @@
       if (!stillLegal() || selected.length > count || new Set(selected).size !== selected.length ||
           visible.some((item,index)=>p.deck.at(index-visible.length)!==item) ||
           assignments.some(({energy,target})=>!candidates.includes(energy) || !eligible(energy) || !board().includes(target))) return false;
-      p.deck = shuffled(p.deck.filter(item=>!selected.includes(item)));
+      p.deck = shuffled(p.deck.filter(item=>!selected.includes(item)),p);
       for (const {energy,target} of assignments) {
         target.energy.push(energy);
         recordMatchActivity('energy',side,energy);
@@ -13003,7 +13010,7 @@
           if (typeof recordMatchActivity === 'function') recordMatchActivity('pokemon', side, selectedPokemon);
           recordDeckCardStat(side, selectedPokemon, 'used');
         }
-        if (definition.shuffleAfter) currentPlayer.deck = shuffled(currentPlayer.deck);
+        if (definition.shuffleAfter) currentPlayer.deck = shuffled(currentPlayer.deck,currentPlayer);
         if (!consumeResolvedItem(side, card)) return false;
         logEvent(selectedPokemon
           ? `${currentPlayer.name} searched the deck with ${card.name}, revealed ${selectedPokemon.name}, played it to the Bench, and shuffled the deck.`
@@ -13161,10 +13168,10 @@
       if (lookCount > 0) {
         live.deck = live.deck.filter(item => !sourceIdSet.has(item.id));
         const returned = sourceCards.filter(item => item.id !== chosenPokemon?.id);
-        live.deck = shuffled([...live.deck, ...returned]);
+        live.deck = shuffled([...live.deck, ...returned],live);
       } else {
         if (chosenPokemon) live.deck.splice(live.deck.findIndex(item => item.id === chosenPokemon.id), 1);
-        live.deck = shuffled(live.deck);
+        live.deck = shuffled(live.deck,live);
       }
       if (chosenPokemon) {
         addRevealedDeckCardsToHand(side, live, [chosenPokemon]);
@@ -13309,7 +13316,7 @@
           p.discard.push(removeCardFromHand(p,item.id));
           queueCardMovement(side,item,'discard',null,'hand',card.name);
         }
-        p.deck = shuffled(p.deck.filter(item=>!chosen.includes(item)));
+        p.deck = shuffled(p.deck.filter(item=>!chosen.includes(item)),p);
         addRevealedDeckCardsToHand(side,p,chosen);
         logEvent(card.name + ': discarded 3 cards, revealed ' + (chosen.map(item=>item.name).join(', ') || 'no cards') + ', and shuffled.');
         return true;
@@ -13348,7 +13355,7 @@
           p.deck.splice(p.deck.findIndex(item => item.id === chosen.id), 1); addRevealedDeckCardsToHand(side, p, [chosen]);
           recordDeckCardStat(side, chosen, 'used');
         }
-        p.deck = shuffled(p.deck);
+        p.deck = shuffled(p.deck,p);
         logEvent(chosen ? `${p.name} used ${card.name} to reveal ${chosen.name} and put it into hand, then shuffled.` : `${p.name} used ${card.name} but found no Basic Energy; the deck was shuffled.`);
         return true;
       }
@@ -13387,7 +13394,7 @@
         });
         const attachedIds = new Set(assignments.map(item => item.energy.id));
         const remaining = lookedAt.filter(item => !attachedIds.has(item.id));
-        p.deck = shuffled([...p.deck, ...remaining]);
+        p.deck = shuffled([...p.deck, ...remaining],p);
         logEvent(assignments.length ? `${p.name} used ${card.name} to attach ${assignments.map(item => `${item.energy.name} to ${item.target.name}`).join(', ')}; the other cards were shuffled back.` : `${p.name} used ${card.name} and attached no Energy; the top ${lookedAt.length} cards were shuffled back.`);
         return true;
       }
@@ -13401,7 +13408,7 @@
           p.deck.splice(p.deck.findIndex(item => item.id === chosen.id), 1); addRevealedDeckCardsToHand(side, p, [chosen]);
           recordDeckCardStat(side, chosen, 'used');
         }
-        p.deck = shuffled(p.deck);
+        p.deck = shuffled(p.deck,p);
         logEvent(chosen ? `${p.name} revealed ${chosen.name} with ${card.name} and put it into hand, then shuffled.` : `${p.name} used ${card.name} but found no Pokémon; the deck was shuffled.`);
         return true;
       }
@@ -13737,28 +13744,29 @@
       cue.detail = `${incoming.name} → Active Spot`;
       cue.playedCue = {target:incoming.name,point,boardSwitch:{side,outgoing,incoming,benchIndex}};
     }
-    function queuePokemonPositionSwitch(side, outgoing, incoming, incomingBenchIndex) {
+    function queuePokemonPositionSwitch(side, outgoing, incoming, incomingBenchIndex, reason = 'Switch') {
       incoming.benchToActiveTurn = game.turnNumber;
       try {
         const activePoint = cardMovementPoint(side,'active');
         const outgoingBenchIndex = player(side).bench.findIndex(card=>card.id === outgoing.id);
+        const positionSwap = {outgoing,incoming,incomingBenchIndex};
         const moves = [
           {card:outgoing,fromZone:'active',destination:'bench',from:activePoint,point:benchSlotMovementPoint(side,outgoingBenchIndex)},
           {card:incoming,fromZone:'bench',destination:'active',from:benchSlotMovementPoint(side,incomingBenchIndex),point:activePoint}
         ];
         for (const {card,...move} of moves) queuePlaymatEffect({
-          kind:'card-move',side,cardId:card.id,name:card.name,image:imageFor(card),...move
+          kind:'card-move',side,cardId:card.id,name:card.name,image:imageFor(card),detail:reason,positionSwap,...move
         });
       } catch { /* Position announcements cannot change the switch. */ }
     }
-    function queueCardMovement(side, card, destination, target = null, origin = 'hand', detail = '', showPlay = false) {
+    function queueCardMovement(side, card, destination, target = null, origin = 'hand', detail = '', showPlay = false, evolutionBefore = null) {
       try {
         if (!card || game?.phase === 'setup' && (side !== 'you' || !stagedKnockoutsEnabled())) return;
-        const point = cardMovementPoint(side,destination,target);
+        const point = evolutionBefore ? playmatPointFor(side,evolutionBefore) : cardMovementPoint(side,destination,target);
         queueHandArrival({kind:'card-move',side,cardId:card.id,name:card.name,image:imageFor(card),detail,
           from:origin && Number.isFinite(origin.x) && Number.isFinite(origin.y) ? origin : typeof origin === 'object' ? playmatPointFor(side,origin) : cardMovementPoint(side,origin,card),
-          point,destination,targetId:target?.id || null,
-          ...(detail.startsWith('Evolution') ? {evolution:true} : {}),
+          point,destination,targetId:target?.id || null,energyAttachment:destination==='pokemon' && card.meta?.category==='Energy',
+          ...(evolutionBefore ? {evolution:true,evolutionBefore:cloneSerializable(evolutionBefore)} : {}),
           ...(showPlay ? {playedCue:{target:target?.name || '',point:target ? point : null}} : {})}, destination==='hand' ? [card] : []);
       } catch { /* A moving card is only a decoration. */ }
     }
@@ -13794,7 +13802,7 @@
     function addRevealedDeckCardsToHand(side, owner, cards) {
       owner.hand.push(...cards);
       const batch = playmatEffectBatches.at(-1);
-      if (side !== 'codex' || !batch) return;
+      if (!batch) return;
       batch.revealedDeckCards ||= new Set();
       for (const card of cards) batch.revealedDeckCards.add(card.id);
     }
@@ -13803,6 +13811,7 @@
         if(!batch || game?.phase==='setup')return;
         const before=cardZoneLocations(previous), after=cardZoneLocations(game), existing=playmatEffectBatches.flat();
         const hidden=new Map();let publicCount=0;
+        const movementStart = batch.length;
         for(const [id,dest]of after){const source=before.get(id);if(!source || source.side!==dest.side || source.zone===dest.zone && (source.zone!=='pokemon' || source.target?.id===dest.target?.id))continue;
           // Evolution keeps the old Pokémon and its attachments in the same stack.
           const previousHost = source.zone === 'pokemon' ? source.target?.id :
@@ -13818,9 +13827,17 @@
           const faceDown=dest.zone==='deck' || dest.zone==='prizes' || source.zone==='prizes' || source.zone==='deck' && dest.zone==='hand' && !revealed;
           if(faceDown){if(existing.some(effect=>effect.kind==='zone-move' && effect.side===dest.side && effect.fromZone===fromZone && effect.toZone===dest.zone))continue;const key=[dest.side,fromZone,dest.zone].join(':');const group=hidden.get(key)||{side:dest.side,fromZone,toZone:dest.zone,count:0,arrivals:[]};group.count++;if(dest.zone==='hand')group.arrivals.push(dest.card);hidden.set(key,group);continue;}
           if(++publicCount>12)continue;
-          queueHandArrival({kind:'zone-move',side:dest.side,cardId:id,name:dest.card.name,image:imageFor(dest.card),count:1,fromZone,toZone:dest.zone,preview,from:preview || (fromZone==='pokemon'?playmatPointFor(source.side,source.target):cardMovementPoint(source.side,fromZone,source.card)),point:dest.zone==='pokemon'?playmatPointFor(dest.side,dest.target):cardMovementPoint(dest.side,dest.zone,dest.card)}, dest.zone==='hand' ? [dest.card] : []);
+          queueHandArrival({kind:'zone-move',side:dest.side,cardId:id,name:dest.card.name,image:imageFor(dest.card),count:1,fromZone,toZone:dest.zone,revealed,energyAttachment:dest.zone==='pokemon' && dest.card.meta?.category==='Energy',preview,from:preview || (fromZone==='pokemon'?playmatPointFor(source.side,source.target):cardMovementPoint(source.side,fromZone,source.card)),point:dest.zone==='pokemon'?playmatPointFor(dest.side,dest.target):cardMovementPoint(dest.side,dest.zone,dest.card)}, dest.zone==='hand' ? [dest.card] : []);
         }
         for(const move of hidden.values())queueHiddenCardMovement(move.side,move.fromZone,move.toZone,move.count,move.arrivals);
+        // Cards chosen during a deck search leave the deck before its remaining cards shuffle.
+        for (const move of batch.slice(movementStart)) {
+          if (!move.revealed && move.toZone !== 'deck') continue;
+          const shuffle = batch.findIndex(effect=>effect.kind==='shuffle' && effect.side===move.side);
+          if (shuffle<0) continue;
+          batch.splice(batch.indexOf(move),1);
+          batch.splice(shuffle,0,move);
+        }
       } catch { /* Zone animations never participate in card legality or resolution. */ }
     }
     function queuePrizeMovement(side, count, cards = []) {
@@ -13847,7 +13864,7 @@
         language: card.language, meta: card.meta || {}
       }) };
     }
-    function recordPlayedCard(side, card, action, target = null, destination = 'last-played') {
+    function recordPlayedCard(side, card, action, target = null, destination = 'last-played', evolutionBefore = null) {
       try {
         if (!game || game.phase === 'setup' || !card) return;
         game.lastPlayedCards ||= {};
@@ -13855,7 +13872,7 @@
         game.lastPlayedCards[side] = {card:reference.card,action,targetName:target?.name || '',turn:game.turnNumber};
         logEvent(`${player(side).name} · ${action}: ${card.name}${target ? ' → ' + target.name : ''}.`, false, reference);
         const showPlay = side==='codex' && ['Trainer','Energy'].includes(card.meta?.category);
-        queueCardMovement(side,card,destination,target,'hand',target ? `${action} · ${target.name}` : action,showPlay);
+        queueCardMovement(side,card,destination,target,'hand',target ? `${action} · ${target.name}` : action,showPlay,evolutionBefore);
       } catch { /* Presentation records cannot prevent a legal play. */ }
     }
     function queuePokemonVisualEffect(kind, side, pokemon, amount = 0) {
@@ -13900,11 +13917,23 @@
       render();
       if(!visualTransitionBusy()){announceTurnStart();scheduleLocalAiTurn(3000);}
     }
+    function pendingBoardEffects() {
+      return stagedKnockoutsEnabled() ? [activePlaymatEffect,...playmatEffectQueue,...playmatEffectBatches.flat()].filter(Boolean) : [];
+    }
     function battlefieldArrivals(side, zone) {
-      if (!stagedKnockoutsEnabled()) return [];
-      return [activePlaymatEffect,...playmatEffectQueue,...playmatEffectBatches.flat()]
+      return pendingBoardEffects()
         .filter(effect=>effect?.cardId && effect.side===side && (effect.destination || effect.toZone)===zone)
         .map(effect=>effect.cardId);
+    }
+    function pokemonBeforeEvolution(card) {
+      const effects = pendingBoardEffects();
+      for (const effect of effects.slice().reverse()) {
+        if (effect.cardId === card?.id && effect.evolutionBefore) card = effect.evolutionBefore;
+      }
+      return card;
+    }
+    function outgoingPositionMove(side) {
+      return pendingBoardEffects().find(effect=>effect.side===side && effect.positionSwap && effect.fromZone==='active');
     }
     let battlefieldTheme = null;
     function updateBattlefieldTheme() {
@@ -13917,7 +13946,7 @@
       if (battlefieldTheme?.match !== game) battlefieldTheme = {match:game, ids:{}, tint:'transparent'};
       for (const side of [oppositeSide(game.turn),game.turn]) {
         const card = player(side)?.active;
-        if (!card || battlefieldTheme.ids[side]===card.id || battlefieldArrivals(side,'active').includes(card.id) ||
+        if (!card || battlefieldTheme.ids[side]===card.id || pokemonBeforeEvolution(card)!==card || battlefieldArrivals(side,'active').includes(card.id) ||
             activeVisualTransitions.some(item=>item.side===side && item.zone==='active') ||
             activePlaymatEffect?.playedCue?.boardSwitch?.side===side) continue;
         battlefieldTheme.ids[side] = card.id;
@@ -13929,8 +13958,10 @@
       const transition=activeVisualTransitions.find(item=>item.side===side && item.zone==='active');
       if (!transition) {
         const cue = activePlaymatEffect?.playedCue?.boardSwitch;
+        const outgoing = outgoingPositionMove(side);
+        if (outgoing && outgoing !== activePlaymatEffect) return cardMarkup(outgoing.positionSwap.outgoing,side,'active');
         const card = (cue?.side===side ? cue.outgoing : player(side)?.active) || null;
-        return cardMarkup(card && battlefieldArrivals(side,'active').includes(card.id) ? null : card,side,'active');
+        return cardMarkup(card && battlefieldArrivals(side,'active').includes(card.id) ? null : pokemonBeforeEvolution(card),side,'active');
       }
       if (transition.phase === 'waiting-for-prizes') return '<div class="empty-slot" role="img" aria-label="Active Spot empty while Prizes are collected">Collecting Prizes…</div>';
       if(transition.phase==='promotion')return '<div class="empty-slot" role="img" aria-label="A Pokémon is moving to the Active Spot">Moving to Active…</div>';
@@ -13957,6 +13988,7 @@
     function playmatActionAnnouncement(effect) {
       if (effect.kind === 'attack') return effect.name+' used '+effect.attack+'!';
       if (effect.kind === 'ability') return effect.name+' used '+effect.ability+'!';
+      if (effect.kind === 'shuffle') return (PLAYER_NAMES[effect.side] || 'Player')+' shuffled their deck.';
       if (effect.kind === 'knockout') return effect.name+' was Knocked Out!';
       const destination = pokemonMoveDestination(effect);
       if (destination === 'active') return effect.name+' moved to the Active Spot!';
@@ -14016,9 +14048,14 @@
         const announcement = playmatActionAnnouncement(effect);
         const glow = effect.evolution && effect.point && !reduced ? `<div class="fx-evolution-ring" style="${at(effect.point)}"></div>` : '';
         const destination = effect.toZone || effect.destination;
-        const spotlight = (pokemonMoveDestination(effect) === 'active' || destination === 'stadium' || destination === 'lost') && effect.point && !reduced
+        const spotlight = (pokemonMoveDestination(effect) === 'active' || destination === 'stadium' || destination === 'lost' || destination === 'pokemon' && effect.energyAttachment) && effect.point && !reduced
           ? `<div class="fx-battlefield-landing" data-destination="${destination || 'active'}" style="${at(effect.point)}"></div>` : '';
-        return moving + glow + spotlight + (announcement ? caption(owner+' · Pokémon movement',announcement,detail,'fx-position-caption') : caption(owner,title,detail,'fx-move-caption'));
+        return moving + glow + spotlight + (announcement ? caption(owner+' · '+(effect.positionSwap ? effect.detail : 'Pokémon movement'),announcement,effect.positionSwap ? '' : detail,'fx-position-caption') : caption(owner,title,detail,'fx-move-caption'));
+      }
+      if (effect.kind === 'shuffle') {
+        const cards = effect.point && !reduced ? Array.from({length:4},(_,index)=>
+          `<i class="fx-shuffle-card face-down-card" style="${at(effect.point)}--shuffle-index:${index}"></i>`).join('') : '';
+        return cards + caption(PLAYER_NAMES[effect.side] || 'Player','Deck shuffled','','fx-shuffle-caption');
       }
       if (effect.kind === 'coin') {
         const design = effect.design ||= coinDesignForDisplay();
@@ -14075,11 +14112,10 @@
       }
       return '';
     }
-    function queueShuffleSound() {
-      const batch = playmatEffectBatches.at(-1);
-      if (playmatSoundEnabled && playmatAudio?.state === 'running' && game?.phase === 'play' && batch && !batch.some(effect=>effect.kind === 'shuffle-sound')) {
-        queuePlaymatEffect({kind:'shuffle-sound'});
-      }
+    function queueDeckShuffleEffect(owner) {
+      if (game?.phase !== 'play') return;
+      const side = ['you','codex'].find(side=>player(side) === owner);
+      if (side) queuePlaymatEffect({kind:'shuffle',side,point:cardMovementPoint(side,'deck')});
     }
     function playPlaymatSound(kind) {
       if (!playmatSoundEnabled || !playmatVolume || playmatAudio?.state !== 'running') return;
@@ -14090,14 +14126,14 @@
         damage:[[120,75,.10,0]], knockout:[[240,70,.22,0]],
         'card-move':[[440,240,.09,0]], 'zone-move':[[440,240,.09,0]],
         promotion:[[240,520,.13,0]], prize:[[520,780,.12,0],[780,1040,.15,.09]],
-        'shuffle-sound':[[900,270,.06,0],[830,250,.06,.075],[770,240,.08,.15]],
+        'shuffle':[[900,270,.06,0],[830,250,.06,.075],[770,240,.08,.15]],
         coin:[[830,1450,.12,0]], victory:[[440,550,.16,0],[550,660,.16,.12],[660,880,.25,.24]]
       };
       try {
         for (const [from,to,length,delay] of cues[kind] || []) {
           const start = playmatAudio.currentTime + delay;
           const tone = playmatAudio.createOscillator(), gain = playmatAudio.createGain();
-          tone.type = ['attack','shuffle-sound','knockout'].includes(kind) ? 'triangle' : 'sine';
+          tone.type = ['attack','shuffle','knockout'].includes(kind) ? 'triangle' : 'sine';
           tone.frequency.setValueAtTime(from,start);
           tone.frequency.exponentialRampToValueAtTime(to,start+length);
           gain.gain.setValueAtTime(.001 * volume,start);
@@ -14141,11 +14177,7 @@
     function showNextPlaymatEffect() {
       try {
         if (!playmatEffectsEnabled || document.hidden) { clearPlaymatEffects(); return; }
-        let effect = playmatEffectQueue.shift();
-        while (effect?.kind === 'shuffle-sound') {
-          playPlaymatSound(effect.kind);
-          effect = playmatEffectQueue.shift();
-        }
+        const effect = playmatEffectQueue.shift();
         if (!effect) {
           activePlaymatEffect = null;
           $('playmatEffects').innerHTML = ''; $('playmatEffects').dataset.kind = '';
@@ -14168,13 +14200,13 @@
           const transition = activeVisualTransitions.find(item => item.id === effect.transitionId);
           if (transition) transition.phase = 'promotion';
           render();
-        } else if (effect.playedCue?.boardSwitch || stagedPrizeCards.has(effect) || effect.kind === 'knockout' && effect.transitionId || effect.kind === 'damage' && stagedKnockoutsEnabled()) render();
+        } else if (effect.positionSwap && stagedKnockoutsEnabled() || effect.playedCue?.boardSwitch || stagedPrizeCards.has(effect) || effect.kind === 'knockout' && effect.transitionId || effect.kind === 'damage' && stagedKnockoutsEnabled()) render();
         if (playmatActionAnnouncement(effect)) clearTurnAnnouncement();
         const root = $('playmatEffects');
         root.dataset.kind = effect.kind; root.dataset.element = effect.element || '';
         root.classList.toggle('reduced-motion', reduced);
         root.classList.toggle('fast-motion', fastPlaymatEffects);
-        const duration = effect.playedCue ? (fastPlaymatEffects ? 570 : 1050) : effect.preview ? (fastPlaymatEffects ? 650 : 1150) : fastPlaymatEffects ? (effect.kind === 'victory' ? 1200 : 380) : reduced ? 850 : ({ coin: 1450, attack: 1200, ability: 950, damage: 650, knockout: 1000, victory: 3100, 'card-move': 720, 'zone-move':620, promotion:720, prize:900, 'attack-feedback':560 }[effect.kind] || 900);
+        const duration = effect.playedCue ? (fastPlaymatEffects ? 570 : 1050) : effect.preview ? (fastPlaymatEffects ? 650 : 1150) : fastPlaymatEffects ? (effect.kind === 'victory' ? 1200 : 380) : reduced ? 850 : ({ coin: 1450, attack: 1200, ability: 950, damage: 650, knockout: 1000, victory: 3100, 'card-move': 720, 'zone-move':620, promotion:720, prize:900, 'attack-feedback':560, shuffle:460 }[effect.kind] || 900);
         root.style.setProperty('--fx-duration', `${duration}ms`);
         root.innerHTML = playmatEffectMarkup(effect, reduced);
         if (effect.kind==='attack' && !reduced) {
@@ -14199,7 +14231,7 @@
         const epoch = playmatEffectEpoch;
         playmatEffectTimer = setTimeout(() => { if (epoch === playmatEffectEpoch) { activePlaymatEffect = null; playmatEffectTimer = null; finishVisualTransition(effect);
           const destination = effect.destination || effect.toZone;
-          const landsOnField = effect.cardId && stagedKnockoutsEnabled() && ['active','bench','stadium','discard','lost'].includes(destination);
+          const landsOnField = effect.cardId && stagedKnockoutsEnabled() && ['active','bench','stadium','discard','lost','pokemon'].includes(destination);
           if (landsOnField || effect.playedCue?.boardSwitch || stagedPrizeCards.has(effect) || stagedHandArrivals.has(effect)) {
             render();
             if (!visualTransitionBusy()) { announceTurnStart(); scheduleLocalAiTurn(3000); }
@@ -14660,7 +14692,7 @@
         if (selected.length && !await insertEvolution(side,target,selected[0],'deck')) return false;
       }
       if (attackEffectRuleFor(pokemon,attack)?.effect !== effect) return false;
-      p.deck = shuffled(p.deck);
+      p.deck = shuffled(p.deck,p);
       logEvent(`${p.name} used ${attack.name} and shuffled the deck.`);
       return true;
     }
@@ -14879,8 +14911,8 @@
       }
       if (effect?.type === 'search_basic_energy') {
         const p = player(side), chosen = choices.basicEnergy;
-        if (!chosen) { p.deck = shuffled(p.deck); logEvent(`${p.name} found no Basic Energy with ${attack.name}; the deck was shuffled.`); return true; }
-        p.deck.splice(p.deck.findIndex(item => item.id === chosen.id), 1); addRevealedDeckCardsToHand(side, p, [chosen]); p.deck = shuffled(p.deck);
+        if (!chosen) { p.deck = shuffled(p.deck,p); logEvent(`${p.name} found no Basic Energy with ${attack.name}; the deck was shuffled.`); return true; }
+        p.deck.splice(p.deck.findIndex(item => item.id === chosen.id), 1); addRevealedDeckCardsToHand(side, p, [chosen]); p.deck = shuffled(p.deck,p);
         recordDeckCardStat(side, chosen, 'used');
         logEvent(`${p.name} searched the deck with ${attack.name}, revealed ${chosen.name}, and put it into hand.`);
       }
@@ -14904,7 +14936,7 @@
           if (typeof queueCardMovement === 'function') queueCardMovement(side,energy,'pokemon',target,'deck',`${attack.name} · ${target.name}`);
           if (typeof recordMatchActivity === 'function') recordMatchActivity('energy', side, energy);
         }
-        p.deck = shuffled(p.deck);
+        p.deck = shuffled(p.deck,p);
         logEvent(attachedNames.length ? `${p.name} used ${attack.name} to attach ${attachedNames.join(', ')}, then shuffled.` : `${p.name} used ${attack.name} to take no Basic Energy; the deck was shuffled.`);
       }
       if (effect?.type === 'attack_lock_next_turn') {
@@ -14943,7 +14975,7 @@
           if (typeof recordMatchActivity === 'function') selected.forEach(card => recordMatchActivity('energy', side, card));
           selected.forEach(card => recordDeckCardStat(side, card, 'used'));
         }
-        p.deck = shuffled(p.deck);
+        p.deck = shuffled(p.deck,p);
         logEvent(selected.length ? `${p.name} used ${attack.name} to attach ${selected.length} Basic Water Energy to ${target.name}, then shuffled.` : `${p.name} used ${attack.name} and attached no Basic Water Energy; the deck was shuffled.`);
       }
       if (effect?.type === 'search_basic_pokemon_to_bench') {
@@ -14951,7 +14983,7 @@
         if (ids.size !== selected.length || selected.some(card => !basicPokemon(card)) || selected.length > Number(effect.count || 3) || selected.length > 5 - p.bench.length) return false;
         p.deck = p.deck.filter(card => !ids.has(card.id));
         selected.forEach(card => { card.enteredTurn = game.turnNumber; p.bench.push(card); recordDeckCardStat(side, card, 'used'); if (typeof recordMatchActivity === 'function') recordMatchActivity('pokemon', side, card); });
-        p.deck = shuffled(p.deck);
+        p.deck = shuffled(p.deck,p);
         logEvent(selected.length ? `${p.name} used ${attack.name} to reveal ${selected.map(card => card.name).join(', ')} and put them onto the Bench, then shuffled.` : `${p.name} used ${attack.name} but put no Pokémon onto the Bench; the deck was shuffled.`);
       }
       if (effect?.type === 'return_attacker_to_hand') {
@@ -20255,7 +20287,7 @@
       clearGrowlForPokemon(active.id); clearGrowlForPokemon(next.id);
       clearPokemonConditions(active); clearPokemonConditions(next);
       p.bench.push(active); p.active = next; p.retreatedThisTurn = true;
-      if (typeof queuePokemonPositionSwitch === 'function') queuePokemonPositionSwitch(side,active,next,index);
+      if (typeof queuePokemonPositionSwitch === 'function') queuePokemonPositionSwitch(side,active,next,index,'Retreat');
       logEvent(`${p.name} retreated ${active.name}${cost ? `, discarding ${paid.map(card => card.name).join(', ')} to pay ${cost} Retreat Energy` : ' for free'} and promoted ${next.name}.`);
       selected = null;
       return true;
@@ -20506,7 +20538,8 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#lobby-${symbol}"/></svg></span>`;
     }
     function attachedEnergyMarkup(card) {
-      const cards = card.energy || [];
+      const arrivals = new Set(battlefieldArrivals(sideForPokemon(card),'pokemon'));
+      const cards = (card.energy || []).filter(energy=>!arrivals.has(energy.id));
       if (!cards.length) return '';
       const typeOrder = ['grass','fire','water','lightning','psychic','fighting','darkness','rocket','metal','dragon','double-dragon','colorless','any','special'];
       const entries = cards.map((energy,index) => {
@@ -20584,8 +20617,15 @@
       const topDiscard = visibleDiscard.at(-1), discardCount = visibleDiscard.length, discardImage = imageFor(topDiscard);
       const discardTop = (topDiscard ? `${discardImage ? `<img src="${escapeHtml(discardImage)}" alt="" loading="lazy">` : ''}<span class="discard-top-name">${escapeHtml(topDiscard.name)}</span>` : '<small class="discard-empty-pile">Empty</small>') + `<span class="discard-count pile-count">${discardCount}</span>`;
       const benchCards = p.bench.slice();
+      const outgoingMove = outgoingPositionMove(side);
+      if (outgoingMove) {
+        const {outgoing,incoming,incomingBenchIndex} = outgoingMove.positionSwap;
+        const index = benchCards.findIndex(card=>card.id===outgoing.id);
+        if (index>=0) benchCards.splice(index,1);
+        benchCards.splice(incomingBenchIndex,0,incoming);
+      }
       const cue = activePlaymatEffect?.playedCue?.boardSwitch;
-      if (cue?.side===side && benchCards[cue.benchIndex]?.id===cue.outgoing.id) benchCards[cue.benchIndex] = cue.incoming;
+      if (!outgoingMove && cue?.side===side && benchCards[cue.benchIndex]?.id===cue.outgoing.id) benchCards[cue.benchIndex] = cue.incoming;
       const waiting = activeVisualTransitions.find(item => item.side === side && item.phase !== 'promotion' && item.replacement);
       if (waiting) benchCards.splice(waiting.benchIndex, 0, waiting.replacement);
       const departing = activeVisualTransitions.filter(item => item.side === side && item.zone === 'bench').reverse();
@@ -20593,7 +20633,7 @@
       const benchArrivals = new Set(battlefieldArrivals(side,'bench'));
       const bench = Array.from({ length: 5 }, (_, i) => {
         const transition = departing.find(item => item.card === benchCards[i]);
-        return transition ? knockoutPlaceholderMarkup(transition) : cardMarkup(benchArrivals.has(benchCards[i]?.id) ? null : benchCards[i], side, 'bench');
+        return transition ? knockoutPlaceholderMarkup(transition) : cardMarkup(benchArrivals.has(benchCards[i]?.id) ? null : pokemonBeforeEvolution(benchCards[i]), side, 'bench');
       }).join('');
       const pendingPrizes = pendingPrizeEffects(side);
       const prizeCount = p.prizes.length + pendingPrizes.filter(effect => effect !== activePlaymatEffect).reduce((sum, effect) => sum + effect.count, 0);

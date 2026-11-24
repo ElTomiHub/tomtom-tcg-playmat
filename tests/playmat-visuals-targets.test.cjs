@@ -14,6 +14,74 @@ function ready() {
 }
 function advance(r,timers) {const timer=timers.get(r.api.visualState().timer);assert.ok(timer);timers.delete(r.api.visualState().timer);timer.callback()}
 
+test('a deck search moves the chosen card into hand before shuffling face down',async()=>{
+  const {r,p,timers}=ready();
+  r.api.stagedKnockouts(true);
+  const chosen=p.deck.at(-1);
+  r.context.shuffled([1,2,3]);
+  assert.equal(r.api.visualState().active,null);
+  await r.api.transaction(()=>{
+    p.deck.pop();r.context.addRevealedDeckCardsToHand('you',p,[chosen]);
+    p.deck=r.context.shuffled(p.deck,p);
+    return true;
+  });
+  assert.equal(r.api.visualState().active.cardId,chosen.id);
+  assert.equal(r.context.handForPresentation('you').includes(chosen),false);
+  advance(r,timers);
+  const shuffle=r.api.visualState().active;
+  assert.equal(shuffle.kind,'shuffle');assert.equal(shuffle.side,'you');assert.equal(shuffle.cardId,undefined);
+  assert.match(r.document.getElementById('playmatEffects').innerHTML,/Deck shuffled/);
+  assert.ok(r.context.handForPresentation('you').includes(chosen));
+});
+
+test('Energy appears attached only after it lands on the selected Pokémon',()=>{
+  const {r,p,timers}=ready();
+  r.api.stagedKnockouts(true);
+  const energy=take(p,card=>card.name==='Lightning Energy');assert.ok(energy);
+  p.hand.push(energy);p.energyAttachedThisTurn=false;
+  r.api.attachFor('you',energy.id,p.active.id);
+  const active=r.document.getElementById('youActiveZone');
+  const marker=`data-energy-card="${r.context.escapeHtml(energy.id)}"`;
+  assert.ok(p.active.energy.includes(energy));assert.ok(!active.innerHTML.includes(marker));
+  assert.equal(r.api.visualState().active.targetId,p.active.id);
+  advance(r,timers);
+  assert.ok(active.innerHTML.includes(marker));
+});
+
+test('an Evolution keeps its previous Pokémon visible until the new card lands',async()=>{
+  const {r,p,timers}=ready();
+  r.api.stagedKnockouts(true);
+  const base=take(p,card=>card.name==='Iono\'s Tadbulb');assert.ok(base);
+  const evolution=take(p,card=>card.name==='Iono\'s Bellibolt ex');assert.ok(evolution);
+  p.active=base;p.hand.push(evolution);
+  await r.api.transaction(()=>r.context.insertEvolution('you',base,evolution));
+  r.api.renderNow();
+  const active=r.document.getElementById('youActiveZone');
+  assert.ok(active.innerHTML.includes(`data-card="${r.context.escapeHtml(base.id)}"`));
+  assert.equal(r.api.visualState().active.evolution,true);
+  advance(r,timers);
+  assert.ok(active.innerHTML.includes(`data-card="${r.context.escapeHtml(evolution.id)}"`));
+});
+
+test('Switch keeps the incoming Pokémon on the Bench until its flight starts',async()=>{
+  const {r,p,fixture,timers}=ready(),outgoing=p.active,incoming=bench(p);
+  r.api.stagedKnockouts(true);
+  const item=inject(fixture,p,'Switch');
+  await r.api.playCard('you',item.id);
+  const active=r.document.getElementById('youActiveZone'), row=r.document.getElementById('youRow');
+  const marker=card=>`data-card="${r.context.escapeHtml(card.id)}"`;
+  assert.ok(active.innerHTML.includes(marker(outgoing)));
+  while(r.api.visualState().active.cardId!==outgoing.id) advance(r,timers);
+  assert.ok(!active.innerHTML.includes(marker(incoming)));
+  assert.ok(row.innerHTML.includes(marker(incoming)));
+  advance(r,timers);
+  assert.equal(r.api.visualState().active.cardId,incoming.id);
+  assert.ok(row.innerHTML.includes(marker(outgoing)));
+  assert.ok(!row.innerHTML.includes(marker(incoming)));
+  advance(r,timers);
+  assert.ok(active.innerHTML.includes(marker(incoming)));
+});
+
 test('an attack with blocked damage displays feedback before the next draw',async()=>{
   const {r,d,g,timers}=ready();
   r.api.stagedKnockouts(true);

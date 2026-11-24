@@ -1232,7 +1232,7 @@
     @media (prefers-reduced-motion: no-preference) {
       .card-choice-overlay[data-docked='true'] .card-choice-panel, .board-target-prompt:not([hidden]) { animation: choice-slide-in .2s ease-out both; }
     }
-    @keyframes choice-slide-in { from { opacity:0; translate:12px 0; } to { opacity:1; translate:0 0; } }
+    @keyframes choice-slide-in { from { opacity:0; translate:12px 0; } to { translate:0 0; } }
     .target-option { outline: 2px solid #f3c75c !important; outline-offset: 2px; cursor: crosshair !important; }
     .turn-done-banner { position: fixed; left: 50%; top: 70px; z-index: 22; transform: translate(-50%, -12px); opacity: 0; pointer-events: none; padding: 12px 20px; border: 1px solid #f3c75c; border-radius: 999px; color: #102849; background: linear-gradient(120deg, #ffeb9f, #e9b63f); box-shadow: 0 10px 32px #0007; font-size: calc(13px * var(--ui-font-scale)); font-weight: 900; transition: .25s ease; }
     .turn-done-banner.show { transform: translate(-50%, 0); opacity: 1; }
@@ -3169,4 +3169,35 @@ button.recap-marker:hover, button.recap-marker:focus-visible { border-color: #f5
 .slot-card:has(.condition-chip):is(.energy-drop-target,.evolution-drop-target,.tool-drop-target,.current-drop-destination) { outline:2px solid #87dfb6; }
 @media (prefers-reduced-motion:reduce) {
   .fx-type-accent,.fx-lightning-path,.fx-knockout-sweep { display:none; }
+}
+
+#cardChoiceOverlay[data-deck-search="true"]:not(.hidden) .card-choice-grid {
+  box-shadow: inset 0 1px #8adbbe65;
+}
+#cardChoiceOverlay[data-deck-search="true"]:not(.hidden) .choice-card:nth-child(-n+8) {
+  animation:fx-search-reveal .2s ease-out both;
+}
+@keyframes fx-search-reveal {
+  from { translate:0 6px; }
+  to { opacity:1; translate:0 0; }
+}
+.fx-shuffle-card {
+  position:absolute; width:clamp(23px,5vw,50px); aspect-ratio:5/7;
+  translate:-50% -50%; border:1px solid #f5d078; border-radius:5px;
+  animation:fx-shuffle-pack calc(var(--fx-duration) * .78) calc(var(--fx-duration) * .065 * var(--shuffle-index)) ease-in-out both;
+}
+@keyframes fx-shuffle-pack {
+  0% { opacity:0; transform:translate(0,0); }
+  36% { opacity:1; transform:translate(calc((var(--shuffle-index) - 1.5) * 11px),-12px) rotate(calc((var(--shuffle-index) - 1.5) * 11deg)); }
+  72% { opacity:1; transform:translate(calc((1.5 - var(--shuffle-index)) * 8px),-5px) rotate(calc((1.5 - var(--shuffle-index)) * 9deg)); }
+  100% { opacity:0; transform:translate(0,0); }
+}
+.fx-shuffle-caption { top:18%; }
+.fx-battlefield-landing[data-destination="pokemon"] {
+  width:44px; height:44px; border-radius:50%;
+  border-color:#ffe4a4; box-shadow:0 0 18px #ffcf74;
+}
+@media (prefers-reduced-motion:reduce) {
+  #cardChoiceOverlay[data-deck-search="true"] .choice-card { animation:none; }
+  .fx-shuffle-card { display:none; }
 }
