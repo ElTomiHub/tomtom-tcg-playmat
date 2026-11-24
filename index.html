@@ -13635,7 +13635,7 @@
           coinPresentationResolve = resolve;
           coinPresentationTimer = setTimeout(()=>{
             if (epoch === coinPresentationEpoch) finishCoinPresentation();
-          }, reduced ? 320 : fastPlaymatEffects ? 650 : 1050);
+          }, playmatEffectDuration(effect, reduced));
         });
       } catch { /* Display errors cannot change the coin result or block resolution. */ }
       finally { finishCoinPresentation(); }
@@ -14199,14 +14199,20 @@
     }
     // Standard and Fast durations. Reduced motion has its own short text-only beats.
     const playmatEffectTiming = {
-      attack:[790,490], damage:[380,220], ability:[480,270], 'attack-feedback':[390,250],
+      coin:[1050,650], attack:[790,490], damage:[380,220], ability:[480,270], 'attack-feedback':[390,250],
       'card-move':[360,235], 'zone-move':[350,225], promotion:[400,250], shuffle:[290,175],
       revealed:[520,320], played:[600,360], prize:[460,290], knockout:[820,500], victory:[1200,800]
     };
     function playmatEffectDuration(effect, reduced) {
-      if (reduced) return effect.kind === 'victory' ? 280 : effect.preview || effect.playedCue || effect.kind === 'knockout' ? 260 : 170;
+      if (reduced) {
+        if (effect.kind === 'coin') return 320;
+        if (effect.kind === 'victory') return 280;
+        if (effect.preview || effect.playedCue || effect.kind === 'knockout') return 260;
+        return 170;
+      }
       const kind = effect.playedCue ? 'played' : effect.preview ? 'revealed' : effect.kind;
-      return (playmatEffectTiming[kind] || [400,260])[Number(fastPlaymatEffects)];
+      const [standard, fast] = playmatEffectTiming[kind] || [400,260];
+      return fastPlaymatEffects ? fast : standard;
     }
     function visiblePokemonHealth(effect) {
       const boardCard = boardCardElements(effect.side).find(element=>element.dataset.card===effect.cardId);
@@ -15447,15 +15453,16 @@
       if (/\b(ex|vstar|v|gx)\b/.test(name)) return 2;
       return 1;
     }
-    let pendingCampaignPresentation = null, presentedFinishedMatch = null;
+    let pendingCampaignPresentation = null;
+    const presentedFinishedMatches = new WeakSet();
     function matchFinishPresentationBusy() {
       const effect = activePlaymatEffect;
       return game?.phase === 'finished' && !!(effect && !effect.presentationReady || playmatEffectQueue.length ||
         playmatEffectBatches.some(batch => batch.length) || visualTransitionBusy());
     }
     function presentFinishedMatch() {
-      if (game?.phase !== 'finished' || presentedFinishedMatch === game || matchFinishPresentationBusy()) return;
-      presentedFinishedMatch = game;
+      if (game?.phase !== 'finished' || presentedFinishedMatches.has(game) || matchFinishPresentationBusy()) return;
+      presentedFinishedMatches.add(game);
       const showCampaign = pendingCampaignPresentation === game;
       pendingCampaignPresentation = null;
       render();
