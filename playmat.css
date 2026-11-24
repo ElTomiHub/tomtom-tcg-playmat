@@ -1527,6 +1527,24 @@
     .fx-ko-card img { width: 100%; height: 100%; object-fit: cover; }
     .fx-ko-card span { position: absolute; inset: auto 0 0; padding: 7px 3px; background: #071b35e8; color: #fff; font-size: 10px; text-align: center; }
     .fx-moving-card { position: absolute; width: 56px; height: 78px; margin: -39px -28px; display: grid; place-items: center; overflow: hidden; border: 1px solid #ffffff40; border-radius: 6px; color: #fff5d6; background: #173454; box-shadow: 0 5px 18px #0008; animation: fx-card-move calc(var(--fx-duration) * .94) cubic-bezier(.22,.7,.3,1) both; }
+    .fx-moving-card.fx-draw-card {
+      animation-duration: calc(var(--fx-duration) * .78);
+      animation-delay: calc(var(--fx-duration) * .09 * var(--draw-index));
+    }
+    .fx-evolution-ring {
+      position: absolute;
+      width: 84px;
+      height: 116px;
+      border: 2px solid #fff0ad;
+      border-radius: 12px;
+      box-shadow: 0 0 24px #ffd574aa, inset 0 0 14px #fff0ad77;
+      animation: fx-evolution-land calc(var(--fx-duration) * .48) calc(var(--fx-duration) * .5) ease-out both;
+    }
+    @keyframes fx-evolution-land {
+      from { opacity: 0; transform: translate(-50%, -50%) scale(.78); }
+      25% { opacity: 1; }
+      to { opacity: 0; transform: translate(-50%, -50%) scale(1.35); }
+    }
     .fx-moving-card.face-down-card { border: 1px solid #ffffff40; }
     .fx-moving-card img { width: 100%; height: 100%; object-fit: cover; }
     .fx-moving-card > span { position: absolute; inset: auto 0 0; padding: 3px; color: #fff; background: #071b35e8; font-size: 8px; text-align: center; }

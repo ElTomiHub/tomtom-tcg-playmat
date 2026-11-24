@@ -13,6 +13,47 @@ function ready() {
   return {r,fixture,a,d,g,p:g.players.you,timers};
 }
 function advance(r,timers) {const timer=timers.get(r.api.visualState().timer);assert.ok(timer);timers.delete(r.api.visualState().timer);timer.callback()}
+
+test('a draw adds cards to the visible hand only after the movement ends',()=>{
+  const {r,p,timers}=ready();
+  r.api.stagedKnockouts(true);
+  const drawn=p.deck.slice(-2), count=p.hand.length;
+  require('node:vm').runInContext("controlSide = 'you'",r.context);
+  r.context.drawCards('you',2);
+  r.api.renderNow();
+  const hand=r.document.getElementById('handCards');
+  assert.equal(p.hand.length,count+2);
+  assert.ok(drawn.every(card=>!hand.innerHTML.includes(`data-hand-card="${r.context.escapeHtml(card.id)}"`)));
+  assert.equal(r.document.getElementById('endTurnBtn').disabled,true);
+  advance(r,timers);
+  assert.ok(drawn.every(card=>hand.innerHTML.includes(`data-hand-card="${r.context.escapeHtml(card.id)}"`)));
+  assert.equal(r.document.getElementById('endTurnBtn').disabled,false);
+});
+
+for (const skip of [false,true]) test(`attack passes the turn once when effects ${skip?'are turned off':'finish'}`,async()=>{
+  const {r,g,timers}=ready();
+  r.api.stagedKnockouts(true);
+  const turn=g.turnNumber, count=g.players.codex.hand.length;
+  assert.equal(await r.api.attack('you',0),true);
+  assert.equal(r.api.visualState().active.kind,'attack');
+  assert.equal(g.turnNumber,turn);
+  if (skip) await r.document.getElementById('playmatEffectsBtn').click();
+  else {
+    advance(r,timers);
+    assert.equal(r.api.visualState().active.kind,'damage');
+    assert.equal(g.turnNumber,turn);
+    advance(r,timers);
+  }
+  await tick();
+  assert.equal(g.turnNumber,turn+1);
+  assert.equal(g.turn,'codex');
+  assert.equal(g.players.codex.hand.length,count+1);
+  if (!skip) {
+    assert.equal(r.context.handForPresentation('codex').length,count);
+    advance(r,timers);
+  }
+  assert.equal(r.context.handForPresentation('codex').length,count+1);
+});
 function take(p,predicate){for(const zone of [p.hand,p.deck,p.discard,p.prizes]){const i=zone.findIndex(predicate);if(i>=0)return zone.splice(i,1)[0]}return null}
 test('playmat audio defaults on and follows the attack and damage presentation order',async()=>{
   const {r,timers}=ready(), notes=[];
