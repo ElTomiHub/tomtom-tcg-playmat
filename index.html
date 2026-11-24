@@ -7980,14 +7980,69 @@
       return hasIonoFanStrategy(verified) || hasPeterDragoniteStrategy(verified) || !!genAiProfile(verified) ||
         hasChienPaoStrategy(verified) || hasEthanSkeledirgeStrategy(verified) || hasSkeleridgeStrategy(verified) || !!stageTwoAiProfile(verified) || hasDjinnStrategy(verified);
     }
+    // Exact reviewed lists keep subsequent composition edits visible in the manager.
+    const reviewedStrategyLists = new Set([
+      // Iono Fan
+      [
+        ["print:M2A:216:ultra ball",3],
+        ["print:M2A:219:canari",2],
+        ["print:M5:103:energy switch",3],
+        ["print:MC:234:iono s voltorb",4],
+        ["print:SM5M:71:volkner",2],
+        ["print:SV1A:93:clavel",2],
+        ["print:SV2D:96:iono",3],
+        ["print:SV2P:66:super rod",1],
+        ["print:SV4A:342:judge",3],
+        ["print:SV9:104:iono s kilowattrel",2],
+        ["print:SV9:125:iono s bellibolt ex",3],
+        ["print:SV9A:92:levincia",3],
+        ["print:SVE:12:lightning energy",16],
+        ["print:SVHK:20:electric generator",2],
+        ["print:SVJP:10:superior energy retrieval",1],
+        ["print:SVP:232:iono s wattrel",2],
+        ["print:SVP:257:iono s tadbulb",3],
+        ["print:WCS23:17:energy search",4],
+        ["print:WCS23:18:great ball",1]
+      ],
+      // Future Princess
+      [
+        ["print:M1L:86:lillie s determination",4],
+        ["print:M1S:82:rare candy",2],
+        ["print:M1S:83:mega signal",1],
+        ["print:M1S:87:mega gardevoir ex",1],
+        ["print:M2A:69:ralts",3],
+        ["print:M3:102:sacred ash",1],
+        ["print:M6A:103:switch",4],
+        ["print:MEE:5:psychic energy",15],
+        ["print:S11A:82:furisode girl",2],
+        ["print:S6K:82:peonia",1],
+        ["print:S8A:29:professor s research",2],
+        ["print:SPD:9:fog crystal",2],
+        ["print:SV4A:351:nemona",1],
+        ["print:SV4A:353:arven",2],
+        ["print:SV4K:61:ancient booster energy capsule",2],
+        ["print:SV4K:85:professor sada s vitality",2],
+        ["print:SV4M:62:future booster energy capsule",2],
+        ["print:SV4M:89:iron valiant ex",2],
+        ["print:SV7A:83:drayton",2],
+        ["print:SV8:59:flutter mane",2],
+        ["print:SVF:7:kirlia",3],
+        ["print:SVP:95:moonlight hill",2],
+        ["print:WCS23:18:great ball",2]
+      ]
+    ].map(list=>JSON.stringify(list)));
     function deckStrategyBaseline(deck) {
-      if (typeof deck.strategyBaseline === 'string' && deck.strategyBaseline) return deck.strategyBaseline;
+      if (deck.strategyBaseline) {
+        const composition = deckStrategyComposition(parseDeck(deck.decklist,{allocateIds:false}).cards);
+        return reviewedStrategyLists.has(composition) ? composition : deck.strategyBaseline;
+      }
       const parsed = parseDeck(deck.decklist,{allocateIds:false});
       return parsed.valid && deckHasAiStrategy(parsed.cards) ? deckStrategyComposition(parsed.cards) : '';
     }
     function deckStrategyBadge(deck, parsed) {
       const baseline = typeof deck.strategyBaseline === 'string' && deck.strategyBaseline;
-      if (baseline && baseline !== deckStrategyComposition(parsed.cards)) {
+      const composition = baseline && deckStrategyComposition(parsed.cards);
+      if (baseline && baseline !== composition && !reviewedStrategyLists.has(composition)) {
         return '<span class="deck-readiness deck-strategy modified" title="The card list changed from the list tracked for this strategy. It may be worth reviewing Yami’s plan.">Modified</span>';
       }
       return parsed.valid && deckHasAiStrategy(parsed.cards)
@@ -14248,9 +14303,9 @@
     }
     // Standard and Fast durations. Reduced motion has its own short text-only beats.
     const playmatEffectTiming = {
-      coin:[1050,650], attack:[790,490], damage:[380,220], ability:[480,270], 'attack-feedback':[390,250],
-      'card-move':[360,235], 'zone-move':[350,225], promotion:[400,250], shuffle:[290,175],
-      revealed:[520,320], played:[600,360], prize:[460,290], knockout:[820,500], victory:[1200,800]
+      coin:[1350,650], attack:[1500,490], damage:[500,220], ability:[1300,270], 'attack-feedback':[1250,250],
+      'card-move':[440,235], 'zone-move':[425,225], promotion:[650,250], shuffle:[350,175],
+      revealed:[1350,320], played:[1500,360], prize:[750,290], knockout:[1400,500], victory:[1700,800]
     };
     function playmatEffectDuration(effect, reduced) {
       if (reduced) {
@@ -16180,7 +16235,9 @@
           card.meta?.abilities?.some(item=>abilityEffectRuleFor(card,item)?.effect?.type===type));
         const attack = (name,type) => cards.some(card=>cleanCardKey(card.name)===name &&
           card.meta?.attacks?.some(item=>attackEffectRuleFor(card,item)?.effect?.type===type));
-        const profile = ability('meganium','double_basic_grass_energy') && attack('teal mask ogerpon ex','bonus_both_active_energy') &&
+        const profile = attack('togedemaru','coin_no_prizes') && attack('dedenne','combo_paralysis') &&
+          (attack('pikachu','combo_bonus') || attack('morpeko','combo_spread')) ? 'pikaclone' :
+          ability('meganium','double_basic_grass_energy') && attack('teal mask ogerpon ex','bonus_both_active_energy') &&
           (ability('mega venusaur ex','move_basic_energy_type') || attack('mega meganium ex','bonus_per_attached_energy_type')) ? 'mega_leaves' :
           ability('pidgeot ex','search_any_once_per_turn') && ability('charizard ex','attach_fire_on_evolve') &&
           attack('charizard ex','bonus_per_prize_taken') ? 'dracaufeu' :
@@ -16779,9 +16836,34 @@
       const p = player('codex');
       return [p.active,...p.bench].filter(Boolean);
     }
+    function pikaSpreadPrizes(attacker, bench, damage) {
+      return bench.reduce((total,target)=>{
+        const hit = calculateAttackDamageModifiers('codex','you',target,'bench',damage,false,true,attacker).applied;
+        return total+(hit>0 && hit>=effectivePokemonHp(target)-Number(target.damage || 0) ? prizeCountFor(target) : 0);
+      },0);
+    }
+    function pikaComboPriority(card, board, opening = false) {
+      const name = cleanCardKey(card.name), tier = game.yamiDifficulty, style = game.yamiStyle;
+      const copies = board.filter(other=>other!==card && cleanCardKey(other.name)===name).length;
+      const afterToge = !opening && comboAttackWasUsed('codex','togedemaru');
+      const afterDedenne = !opening && comboAttackWasUsed('codex','dedenne');
+      const bench = player('you').bench;
+      const spread = style==='control' ? bench.length>=2 : style==='balanced' && bench.length>=3;
+      const advanced = name==='morpeko' && !opening && tier==='master' && pikaSpreadPrizes(card,bench,60)>0;
+      let score;
+      switch (name) {
+        case 'togedemaru': score = afterToge || afterDedenne ? 78 : 122; break;
+        case 'dedenne': score = afterToge ? 145 : tier==='casual' ? 77 : 99; break;
+        case 'pikachu': score = (afterDedenne ? 122 : 68) + (style==='aggro' ? 17 : 0); break;
+        case 'morpeko': score = (afterDedenne ? 115 : 58) + (spread || advanced ? 32 : 0); break;
+        default: return 20;
+      }
+      return score - copies*65;
+    }
     function stageTwoAiDevelopment(card, board, opening = false) {
       const profile = stageTwoAiProfile(), p = player('codex'), foe = player('you'), name = cleanCardKey(card.name);
       const style = game.yamiStyle || 'balanced';
+      if (profile==='pikaclone') return pikaComboPriority(card,board,opening);
       if (profile==='rocketo_dan') return rocketAiDevelopment(card,board,opening);
       if (profile==='future_princess') return futureAiDevelopment(card,board,opening);
       if (profile==='stellar_snow') return stellarAiDevelopment(card,board,opening);
@@ -16934,6 +17016,7 @@
     function stageTwoAiEnergyScore(energy, target, base) {
       const p = player('codex'), profile = stageTwoAiProfile(), name = cleanCardKey(target.name);
       const style = game.yamiStyle, attached = target.energy || [];
+      if (profile==='pikaclone' && base>0 && !attached.length) return base+pikaComboPriority(target,stageTwoAiBoard())*(game.yamiDifficulty==='master' ? .8 : .45);
       if (Object.hasOwn(zooAiOrders,profile)) return zooAiEnergyScore(profile,energy,target,base);
       if (profile==='stellar_snow' && basicEnergyHasType(energy,'water') && pokemonHasType(target,'water')) {
         const first = !target.energy.some(item=>energyProvidesType(item,target,'water'));
@@ -17942,6 +18025,17 @@
         if(effect.type==='combo_paralysis' && target && !preventAttackEffect('codex',pokemon,target,attack))value+=game.yamiStyle==='control'?45:25;
         if(effect.type==='combo_spread')value+=foe.bench.reduce((sum,card)=>sum+genAiBenchDamageValue(pokemon,card,effect.amount),0);
         if(game.yamiDifficulty!=='casual' && effect.type==='coin_no_prizes' && [own.active,...own.bench,...own.hand].some(card=>cleanCardKey(card?.name)==='dedenne'))value+=35;
+        if (stageTwoAiProfile()==='pikaclone') {
+          const tier = game.yamiDifficulty, style = game.yamiStyle;
+          if (effect.type==='combo_paralysis' && tier!=='casual' &&
+              [...own.hand,...own.bench].some(card=>['pikachu','morpeko'].includes(cleanCardKey(card.name)))) value+=tier==='master' ? 105 : 65;
+          if (effect.type==='combo_bonus' && style==='aggro' && comboAttackWasUsed('codex',effect.previous)) value+=22;
+          if (effect.type==='combo_spread' && style==='control') value+=8*foe.bench.length;
+          if (effect.type==='combo_spread' && tier==='master') {
+            const prizes = pikaSpreadPrizes(pokemon,foe.bench,effect.amount);
+            if (prizes && prizes+(damage>=remaining ? prizeCountFor(target) : 0)>=own.prizes.length) value+=2000;
+          }
+        }
         return value;
       }
       if (hasSkeleridgeStrategy() && effect && ['none','ignore_defender_effects','attach_discard_fire_to_distinct_bench',
@@ -18336,7 +18430,11 @@
       switch (name) {
         case 'iono s bellibolt ex': return bellibolt ? 14 : !has('iono s tadbulb') ? 54 : style === 'aggro' ? 70 : 100;
         case 'iono s kilowattrel': return kilowattrel ? 12 : !has('iono s wattrel') ? 52 : style === 'control' ? 94 : 75;
-        case 'iono s tadbulb': return bellibolt || has(name) ? 10 : style === 'aggro' ? 56 : 88;
+        case 'iono s tadbulb': {
+          const deepLine = (game.resumeManifest?.codex || []).filter(card=>cleanCardKey(card.name)==='iono s bellibolt ex').length>=3;
+          if (deepLine && !has(name) && game.yamiDifficulty!=='casual') return bellibolt ? (style==='control' ? 50 : 72) : 96;
+          return bellibolt || has(name) ? 10 : style==='aggro' ? 56 : 88;
+        }
         case 'iono s wattrel': return has(name) || kilowattrel ? 10 : style === 'aggro' ? 70 : 66;
         case 'iono s voltorb': return has(name) ? 38 : style === 'aggro' ? 92 : 72;
         default: return 0;
