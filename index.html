@@ -10,7 +10,7 @@
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/playmat-icon-192.png">
-  <link rel="stylesheet" href="playmat.css?v=hub12">
+  <link rel="stylesheet" href="playmat.css?v=hub13">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -117,9 +117,20 @@
           <div class="matchup-deck-choice"><select class="deck-select" id="codexRegisteredDeck" aria-label="Choose Yami's registered deck"></select><button class="btn small" type="button" id="randomYamiDeckBtn" aria-label="Choose a random deck for Yami">⚄ Random</button></div>
           <div class="selected-deck-summary" id="codexDeckSummary">Choose a deck from the registered collection.</div><textarea class="hidden-deck-text" id="codexDeck" spellcheck="false" placeholder="Deck lists are managed in the deck builder."></textarea>
           <div class="validation" id="codexValidation"></div>
-          <details class="matchup-yami-settings" id="matchupYamiSettings" open>
-          <summary>Yami settings</summary>
-          <label class="matchup-stat-label" for="yamiStyleSelect">Yami style</label>
+
+        </div>
+        <div class="matchup-center">
+          <div class="coin-panel" id="coinPanel" aria-live="polite">
+            <div class="eyebrow">Who goes first?</div>
+            <button class="coin-disc" id="coinDisc" type="button" aria-label="Flip coin to choose the first player">?</button>
+            <div class="coin-copy"><button class="btn primary" type="button" id="coinHeadline">Flip to start</button><span id="coinSubline">Heads · Toma first. Tails · Yami first.</span></div>
+            <div class="matchup-coin-actions"><button class="btn" id="startBtn" disabled>I start first</button><button class="btn" id="yamiStartsBtn" disabled>Yami starts first</button></div>
+          </div>
+          <details class="matchup-records" id="matchupRecords"><summary><span class="eyebrow">Head to head</span><strong id="matchupRecordsHeading">Head to head</strong></summary><div id="setupMatchupStats" aria-live="polite"></div></details>
+        </div>
+      </div>
+      <div class="deck-selection-warning" id="deckSelectionWarning" role="status">Decks with verified card details can be selected even when some effects need manual resolution.</div>
+      <details id="matchupYamiSettings" class="rivalry-settings"><summary>Match settings <span id="matchSettingsSummary"></span></summary><div class="rivalry-settings-body"><div class="matchup-yami-settings"><label class="matchup-stat-label" for="yamiStyleSelect">Yami style</label>
           <select class="deck-select" id="yamiStyleSelect" aria-describedby="yamiStyleNote">
             <option value="random">Random</option>
             <option value="aggro">Aggro</option>
@@ -135,24 +146,12 @@
             <option value="master">Master</option>
           </select>
           <p class="matchup-stat-note" id="yamiDifficultyNote" role="status"></p>
-          </details>
-        </div>
-        <div class="matchup-center">
-          <div class="coin-panel" id="coinPanel" aria-live="polite">
-            <div class="eyebrow">Who goes first?</div>
-            <button class="coin-disc" id="coinDisc" type="button" aria-label="Flip coin to choose the first player">?</button>
-            <div class="coin-copy"><strong id="coinHeadline">Click the coin to flip</strong><span id="coinSubline">Heads · Toma first. Tails · Yami first.</span></div>
-            <div class="matchup-coin-actions"><button class="btn primary" id="startBtn" disabled>I start first</button><button class="btn" id="yamiStartsBtn" disabled>Yami starts first</button></div>
-          </div>
-          <details class="matchup-records" id="matchupRecords" open><summary><span class="eyebrow">The rivalry</span><strong id="matchupRecordsHeading">Head to head</strong></summary><div id="setupMatchupStats" aria-live="polite"></div></details>
-        </div>
-      </div>
-      <div class="deck-selection-warning" id="deckSelectionWarning" role="status">Decks with verified card details can be selected even when some effects need manual resolution.</div>
-      <section class="setup-playmat-choice" aria-label="Choose a playmat">
+          </div><section class="setup-playmat-choice" aria-label="Choose a playmat">
         <div class="setup-playmat-preview" id="setupPlaymatPreview" aria-hidden="true"></div>
         <div class="setup-playmat-control"><label for="setupPlaymatSelect">Playmat</label><select class="deck-select" id="setupPlaymatSelect"><option value="">Default · blue playmat</option></select><small>One background across Toma’s and Yami’s field. Zones stay visible.</small></div>
         <button class="btn small" id="managePlaymatsBtn" type="button">Upload / manage</button>
       </section>
+      </div></details>
       <div class="setup-status" id="setupStatus" aria-live="polite">Card type, Pokémon stats, artwork, and effect text load from Limitless when available.</div>
       <div class="setup-bottom">
         <div class="note">Changing either deck resets the coin flip.</div>
@@ -6596,6 +6595,7 @@
       const blocked = !compositionValid || !typeValid || deckResolutionBusy || !!setupCoinAnimation;
       $('startBtn').disabled = blocked;
       $('coinDisc').disabled = blocked;
+      $('coinHeadline').disabled = blocked;
       $('yamiStartsBtn').disabled = blocked;
       $('randomYamiDeckBtn').disabled = !!campaignSetup || deckResolutionBusy || !!setupCoinAnimation || registeredDecks.filter(deck => deckReadiness(deck).canStart).length < 2;
       $('startBtn').textContent = 'I start first';
@@ -8384,9 +8384,9 @@
       renderPlaymatChoices();
       clearCoinDecision();
       showValidation('you'); showValidation('codex');
-      const showDetails = !mobileMatchLayout();
-      $('matchupYamiSettings').open = showDetails;
-      $('matchupRecords').open = showDetails;
+      $('matchupYamiSettings').open = false;
+      $('matchupRecords').open = false;
+      updateMatchSettingsSummary();
       $('setupModal').classList.remove('hidden');
       $('setupModal').scrollTop = 0;
       const setupCard = $('setupModal').querySelector?.('.matchup-setup');
@@ -8404,8 +8404,17 @@
       const image = resolveDeckCoverImage(deck), breakdown = deckBreakdown(deck);
       const overall = deckStats[deck.id], personal = overall?.bySide?.[side];
       const stat = (count,label) => '<div><strong>'+count+'</strong><span>'+label+'</span></div>';
-      return '<div class="matchup-deck-hero"><div class="matchup-deck-cover">'+(image ? '<img src="'+escapeHtml(image)+'" alt="'+escapeHtml(deck.name)+' deck cover">' : escapeHtml(deck.name.slice(0,2)))+'</div><div><h4 class="matchup-deck-name">'+escapeHtml(deckDisplayName(deck))+'</h4><div class="matchup-deck-detail">'+breakdown.pokemon+' Pokémon<br>'+breakdown.trainer+' Trainers · '+breakdown.energy+' Energy</div></div></div>'+
-        '<details class="matchup-deck-results"'+(mobileMatchLayout() ? '' : ' open')+'><summary>Deck record</summary><p class="matchup-stat-label">Played by '+PLAYER_NAMES[side]+'</p><div class="matchup-stat-grid">'+stat(personal?.plays || 0,'Starts')+stat(personal?.wins || 0,'Wins')+stat(personal?.losses || 0,'Losses')+'</div><p class="matchup-stat-note">'+deckCompletedGames(personal)+' finished'+(personal?.draws ? ' · '+personal.draws+' draws' : '')+'</p><p class="matchup-stat-note"><strong>All players</strong><br>'+(overall?.plays || 0)+' starts · '+deckRecordText(overall)+'</p></details>';
+      const games = deckCompletedGames(personal);
+      const leader = Object.values(personal?.cards || {}).filter(card=>card.knockouts > 0)
+        .sort((a,b)=>b.knockouts-a.knockouts || a.name.localeCompare(b.name))[0];
+      const record = games ? Math.round(100*(personal.wins || 0)/games)+'% wins' : 'No games yet';
+      return '<button type="button" class="rivalry-cover" data-pick-deck="'+side+'" aria-label="Change '+PLAYER_NAMES[side]+' deck: '+escapeHtml(deckDisplayName(deck))+'"'+(campaignSetup?' disabled':'')+'>'+
+        (image ? '<img src="'+escapeHtml(image)+'" alt="">' : escapeHtml(deck.name.slice(0,2)))+'</button>'+
+        '<div class="rivalry-score"><strong>'+record+'</strong><small>'+(personal?.wins || 0)+'W · '+(personal?.losses || 0)+'L'+(personal?.draws?' · '+personal.draws+'D':'')+' · '+games+(games===1?' game':' games')+'</small></div>'+
+        '<details class="matchup-deck-results"><summary>Deck details</summary><p>'+breakdown.pokemon+' Pokémon · '+breakdown.trainer+' Trainers · '+breakdown.energy+' Energy</p>'+
+        (leader ? '<p>Most Knock Outs · '+escapeHtml(leader.name)+' ×'+leader.knockouts+'</p>' : '')+
+        '<div class="matchup-stat-grid">'+stat(personal?.plays || 0,'Starts')+stat(personal?.wins || 0,'Wins')+stat(personal?.losses || 0,'Losses')+'</div>'+
+        '<p class="matchup-stat-note">All players · '+(overall?.plays || 0)+' starts · '+deckRecordText(overall)+'</p></details>';
     }
     const YAMI_STYLE_LABELS = {aggro:'Aggro',balanced:'Balanced',control:'Control'};
     const YAMI_DIFFICULTY_LABELS = {casual:'Casual',competitor:'Competitor',master:'Master'};
@@ -8618,7 +8627,15 @@
     function chooseYamiDifficulty(selection) {
       return chooseWeightedYamiSetting(selection, Object.keys(YAMI_DIFFICULTY_LABELS), yamiDifficultyWeights());
     }
+    function updateMatchSettingsSummary() {
+      const style = campaignSetup?.style || $('yamiStyleSelect').value;
+      const level = campaignSetup ? CAMPAIGN_LEVELS[campaignSetup.round] : $('yamiDifficultySelect').value;
+      const mat = savedPlaymats.find(item=>item.id === $('setupPlaymatSelect').value);
+      $('matchSettingsSummary').textContent = (YAMI_STYLE_LABELS[style] || 'Random style')+' · '+
+        (YAMI_DIFFICULTY_LABELS[level] || 'Random')+' difficulty · '+(mat?.name || 'Blue playmat');
+    }
     function renderYamiStyle() {
+      updateMatchSettingsSummary();
       const select = $('yamiStyleSelect'), note = $('yamiStyleNote');
       note.textContent = Object.hasOwn(YAMI_STYLE_LABELS, select.value) ?
         'Selected: ' + YAMI_STYLE_LABELS[select.value] + ' · Used for the whole match.' :
@@ -8634,8 +8651,13 @@
       renderYamiStyle();
       for (const [side,deck] of [['you',you],['codex',codex]]) $(`${side}DeckSummary`).innerHTML = setupDeckSummary(side,deck);
       const target = $('setupMatchupStats');
+      $('matchupRecordsHeading').textContent = 'Head to head';
       if (!you || !codex) { target.textContent = 'Choose both decks to see their record.'; return; }
       const matchup = deckMatchupsFor(you.id)[codex.id], personal = matchup?.bySide?.you;
+      const wins = personal?.wins || 0, losses = personal?.losses || 0;
+      $('matchupRecordsHeading').textContent = deckCompletedGames(personal)
+        ? (wins === losses ? 'Tied' : wins > losses ? 'You lead' : 'Yami leads')+' '+Math.max(wins,losses)+'–'+Math.min(wins,losses)+(personal.draws?' · '+personal.draws+'D':'')
+        : 'First meeting';
       target.innerHTML = '<p class="matchup-stat-note">With these decks in these player seats</p>'+
         '<div class="matchup-record-row"><span>Toma wins</span><strong>'+(personal?.wins || 0)+'</strong></div>'+
         '<div class="matchup-record-row"><span>Yami wins</span><strong>'+(personal?.losses || 0)+'</strong></div>'+
@@ -8825,6 +8847,7 @@
     }
     function renderSetupPlaymatPreview() {
       const chosen = savedPlaymats.find(item => item.id === $('setupPlaymatSelect').value);
+      updateMatchSettingsSummary();
       $('setupPlaymatPreview').innerHTML = chosen ? `<img src="${chosen.image}" alt="">` : '';
     }
     function applyMatchPlaymat() {
@@ -9818,7 +9841,7 @@
       resolvedDecks = null;
       setupCoinAnimation?.cancel(); setupCoinAnimation = null;
       $('coinDisc').innerHTML = '<img class="coin-face-art" src="'+COIN_TAILS_IMAGE+'" alt="Flip coin">';
-      $('coinHeadline').textContent = 'Click the coin to flip';
+      $('coinHeadline').textContent = 'Flip to start';
       $('coinSubline').textContent = 'Heads · Toma first. Tails · Yami first.';
       setSetupStatus('Flip the coin to start randomly, or choose who starts using the buttons below.');
       showValidation('you'); showValidation('codex');
@@ -22206,6 +22229,15 @@
     $('startBtn').addEventListener('click', () => handleStartAction({first:'you'}));
     $('yamiStartsBtn').addEventListener('click', () => handleStartAction({first:'codex'}));
     $('coinDisc').addEventListener('click', () => handleStartAction());
+    $('coinHeadline').addEventListener('click', () => handleStartAction());
+    $('setupModal').addEventListener('click', event=>{
+      const cover = event.target.closest('[data-pick-deck]');
+      if (!cover) return;
+      const select = $(cover.dataset.pickDeck+'RegisteredDeck');
+      if (select.disabled) return;
+      select.focus();
+      try { select.showPicker?.(); } catch { /* Keyboard selection remains available. */ }
+    });
     $('randomYamiDeckBtn').addEventListener('click', randomizeYamiDeck);
     $('yamiStyleSelect').addEventListener('change', () => renderYamiStyle());
     $('yamiDifficultySelect').addEventListener('change', () => renderYamiStyle());

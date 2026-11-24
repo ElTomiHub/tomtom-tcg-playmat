@@ -55,6 +55,8 @@ test('setup shows selected-deck player totals and the selected seated rivalry',a
   await select(el,'you',f.decks.human.id);await select(el,'codex',f.decks.ai.id);
   r.context.testIds={you:f.decks.human.id,codex:f.decks.ai.id};
   vm.runInContext(`deckStats[testIds.you]={plays:12,completed:10,wins:7,losses:3,draws:0,bySide:{you:{plays:8,completed:7,wins:5,losses:2,draws:0}},matchups:{[testIds.codex]:{completed:4,wins:3,losses:1,draws:0,bySide:{you:{completed:3,wins:2,losses:1,draws:0}}}}};renderSetupDeckRecords();`,r.context);
+  assert.match(el('youDeckSummary').innerHTML,/71% wins/);
+  assert.equal(el('matchupRecordsHeading').textContent,'You lead 2–1');
   assert.match(el('youDeckSummary').innerHTML,/>8<\/strong><span>Starts/);
   assert.match(el('youDeckSummary').innerHTML,/12 starts · 10 games · 7 wins · 3 losses/);
   assert.match(el('setupMatchupStats').innerHTML,/Toma wins<\/span><strong>2/);
@@ -69,7 +71,7 @@ test('changing decks before starting clears any old coin decision',async()=>{
   const before=JSON.stringify(r.api.backup().data.deckStats);
   vm.runInContext('flipCoin()',r.context);
   await select(el,'you',f.decks.ai.id);
-  assert.equal(el('coinHeadline').textContent,'Click the coin to flip');
+  assert.equal(el('coinHeadline').textContent,'Flip to start');
   assert.equal(el('yamiStartsBtn').disabled,false);
   assert.equal(JSON.stringify(r.api.backup().data.deckStats),before);
   await el('coinDisc').click();assert.equal(r.api.state().phase,'setup');assert.equal(r.api.state().deckIds.you,f.decks.ai.id);
@@ -94,7 +96,7 @@ test('Random changes only Yami’s deck, updates records, resets the coin and ex
   await el('randomYamiDeckBtn').click();
   assert.equal(el('youRegisteredDeck').value,f.decks.human.id);assert.equal(el('codexRegisteredDeck').value,f.decks.ai.id);
   assert.match(el('codexDeckSummary').innerHTML,new RegExp(f.decks.ai.name));
-  assert.equal(el('coinHeadline').textContent,'Click the coin to flip');assert.equal(el('yamiStartsBtn').disabled,false);
+  assert.equal(el('coinHeadline').textContent,'Flip to start');assert.equal(el('yamiStartsBtn').disabled,false);
   assert.equal(JSON.stringify(r.api.backup().data.deckStats),before);
   await el('randomYamiDeckBtn').click();assert.equal(el('codexRegisteredDeck').value,f.decks.human.id);
 });
@@ -233,7 +235,7 @@ test('Revenge preselects the finished matchup and requires a fresh coin flip',as
   assert.equal(el('setupModal').classList.contains('hidden'),false);
   assert.equal(el('youRegisteredDeck').value,finished.deckIds.you);
   assert.equal(el('codexRegisteredDeck').value,finished.deckIds.codex);
-  assert.equal(el('coinHeadline').textContent,'Click the coin to flip');
+  assert.equal(el('coinHeadline').textContent,'Flip to start');
   assert.equal(r.api.state(),finished);
   await el('coinDisc').click();
   assert.equal(r.api.state().phase,'setup');
