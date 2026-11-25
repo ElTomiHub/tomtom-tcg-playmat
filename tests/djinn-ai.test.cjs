@@ -201,3 +201,17 @@ test('Master sees Brave Bangle changes the Prize line against an ex',async()=>{
   await runner.api.aiStep();
   assert.equal(runner.api.aiAction().name,'Rising Heart');
 });
+
+test('Master uses Crispin to power a typed Djinn even after the manual attachment',async()=>{
+  const {runner,ai,fullBoard,card,energy}=setup('balanced','master');
+  fullBoard();
+  ai.deck=[energy('Lightning'),energy('Psychic'),energy('Fighting'),energy('Psychic')];
+  ai.hand=[card('SV7',123)];
+  const plan=runner.context.aiSplitEnergyPlan(ai.deck);
+  assert.ok(plan.target && plan.second);
+  assert.notEqual(plan.first.name,plan.second.name);
+  assert.ok(runner.context.djinnEnergyScore(plan.second,plan.target)>0);
+  await runner.context.resolveBuiltInSupporter(ai.hand[0],'codex');
+  assert.ok(ai.hand.includes(plan.first));
+  assert.ok(plan.target.energy.includes(plan.second));
+});

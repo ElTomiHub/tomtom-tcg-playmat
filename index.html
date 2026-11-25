@@ -6072,6 +6072,12 @@
       effectTextExact:"Once during each player's turn, that player may discard a Basic [P] Energy from their hand to heal 30 damage from all their Pokémon.",
       effect:{type:'heal_board_with_psychic',amount:30}
     });
+    CARD_EFFECT_REGISTRY.supporters.push({"cardName":"Crispin","setCode":"PRE","cardNumber":"105","language":"en","effectTextExact":"Search your deck for up to 2 Basic Energy cards of different types, reveal them, and put 1 of them into your hand. Attach the other to 1 of your Pokémon. Then, shuffle your deck.","effect":{"type":"search_split_basic_energy"}});
+    CARD_EFFECT_REGISTRY.items.push({"cardName":"Tera Orb","setCode":"SSP","cardNumber":"189","language":"en","effectTextExact":"Search your deck for a Tera Pokémon, reveal it, and put it into your hand. Then, shuffle your deck.","effect":{"type":"filtered_deck_search","filter":"tera","count":1}});
+    VERIFIED_NEW_PRINT_DETAILS.push({"name":"Bird Keeper","setCode":"S4A","cardNumber":"193","language":"ja","meta":{"category":"Trainer","language":"ja","trainerType":"Supporter","effect":"Switch your Active Pokémon. Then, draw 3 cards.","attacks":[],"abilities":[],"rules":[],"attackMetadataStatus":"present","source":"Limitless","textLanguage":"en","translationSource":"Limitless","translationStatus":"unofficial","sourceUrl":"https://limitlesstcg.com/cards/jp/S4a/193?translate=en","image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/S4a/S4a_193_R_JP.png"}});
+    CARD_EFFECT_REGISTRY.supporters.push({"cardName":"Bird Keeper","setCode":"S4a","cardNumber":"193","language":"ja","effectTextExact":"Switch your Active Pokémon. Then, draw 3 cards.","effect":{"type":"switch_then_draw","count":3}});
+    VERIFIED_NEW_PRINT_DETAILS.push({"name":"Dragon Potion","setCode":"MC","cardNumber":"672","language":"ja","meta":{"category":"Trainer","language":"ja","trainerType":"Item","effect":"Heal 60 damage from your Active [N] Pokémon.","attacks":[],"abilities":[],"rules":[],"attackMetadataStatus":"present","source":"Limitless","textLanguage":"en","translationSource":"Limitless","translationStatus":"unofficial","sourceUrl":"https://limitlesstcg.com/cards/jp/MC/672?translate=en","image":"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpc/MC/MC_672_R_JP.png"}});
+    CARD_EFFECT_REGISTRY.items.push({"cardName":"Dragon Potion","setCode":"MC","cardNumber":"672","language":"ja","effectTextExact":"Heal 60 damage from your Active [N] Pokémon.","effect":{"type":"heal_typed_active","pokemonType":"dragon","amount":60}});
     const DEFAULT_DECKS = [
       {
         id: 'dragonite-tide-spark', name: 'Dragonite ex · Tide & Spark', builtIn: true,
@@ -8027,6 +8033,63 @@
         ["print:SVF:7:kirlia",3],
         ["print:SVP:95:moonlight hill",2],
         ["print:WCS23:18:great ball",2]
+      ],
+      // Peter Dragonite
+      [
+        ["print:M1S:82:rare candy",3],
+        ["print:M1S:83:mega signal",2],
+        ["print:M2A:125:dragonair",4],
+        ["print:M2A:232:mega dragonite ex",2],
+        ["print:M5:103:energy switch",2],
+        ["print:M6:98:pokemon catcher",2],
+        ["print:M6A:103:switch",2],
+        ["print:MC:672:dragon potion",2],
+        ["print:MEE:3:water energy",7],
+        ["print:MEE:4:lightning energy",9],
+        ["print:S12:114:lance",1],
+        ["print:S12:72:dragonite",1],
+        ["print:S4A:193:bird keeper",2],
+        ["print:S7R:77:shauna",2],
+        ["print:SSP:189:tera orb",1],
+        ["print:SV2D:96:iono",1],
+        ["print:SV4A:232:tatsugiri",2],
+        ["print:SV7A:85:drasna",2],
+        ["print:SVD:88:dratini",4],
+        ["print:SVD:90:dragonite ex",1],
+        ["print:SVD:91:drampa",2],
+        ["print:SVK:27:charm of courage",2],
+        ["print:SVLS:13:nest ball",2],
+        ["print:WCS23:22:exp share",1],
+        ["print:XY:171R:double dragon energy",1]
+      ],
+      // 4 Seasons Djin
+      [
+        ["print:M4:104:energy retrieval",1],
+        ["print:M5:103:energy switch",2],
+        ["print:M6:25:thundurus",3],
+        ["print:M6:40:landorus",3],
+        ["print:M6:59:tornadus",3],
+        ["print:M6:83:enamorus",3],
+        ["print:M6:98:pokemon catcher",2],
+        ["print:M6A:103:switch",2],
+        ["print:MEE:12:lightning energy",3],
+        ["print:MEE:13:psychic energy",6],
+        ["print:MEE:14:fighting energy",3],
+        ["print:MP:74:brave bangle",2],
+        ["print:S1A:77:sonia",1],
+        ["print:S2:106:boss s command",2],
+        ["print:S7R:77:shauna",2],
+        ["print:S8A:29:professor s research",2],
+        ["print:S8B:276:gloria",3],
+        ["print:SV2D:96:iono",1],
+        ["print:SV4A:342:judge",2],
+        ["print:SV4A:351:nemona",2],
+        ["print:SV7:123:crispin",2],
+        ["print:SVG:32:super rod",1],
+        ["print:SVK:27:charm of courage",2],
+        ["print:SVK:44:luminous energy",2],
+        ["print:SVLS:13:nest ball",4],
+        ["print:SVP:247:pokegear",1]
       ]
     ].map(list=>JSON.stringify(list)));
     function deckStrategyBaseline(deck) {
@@ -11039,9 +11102,9 @@
       Object.assign(handlers.ability, {attach_basic_from_hand:[], search_basic_energy_ability:['count'], attach_discard_energy_power:['count'], prevent_self_bench_damage:[], draw_to_limit:['count'], discard_hand_energy_draw:['count']});
       Object.assign(handlers.attack, {search_stadium:['count'], discard_board_energy_damage:['amount'], discard_energy_multi_damage:['count','amount','targets'], prevent_basic_attack_damage_next_turn:[], devolve_opponent_board:[]});
       Object.assign(handlers.supporter, {look_top_pokemon:['look'], discard_draw_opponent_bench:[]});
-      Object.assign(handlers.item, {heal_own_pokemon:['amount'], coin_discard_board_energy:[], opening_doll:[]});
+      Object.assign(handlers.item, {heal_typed_active:['amount'], heal_own_pokemon:['amount'], coin_discard_board_energy:[], opening_doll:[]});
       Object.assign(handlers.item, {trekking_shoes:[], deduction_kit:['look'], behind_prizes_gust:[], recover_supporters:['count']});
-      Object.assign(handlers.supporter, {discard_opponent_hand_to:['count'], search_order_top:['count'], search_split_basic_energy:[]});
+      Object.assign(handlers.supporter, {discard_opponent_hand_to:['count'], search_order_top:['count'], search_split_basic_energy:[], switch_then_draw:['count']});
       Object.assign(handlers.ability, {free_retreat_unpowered:[], search_any_once_per_turn:[], active_draw_once_per_turn:['count'], attach_fire_on_evolve:['count'], dragon_psychic_weakness:[], replace_opening_ditto:[]});
       Object.assign(handlers.attack, {bonus_per_prize_taken:['amount']});
       Object.assign(handlers.ability, {attach_top_basic_on_evolve:['count'], buzzap_generator:['count']});
@@ -11713,11 +11776,16 @@
     function canUseMorty(side) {
       return game.psychicKnockoutTurns?.[side] === game.turnNumber - 1 && player(oppositeSide(side)).hand.length > 0;
     }
+    function isTeraSearchTarget(card) {
+      return card?.meta?.category==='Pokemon' && (card.meta.tera===true ||
+        (card.meta.rules || []).some(rule=>matchEffectRule(CARD_EFFECT_REGISTRY.pokemonRules,card,rule)?.effect?.type==='prevent_bench_attack_damage'));
+    }
     async function resolveFilteredDeckSearch(card, side, effect) {
       const p = player(side);
       const eligible = item => {
         if (effect.filter === 'basic_psychic_or_energy') return basicEnergyHasType(item, 'psychic') || basicPokemon(item) && pokemonHasType(item, 'psychic');
         if (effect.filter === 'basic_fighting_or_energy') return basicEnergyHasType(item,'fighting') || basicPokemon(item) && pokemonHasType(item,'fighting');
+        if (effect.filter==='tera') return isTeraSearchTarget(item);
         if (effect.filter==='rocket_supporter') return isRocketSupporter(item);
         if (effect.filter==='evolution')return item.meta?.category==='Pokemon' && !basicPokemon(item);
         if (effect.filter==='pokemon_hp')return item.meta?.category==='Pokemon' && Number(item.meta.hp)>0 && Number(item.meta.hp)<=effect.maxHp;
@@ -12160,21 +12228,38 @@
         logEvent(card.name + " protects " + target.name + " from attacks by opposing Pokémon ex next turn.");
         return true;
       }
+      if (newRule?.type==='switch_then_draw') {
+        const previous = owner.active;
+        if (!previous || !owner.bench.length) return false;
+        const target = await choosePokemonOnBoard(side,card.name+': choose your new Active Pokémon.',owner.bench,
+          candidates=>aiSwitchDrawTarget(candidates));
+        const index = owner.bench.indexOf(target);
+        if (!target || index<0 || owner.active!==previous) return false;
+        clearGrowlForPokemon(previous.id); clearPokemonConditions(previous);
+        targetPlayedCardSwitch(card,side,previous,target,index);
+        owner.bench[index]=previous; owner.active=target;
+        queuePokemonPositionSwitch(side,previous,target,index);
+        logEvent(card.name+' switched '+previous.name+' with '+target.name+'.');
+        drawCards(side,newRule.count);
+        await resolveBenchEntryAbility(side,target);
+        return true;
+      }
       if (newRule?.type === 'search_split_basic_energy') {
+        markDeckInformationRevealed(side);
         const candidates = owner.deck.filter(isBasicEnergyCard);
         const board = () => [owner.active,...owner.bench].filter(Boolean);
         const energyType = item => normalizedEnergyType(item.name);
-        const tailored = side==='codex' && localAiEnabled && typeof stageTwoAiProfile==='function' && stageTwoAiProfile()==='dracaufeu';
-        const plan = tailored ? dracaufeuCrispinPlan(candidates) : null;
-        const first = tailored ? plan?.first : await pickOptionalEffectCard(side, card.name + ': choose a Basic Energy to put in your hand.',candidates);
+        const tailored = side==='codex' && localAiEnabled && (stageTwoAiProfile()==='dracaufeu' || hasDjinnStrategy());
+        const plan = tailored ? aiSplitEnergyPlan(candidates) : null;
+        const first = tailored ? plan?.first : (await chooseUpToEffectCards(side,card.name+': choose a Basic Energy for your hand.',candidates,1,owner.deck))?.[0];
         if (first && (!candidates.includes(first) || !owner.deck.includes(first))) return false;
-        const second = tailored ? plan?.second : first && await pickOptionalEffectCard(side,card.name + ': choose a different Basic Energy type to attach.',
-          candidates.filter(item=>energyType(item)!==energyType(first)));
+        const second = tailored ? plan?.second : first && (await chooseUpToEffectCards(side,card.name+': choose a different Basic Energy type to attach.',
+          candidates.filter(item=>energyType(item)!==energyType(first)),1,owner.deck))?.[0];
         const target = tailored ? plan?.target : second && await choosePokemonOnBoard(side,card.name + ': choose a Pokémon to receive the Energy.',board());
         if (second && (!owner.deck.includes(second) || !candidates.includes(second) || energyType(second)===energyType(first) || !board().includes(target))) return false;
         if (first && !owner.deck.includes(first)) return false;
         owner.deck = shuffled(owner.deck.filter(item=>item!==first && item!==second),owner);
-        if (first) owner.hand.push(first);
+        if (first) addRevealedDeckCardsToHand(side,owner,[first]);
         if (second) {
           target.energy.push(second);
           recordMatchActivity('energy',side,second);
@@ -13448,6 +13533,13 @@
         return true;
       }
       if (effect.type === 'filtered_deck_search') return resolveFilteredDeckSearch(card,side,effect);
+      if (effect.type==='heal_typed_active') {
+        if (!p.active?.damage || !pokemonHasType(p.active,effect.pokemonType)) return false;
+        const healed = Math.min(effect.amount,p.active.damage);
+        p.active.damage-=healed;
+        logEvent(card.name+' healed '+healed+' damage from '+p.active.name+'.');
+        return true;
+      }
       if (effect.type === 'heal_and_coin_return') {
         const active = p.active;
         const healed = active ? Math.min(Number(effect.amount || 20), Number(active.damage || 0)) : 0;
@@ -13616,6 +13708,7 @@
         if (effect?.type === 'protect_from_ex_attacks') return player(oppositeSide(side)).prizes.length <= 2 && !!(p.active || p.bench.length);
         if (effect?.type === 'discard_opponent_hand_to') return player(oppositeSide(side)).hand.length > effect.count;
         if (effect?.type === 'search_order_top') return p.deck.length > 0;
+        if (effect?.type==='switch_then_draw') return !!p.active && p.bench.length>0;
         if (effect?.type === 'search_split_basic_energy') return !!p.active && p.deck.length > 0;
         if (effect?.type === 'look_top_pokemon') return p.deck.length > 0;
         if (effect?.type === 'discard_draw_opponent_bench') return p.deck.length > 0 && p.hand.some(item=>item.id!==card.id) && player(oppositeSide(side)).bench.length > 0;
@@ -13652,6 +13745,7 @@
       if (effect.type === 'discard_search_trainer_subtypes') return p.deck.length>0 && p.hand.filter(item=>item!==card).length>=effect.discardCount;
       if (effect.type === 'recover_supporters') return p.discard.some(item=>item.meta?.trainerType?.toLowerCase()==='supporter');
       if (['trekking_shoes','deduction_kit'].includes(effect.type)) return p.deck.length > 0;
+      if (effect.type==='heal_typed_active') return p.active?.damage>0 && pokemonHasType(p.active,effect.pokemonType);
       if (effect.type === 'heal_own_pokemon') return [p.active,...p.bench].some(target=>target?.damage > 0);
       if (effect.type === 'coin_discard_board_energy') {
         const foe = player(oppositeSide(side));
@@ -17124,7 +17218,7 @@
       }).filter(Boolean).sort((a,b)=>b.score-a.score)[0];
       return candidate || null;
     }
-    function dracaufeuCrispinPlan(candidates) {
+    function aiSplitEnergyPlan(candidates) {
       const p = player('codex');
       const firstOfType = [...new Map(candidates.map(card=>[normalizedEnergyType(card.name),card])).values()];
       const limit = Math.max(0,p.deck.length-1);
@@ -18341,7 +18435,8 @@
       if (name === 'dragonair') return (count('dratini') ? 88 : 45) - 12 * count(name);
       if (!['dragonite','dragonite ex','mega dragonite ex'].includes(name)) return 0;
       const moveTypes = card.meta?.attacks?.map(attack => attackEffectRuleFor(card,attack)?.effect?.type) || [];
-      const base = name === 'mega dragonite ex' ? 44 :
+      const extraMega = (game.resumeManifest?.codex || []).filter(item=>cleanCardKey(item.name)==='mega dragonite ex').length>=2;
+      const base = name === 'mega dragonite ex' ? (extraMega && !count(name) ? style==='aggro' ? 92 : 78 : 44) :
         moveTypes.includes('discard_top_cards') ? (style === 'control' ? 110 : 83) :
         moveTypes.includes('search_attach_basic_energy') ? (style === 'balanced' ? 87 : 57) : (style === 'aggro' ? 90 : 58);
       const matching = board.filter(item => cleanCardKey(item.name) === 'dragonair' ||
@@ -18829,9 +18924,19 @@
     function aiPreferredEnergyTarget(energy,targets) {
       return targets.slice().sort((a,b)=>aiEnergyPlacementScore(energy,b)-aiEnergyPlacementScore(energy,a))[0];
     }
+    function aiSwitchDrawTarget(candidates) {
+      const score = target=>aiBestAttackScore(target)+Math.min(25,(effectivePokemonHp(target)-(target.damage || 0))/10);
+      return candidates.slice().sort((a,b)=>score(b)-score(a))[0];
+    }
     function aiSupporterScore(card) {
       const p=player('codex'), foe=player('you'), effect=supporterEffectRuleFor(card)?.effect, left=p.hand.filter(item=>item!==card), count=left.length;
       if (!effect) return -1;
+      if (effect.type==='switch_then_draw') {
+        const target = aiSwitchDrawTarget(p.bench);
+        if (!target || p.deck.length<=effect.count && game.yamiDifficulty==='master') return -1;
+        const gain = aiBestAttackScore(target)-aiBestAttackScore(p.active);
+        return Math.min(180,gain)+(count<4 ? 16 : 8)*Math.min(effect.count,p.deck.length);
+      }
       if(effect.type==='draw_hisuian_active')return Math.min(p.deck.length,effect.count+(cleanCardKey(p.active?.name).startsWith('hisuian ')?effect.bonus:0))*14;
       if(effect.type==='bottom_hands_draw_asymmetric')return (effect.count-count)*12+Math.max(0,foe.hand.length-effect.opponentCount)*6;
       if(effect.type==='grant_fighting_boost')return pokemonHasType(p.active,'fighting') && aiBestAttackScore(p.active)>0 ? 45 : -1;
@@ -18893,8 +18998,8 @@
       if (stageTwo==='mega_leaves' && effect.type==='heal_mega_return_energy') return megaLeavesWallyPlan()?.score || -1;
       if (stageTwo && effect.type==='discard_opponent_hand_to') return (foe.hand.length-effect.count)*17;
       if (stageTwo==='dracaufeu' && effect.type==='protect_from_ex_attacks') return dracaufeuProtectionPlan()?.score || -1;
-      if (stageTwo==='dracaufeu' && effect.type==='search_split_basic_energy') {
-        const plan = dracaufeuCrispinPlan(p.deck.filter(isBasicEnergyCard));
+      if ((stageTwo==='dracaufeu' || djinn) && effect.type==='search_split_basic_energy') {
+        const plan = aiSplitEnergyPlan(p.deck.filter(isBasicEnergyCard));
         return plan?.second ? Math.min(112,36+plan.score*.45) : plan?.first && !left.some(isBasicEnergyCard) ? 26 : -1;
       }
       if (stageTwo==='dracaufeu' && effect.type==='search_order_top') {
@@ -19770,6 +19875,22 @@
           const foe = player('you');
           return [foe.active,...foe.bench].some(target => target?.energy?.some(energy =>
             genAiEnergyDenial(target,[energy]) >= (style === 'control' ? 22 : 42)));
+        }
+        if (effect?.type==='filtered_deck_search' && ['tera','mega_ex'].includes(effect.filter) && peter) {
+          const matches = effect.filter==='tera' ? isTeraSearchTarget : item=>isPokemonEx(item) && /^mega .+ ex$/.test(cleanCardKey(item.name));
+          return codex.deck.length>1 && rankPeterDragoniteSearch(codex.deck.filter(matches),1).length>0;
+        }
+        if (effect?.type==='heal_typed_active') {
+          if (!codex.active?.damage || !pokemonHasType(codex.active,effect.pokemonType)) return false;
+          const active=codex.active;
+          const hpLeft=effectivePokemonHp(active)-active.damage;
+          const threat=genAiReplyDamage(active,player('you').active);
+          const savesActive=threat>=hpLeft && threat<hpLeft+Math.min(effect.amount,active.damage);
+          if (peter && cleanCardKey(active.name)==='drampa' && game.yamiDifficulty!=='casual' && !savesActive) {
+            const healed={...active,damage:Math.max(0,active.damage-effect.amount)};
+            if (aiBestAttackScore(healed)<aiBestAttackScore(active)) return false;
+          }
+          return savesActive || game.yamiDifficulty==='casual' || active.damage>=effect.amount;
         }
         if (peter && effect?.operation === 'searchAndMove' && (codex.bench.length >= 4 || !codex.deck.some(basicPokemon))) return false;
         if (effect?.type === 'heal_and_coin_return') return Number(codex.active?.damage || 0) > 0;
