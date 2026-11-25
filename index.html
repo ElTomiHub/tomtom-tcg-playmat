@@ -371,7 +371,7 @@
           <p class="summary-meta" id="matchSummaryMeta"></p>
           <div id="matchSummaryPreview"></div>
           <div class="summary-records" id="matchSummaryDeckRecord"></div>
-          <div class="summary-card-actions"><button class="btn small" id="revengeMatchBtn" type="button" hidden>Revenge · Flip coin</button> <button class="btn small primary" id="viewMatchSummaryBtn">View full summary</button> <button class="btn small" id="reviewMatchCoachBtn" type="button" hidden>Review decisions</button> <button class="btn small" id="downloadMatchRecordingBtn" type="button" hidden>Download recording</button> <button class="btn small" id="saveMatchRecordingBtn" type="button" hidden>Save to history</button> <button class="btn small" id="retryMatchSaveBtn" type="button" hidden>Retry saving result</button> <button class="btn small" id="matchCampaignBtn" type="button" hidden>Campaign progress</button></div>
+          <div class="summary-card-actions"><button class="btn small" id="revengeMatchBtn" type="button" hidden>Revenge · Flip coin</button> <button class="btn small primary" id="viewMatchSummaryBtn">View full summary</button> <button class="btn small" id="downloadMatchRecordingBtn" type="button" hidden>Download recording</button> <button class="btn small" id="saveMatchRecordingBtn" type="button" hidden>Save to history</button> <button class="btn small" id="retryMatchSaveBtn" type="button" hidden>Retry saving result</button> <button class="btn small" id="matchCampaignBtn" type="button" hidden>Campaign progress</button></div>
           <p class="summary-save-status" id="matchSummarySaved"></p>
         </section>
         <div class="log-list" id="moveLog" role="region" aria-labelledby="moveLogHeading" tabindex="0"><div class="empty-log">Moves will appear here as the match progresses.</div></div>
@@ -7469,7 +7469,6 @@
       if (!summary) return;
       const result = summaryResult(summary), stats = summary.players.you, records = matchDeckRecords(summary);
       panel.dataset.result = result.toLowerCase();
-      $('reviewMatchCoachBtn').hidden = !summary.coach?.length;
       $('matchSummaryResult').textContent = result;
       $('matchSummaryMeta').textContent = [summary.reason, summaryOpponentStyle(summary) && 'Yami: ' + summaryOpponentStyle(summary)].filter(Boolean).join(' · ');
       const metrics = [[summary.turns,'Turns'],[stats.pokemonPlayed,'Pokémon played'],[stats.energyAttached,'Energy attached'],[stats.attacks,'Attacks'],[stats.knockedOut,'Your Pokémon KO’d']];
@@ -7817,14 +7816,13 @@
       $('matchReplayModal').classList.add('hidden');
       $('matchHistoryModal').classList.remove('hidden');
     }
-    function openCurrentMatchSummary({coach = false} = {}) {
+    function openCurrentMatchSummary() {
       if (typeof captureRecordedStep==='function') captureRecordedStep();
       const summary = buildMatchSummary();
       if (!summary) return;
       $('matchHistoryHeading').textContent = 'Game summary'; $('matchHistoryContent').innerHTML = matchSummaryMarkup(summary);
       $('matchHistoryModal').classList.remove('hidden');
       void showMatchRecordings(game.deckIds?.you);
-      if (coach) $('matchHistoryContent').querySelector('.match-coach')?.scrollIntoView?.({block:'start'});
     }
     function openDeckMatchHistory(deckId) {
       const deck = registeredDecks.find(deck => deck.id === deckId);
@@ -22282,7 +22280,6 @@
       librarySync?.progressChanged();
       showToast(game.historySaved ? 'Match result saved.' : 'Browser storage still could not save this result. Keep this tab open or download a backup.');
     });
-    $('reviewMatchCoachBtn').addEventListener('click',()=>openCurrentMatchSummary({coach:true}));
     $('matchHistoryContent').addEventListener('click',event=>{
       const step = event.target.closest('[data-coach-step], [data-knockout-id], [data-replay-turn]');
       if (step) void openCoachReplay(step);
