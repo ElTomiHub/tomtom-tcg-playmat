@@ -171,3 +171,20 @@ test('a stale tab cannot discard an independent addition made by another tab',()
   local.save(second,{...second,cards:[...second.cards,{id:'manual:second-tab'}]});
   assert.deepEqual(local.read().collection.cards.map(row=>row.id),['cards:imported','manual:first-tab','manual:second-tab']);
 });
+
+test('wanted quantities and categories sync separately from owned copies and survive backup',async()=>{
+  const cloud=server(), desktop=device(), phone=device();
+  const deck={id:'wanted:deck',name:'Rare Candy',quantity:4,category:'Deck'};
+  const special={...deck,id:'wanted:special',quantity:1,category:'Special Collection'};
+  desktop.save(empty(),{...empty(),preferences:[deck,special]});
+  await desktop.sync(cloud,session);
+  await phone.sync(cloud,session);
+  const collection=phone.read().collection;
+  assert.deepEqual(collection,{cards:[],binder:[],preferences:[deck,special]});
+  const backup=parsePokedexBackup(phone.exportBackup());
+  assert.deepEqual(device().restoreBackup(backup),collection);
+  phone.save(collection,{...collection,preferences:[{...deck,quantity:2},{id:special.id,removed:true}]});
+  await phone.sync(cloud,session);
+  await desktop.sync(cloud,session);
+  assert.deepEqual(desktop.read().collection.preferences.filter(row=>!row.removed),[{...deck,quantity:2}]);
+});

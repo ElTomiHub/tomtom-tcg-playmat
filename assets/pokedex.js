@@ -798,9 +798,10 @@
   }
 
   function specialTile(card,index,rows) {
+    const wanted = view==='wanted';
     const tile = node('article',null,'card species-card special-card');
     tile.dataset.cardId = card.id;
-    const open = button(null,()=>openEditor(card,null,{destination:'binder'}));
+    const open = button(null,()=>openEditor(card,null,{destination:wanted ? 'wanted' : 'binder'}));
     open.className = 'species-open';
     open.setAttribute('aria-label','Open '+title(card));
     const badge = node('span',variantIcons[card.variant] || '◇','tile-marker variant-marker');
@@ -808,6 +809,7 @@
     open.append(photo(card.image,'No image',card),badge);
     tile.append(open,node('h3',title(card),'special-card-title'),
       node('small',[card.set,card.number].filter(Boolean).join(' · ')));
+    if (wanted) tile.append(node('small',card.category+' · '+card.quantity+(card.quantity===1 ? ' copy wanted' : ' copies wanted')));
     if (reorderingSpecial) {
       const actions = node('div',null,'special-order-actions');
       for (const [offset,label] of [[-1,'Move earlier'],[1,'Move later']]) {
@@ -848,26 +850,28 @@
     const progressLabel = owned.size+' / '+totalSpecies+' species · '+completion+'% · '+remaining+' missing';
     el('collectionProgressLabel').textContent = progressLabel;
     progress.setAttribute('aria-valuetext',progressLabel);
-    const heading = {cards: 'Pokédex', binder: 'Binder', progress: 'Progress', recent:'History', value:'Collection value'};
+    const heading = {cards: 'Pokédex', binder: 'Special Collection', wanted:'Wanted List', progress: 'Progress', recent:'History', value:'Collection value'};
     document.querySelector('.species-back')?.remove();
     el('viewHeading').textContent = speciesFilter ? entryName(speciesFilter) : heading[view];
     const showingDetails = Boolean(speciesFilter);
     const special = view === 'binder';
-    if (special) el('viewHeading').textContent = 'Special Collection';
-    else reorderingSpecial = false;
+    const wanted = view==='wanted';
+    if (!special) reorderingSpecial = false;
+    el('wantedCategoryField').hidden = !wanted;
+    el('addCard').textContent = wanted ? '＋ Add wanted card' : '＋ Add card';
     el('collectionProgress').hidden = showingDetails || view !== 'cards';
     el('addCard').hidden = ['progress','value'].includes(view) || showingDetails;
     el('filters').hidden = ['progress','value','recent'].includes(view) || showingDetails;
     const showCollection = view === 'cards' && !showingDetails;
     el('collectionFilter').hidden = !showCollection;
     for (const button of collectionButtons) button.setAttribute('aria-pressed',String(button.dataset.collection === collection));
-    el('variantField').hidden = special;
+    el('variantField').hidden = special || wanted;
     el('specialTagField').hidden = !special;
     el('reorderSpecial').hidden = !special;
     el('reorderSpecial').textContent = reorderingSpecial ? 'Done' : 'Reorder';
     el('reorderSpecial').setAttribute('aria-pressed',String(reorderingSpecial));
     el('variantFilter').disabled = showCollection && collection === 'missing';
-    el('regionField').hidden = view === 'binder' || !!speciesFilter;
+    el('regionField').hidden = special || wanted || !!speciesFilter;
     el('results').replaceChildren();
     el('resultCount').textContent = '';
     el('more').hidden = true;
@@ -876,7 +880,7 @@
     if (view === 'recent') { renderRecent(); return; }
 
     const search = reorderingSpecial ? '' : normalizeSearch(el('search').value);
-    const variant = special ? '' : el('variantFilter').value;
+    const variant = special || wanted ? '' : el('variantFilter').value;
     const tagFilter = el('specialTagFilter');
     const previousTag = tagFilter.value;
     if (special) {
@@ -900,7 +904,8 @@
     tagFilter.disabled = reorderingSpecial;
     el('search').disabled = reorderingSpecial;
     const region = el('regionFilter').value;
-    const filtered = Boolean(search || tag || (!el('variantField').hidden && variant) || (!el('regionField').hidden && region) ||
+    const wantedCategory = wanted && el('wantedCategoryFilter').value;
+    const filtered = Boolean(search || tag || wantedCategory || (!el('variantField').hidden && variant) || (!el('regionField').hidden && region) ||
       (showCollection && collection !== 'all'));
     el('resetFilters').disabled = !filtered;
     const matches = (...values) => !search || values.some(value => normalizeSearch(value).includes(search));
@@ -923,7 +928,11 @@
 
     const matchesCard = card => (!variant || card.variant === variant) &&
       (matches(title(card),card.set,card.number,card.japaneseName,card.frenchName) || matchesSpecies(catalogEntry(card)));
-    if (special) {
+    if (wanted) {
+      rows = data.preferences.filter(card=>card.id.startsWith('wanted:') && !card.removed &&
+        (!wantedCategory || card.category===wantedCategory) && matchesCard(card));
+      tile = (card,index)=>specialTile(card,index,rows);
+    } else if (special) {
       rows = orderedSpecialCards().filter(card=>matchesCard(card) && (!tag || normalizeSpecialTags(card.tags).some(label=>specialTagKey(label)===tag)));
       tile = (card,index) => specialTile(card,index,rows);
     } else {
@@ -948,10 +957,10 @@
     }
     if (filtered) el('resultCount').textContent = rows.length + (rows.length === 1 ? ' result' : ' results');
     if (!rows.length) {
-      el('results').append(node('p', 'No results match these filters.', 'note'));
+      el('results').append(node('p', wanted && !filtered ? 'Your Wanted List is empty. Add a card to start your hunt.' : 'No results match these filters.', 'note'));
       return;
     }
-    const grid = node('div',null,special ? 'grid special-grid' : 'grid');
+    const grid = node('div',null,special || wanted ? 'grid special-grid' : 'grid');
     grid.append(...rows.slice(0,reorderingSpecial ? rows.length : limit).map(tile));
     el('results').append(grid);
     el('more').hidden = reorderingSpecial || limit >= rows.length;
@@ -975,7 +984,7 @@
       select.append(option);
     }
     select.value = preferred || String(id);
-    el('formField').hidden = editing?.type==='binder' || select.options.length<=1;
+    el('formField').hidden = editing?.type!=='cards' || select.options.length<=1;
   }
   const editorForm = el('editorForm');
   const editorFields = editorForm.elements;
@@ -1088,7 +1097,7 @@
   function openEditor(card, entry = speciesFilter, draft = null) {
     if (editorSave.disabled) return;
     const values = card || draft;
-    const type = draft?.destination || (view === 'binder' ? 'binder' : 'cards');
+    const type = draft?.destination || (['binder','wanted'].includes(view) ? view : 'cards');
     editing = {card,language:draft?.language,type,originalImage:safeImage(values?.image),
       reference:{set:values?.set || '',number:values?.number || ''},artworkForVariant:draft?.artworkForVariant};
     editorForm.reset();
@@ -1112,7 +1121,14 @@
     editorFields.pokemonId.value = type === 'cards' ? id ?? '' : '';
     el('speciesField').hidden = type !== 'cards';
     el('editorNameLabel').textContent = type === 'cards' ? 'Pokémon' : 'Card name';
-    editorFields.name.required = type === 'binder';
+    editorFields.name.required = type !== 'cards';
+    const wanted = type==='wanted';
+    el('wantedFields').hidden = !wanted;
+    editorFields.wantedQuantity.disabled = !wanted;
+    editorFields.wantedQuantity.value = values?.quantity || 1;
+    editorFields.wantedCategory.value = values?.category || (view==='wanted' && el('wantedCategoryFilter').value) || 'Pokédex';
+    el('deleteCardConfirm').querySelector('p').textContent = wanted ? 'Remove this entry from your Wanted List?' : 'Delete this copy from your collection?';
+    el('confirmDeleteCard').textContent = wanted ? 'Remove entry' : 'Delete this copy';
     el('editorTags').hidden = type !== 'binder';
     editorFields.tags.value = normalizeSpecialTags(values?.tags).join(', ');
     editorFields.name.placeholder = type === 'cards' ? 'Search Pokémon' : '';
@@ -1120,7 +1136,7 @@
     updateEditorSpecies();
     updateEditorArtwork();
     updateEditorPrice();
-    el('editorHeading').textContent = card ? 'Edit card' : 'Add card';
+    el('editorHeading').textContent = wanted ? (card ? 'Edit wanted card' : 'Add wanted card') : card ? 'Edit card' : 'Add card';
     el('deleteCard').hidden = !card;
     el('deleteCardConfirm').hidden = true;
     el('editorStatus').textContent = '';
@@ -1137,7 +1153,7 @@
     const {card, type, language} = editing;
     const image = safeImage(editing.image);
     const pokemonId = type === 'cards' ? Number(read('pokemonId')) : null;
-    const entry = {...card, ...(language ? {language} : {}), id:card?.id || 'manual:' + crypto.randomUUID(), pokemonId,
+    const entry = {...card, ...(language ? {language} : {}), id:card?.id || (type==='wanted' ? 'wanted:' : 'manual:') + crypto.randomUUID(), pokemonId,
       pokemonKey: type === 'cards' ? read('pokemonForm') || String(pokemonId) : '',
       name:read('name'), set:read('set'), number:editorNumber.value(), variant:normalizeVariant(read('variant')) || 'normal',
       image, createdAt:card?.createdAt || new Date().toISOString()};
@@ -1145,15 +1161,25 @@
       for (const field of ['value','currency','price_source','value_updated_at','price_status']) delete entry[field];
     }
     if (type === 'binder') entry.tags = normalizeSpecialTags(read('tags'));
-    const updated = card ? data[type].map(item => item.id === card.id ? entry : item) : [...data[type],entry];
+    const wanted = type==='wanted';
+    if (wanted) {
+      entry.category = read('wantedCategory');
+      entry.quantity = Number(read('wantedQuantity'));
+      if (!Number.isSafeInteger(entry.quantity) || entry.quantity<1) {
+        el('editorStatus').textContent = 'Enter a positive whole number of copies.';
+        return;
+      }
+    }
+    const rows = wanted ? data.preferences : data[type];
+    const updated = card ? rows.map(item => item.id === card.id ? entry : item) : [...rows,entry];
     const makeFeatured = form.has('makeFeatured') && !card && type === 'cards' &&
       editing.featuredEntryKey === entry.pokemonKey && hasOwnedPrint(data.cards,entry.pokemonKey);
     const preferences = makeFeatured ? chooseFeaturedCard(data.preferences,entry.pokemonKey,entry.id) : data.preferences;
     editorSave.disabled = true;
     try {
-      await save({...data,[type]:updated,preferences});
+      await save(wanted ? {...data,preferences:updated} : {...data,[type]:updated,preferences});
       el('editor').close();
-      el('notice').textContent = makeFeatured ? 'Card saved and set as featured.' : 'Card saved in this browser.';
+      el('notice').textContent = wanted ? 'Wanted List updated.' : makeFeatured ? 'Card saved and set as featured.' : 'Card saved in this browser.';
       render();
     } catch (error) {
       el('editorStatus').textContent = error.name === 'QuotaExceededError' ?
@@ -1177,7 +1203,8 @@
     const confirm = event.currentTarget;
     confirm.disabled = true;
     try {
-      const next = deletePokedexCard(data,type,card.id);
+      const next = type==='wanted' ? {...data,preferences:data.preferences.map(item=>
+        item.id===card.id ? {id:card.id,removed:true} : item)} : deletePokedexCard(data,type,card.id);
       if (next !== data) await save(next);
       el('editor').close();
       render();
@@ -1188,13 +1215,13 @@
   });
   el('cancelEdit').addEventListener('click', () => { if (!editorSave.disabled) el('editor').close(); });
   el('editor').addEventListener('cancel',event => { if (editorSave.disabled) event.preventDefault(); });
-  el('addCard').addEventListener('click', () => openCardCapture({destination:view === 'binder' ? 'binder' : 'cards'}));
+  el('addCard').addEventListener('click', () => openCardCapture({destination:['binder','wanted'].includes(view) ? view : 'cards'}));
   for (const item of document.querySelectorAll('[data-view]')) item.addEventListener('click', () => {
     view = item.dataset.view; speciesFilter = null; speciesReturn = null; collection = 'all'; limit = pageSize;
     for (const other of document.querySelectorAll('[data-view]')) other.setAttribute('aria-pressed',String(other === item));
     el('search').value = ''; el('variantFilter').value = ''; render();
   });
-  for (const id of ['search','variantFilter','regionFilter']) el(id).addEventListener('input', () => {limit = pageSize; render();});
+  for (const id of ['search','variantFilter','regionFilter','wantedCategoryFilter']) el(id).addEventListener('input', () => {limit = pageSize; render();});
   for (const item of collectionButtons) item.addEventListener('click', () => {
     collection = item.dataset.collection;
     if (collection === 'missing') el('variantFilter').value = '';
@@ -1205,6 +1232,7 @@
   el('reorderSpecial').addEventListener('click',()=>{reorderingSpecial=!reorderingSpecial; render();});
   el('resetFilters').addEventListener('click', () => {
     if (!el('specialTagField').hidden) el('specialTagFilter').value = '';
+    el('wantedCategoryFilter').value = '';
     el('search').value = '';
     el('variantFilter').value = '';
     if (!el('regionField').hidden) el('regionFilter').value = '';

@@ -535,6 +535,7 @@
     const torch = el('scannerTorch'), start = el('scannerStart'), manual = el('scannerManual'), phone = el('scannerPhone');
     const variant = form.elements.variant;
     const destination = el('scannerDestination');
+    const addLabel = () => 'Add to '+destination.selectedOptions[0].textContent;
     const register = el('scannerRegister');
     const collector = mountNumberField(form.elements.number,el('scannerSetTotal'));
     let resolvedDraft = null, selectedPokemon = null;
@@ -1074,7 +1075,7 @@
           'Variant suggested from the scan. You can correct it above.' : '','note');
       const collection = element('div',null,'scan-ownership');
       collection.setAttribute('aria-live','polite');
-      const add = action(destination.value === 'binder' ? 'Add to Special Collection' : 'Add to Pokédex',()=>{
+      const add = action(addLabel(),()=>{
         dialog.close();
         openAdd({name:name.textContent,language,set:code,number:identity.printedNumber,variant:variant.value,image:art,artworkForVariant,
           pokemonId:identity.speciesId,pokemonKey:identity.pokemonKey,destination:destination.value});
@@ -1099,7 +1100,7 @@
           }
           collection.append(list);
         }
-        add.textContent = destination.value === 'binder' ? 'Add to Special Collection' : 'Add to Pokédex';
+        add.textContent = addLabel();
         add.disabled = !variant.value;
       };
       updateVariant = ()=>{

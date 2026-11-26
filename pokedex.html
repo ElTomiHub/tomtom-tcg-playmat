@@ -14,11 +14,11 @@
   <script defer src="assets/pokedex-evolutions.js?v=1"></script>
   <script defer src="assets/library-sync.js?v=6"></script>
   <script defer src="assets/pokedex-sync.js?v=5"></script>
-  <script defer src="assets/pokedex-scan.js?v=9"></script>
+  <script defer src="assets/pokedex-scan.js?v=10"></script>
   <script defer src="assets/pokedex-imported-prices.js?v=1"></script>
   <script defer src="assets/pokedex-prices.js?v=3"></script>
   <script defer src="assets/pokedex-prices-ui.js?v=3"></script>
-  <script defer src="assets/pokedex.js?v=31"></script>
+  <script defer src="assets/pokedex.js?v=32"></script>
 </head>
 <body>
   <main>
@@ -29,6 +29,7 @@
       <nav aria-label="Collection views">
         <button type="button" data-view="cards" aria-pressed="true">Pokédex</button>
         <button type="button" data-view="binder" aria-pressed="false">Special Collection</button>
+        <button type="button" data-view="wanted" aria-pressed="false">Wanted List</button>
         <button type="button" data-view="value" aria-pressed="false">Value</button>
       </nav>
       <div class="pokedex-tools">
@@ -60,6 +61,7 @@
         <div class="inputs filter-fields">
           <label>Search <input id="search" type="search" placeholder="Name (EN, FR, JP), set, or number"></label>
           <label id="regionField">Region <select id="regionFilter"><option value="">All regions</option></select></label>
+          <label id="wantedCategoryField" hidden>Category <select id="wantedCategoryFilter"><option value="">All categories</option><option>Pokédex</option><option>Special Collection</option><option>Deck</option></select></label>
           <label id="specialTagField" hidden>Tag <select id="specialTagFilter"></select></label>
           <label id="variantField">Variant <select id="variantFilter"><option value="">All variants</option></select></label>
         </div>
@@ -115,7 +117,7 @@
       <h2 id="scannerHeading">Add card</h2>
       <button type="button" id="closeScanner" aria-label="Close add card">×</button>
     </div>
-    <label class="scan-destination">Save to <select id="scannerDestination"><option value="cards">Pokédex</option><option value="binder">Special Collection</option></select></label>
+    <label class="scan-destination">Save to <select id="scannerDestination"><option value="cards">Pokédex</option><option value="binder">Special Collection</option><option value="wanted">Wanted List</option></select></label>
     <div class="scanner-camera" id="scannerPreview" hidden>
       <video id="scannerVideo" autoplay muted playsinline aria-label="Live camera preview"></video>
       <div class="scanner-frame" id="scannerFrame" aria-hidden="true"></div>
@@ -167,6 +169,10 @@
             <label>Card number <span class="collector-number-field"><input name="number" maxlength="40" placeholder="025"><span id="editorSetTotal" aria-label="Set total" hidden></span></span></label>
           </div>
           <label>Variant <select name="variant"></select></label>
+          <div id="wantedFields" class="inputs" hidden>
+            <label>Wanted for <select name="wantedCategory"><option>Pokédex</option><option>Special Collection</option><option>Deck</option></select></label>
+            <label>Copies wanted <input type="number" name="wantedQuantity" min="1" step="1" value="1" required disabled></label>
+          </div>
           <label id="editorTags" hidden>Tags <input name="tags" placeholder="Separate tags with commas"></label>
         </div>
         <figure id="editorArtwork" class="editor-artwork"></figure>
