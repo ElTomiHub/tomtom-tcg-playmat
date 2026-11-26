@@ -295,7 +295,7 @@
           </div>
           <div class="lower-controls">
             <div class="turn-action-status" id="turnActionStatus" role="status" hidden></div>
-            <div class="action-buttons"><button class="btn small undo-button" id="undoBtn" type="button" disabled>↶ Undo</button><button class="btn small primary" id="finishSetupBtn" hidden>Finish Pokémon setup</button><div class="end-turn-group"><button class="btn small primary" id="endTurnBtn" disabled>End turn ↗</button></div></div>
+            <div class="action-buttons"><button class="btn small" id="lineStamp" type="button" aria-pressed="false" hidden>☆ Stamp</button><button class="btn small" id="leavePractice" type="button" hidden>Exit practice</button><button class="btn small undo-button" id="undoBtn" type="button" disabled>↶ Undo</button><button class="btn small primary" id="finishSetupBtn" hidden>Finish Pokémon setup</button><div class="end-turn-group"><button class="btn small primary" id="endTurnBtn" disabled>End turn ↗</button></div></div>
           </div>
         </section>
         <section class="hand-panel">
@@ -6958,6 +6958,7 @@
       }
     }
     function persistDeckStats() {
+      if (game?.practiceLine) return true;
       try { deckStats = writeDeckStats(deckStats); return true; }
       catch (error) {
         if (typeof recordDiagnostic==='function') recordDiagnostic('save-error','Deck statistics could not be saved.',{storageError:error.name});
@@ -7077,6 +7078,7 @@
       persistDeckStats();
     }
     function recordDeckCardStat(side, card, field, amount = 1) {
+      if (game?.practiceLine) return;
       const deckId = game?.deckIds?.[side];
       if (!deckId || !card) return;
       const key = cardCatalogKey(card), scopes = [statsForDeck(deckId)];
@@ -7222,12 +7224,15 @@
       catch { $('matchSaveStatus').textContent='Could not clear the saved game';return false; }
     }
     function queueMatchAutosave() {
+      if (game?.practiceLine) return;
+      if (typeof captureLinePoint==='function') captureLinePoint(false);
       if (typeof captureRecordedStep === 'function') captureRecordedStep();
       clearTimeout(matchSaveTimer);
       if (!game) return;
       matchSaveTimer=setTimeout(saveMatchCheckpoint,200);
     }
     function saveMatchCheckpoint() {
+      if (game?.practiceLine) return false;
       if (!game || matchCheckpointBusy()) return false;
       if (game.phase==='finished') {
         const cleared = clearSavedMatch();
@@ -7417,6 +7422,7 @@
         startedAt: history.startedAt, endedAt: history.endedAt, turns: Number(game.finishedTurn || game.turnNumber || 1), winner: game.winner, reason: game.finishReason || '',
         ...(game.yamiStyle ? {yamiStyle:game.yamiStyle,yamiDifficulty:game.yamiDifficulty || 'competitor'} : {}),
         ...(game.matchCancelled ? { cancelled: true } : {}),
+        ...(game.linePoints?.length ? {linePoints:game.linePoints} : {}),
         decks: Object.fromEntries(['you','codex'].map(side => [side, { id: game.deckIds?.[side] || '', name: player(side)?.deckName || player(side)?.name || side }])),
         players: history.players, knockouts: history.knockouts, timeline: history.timeline,
         ...(game.masteryAwards?.length ? {masteryAwards:game.masteryAwards} : {}),
@@ -7447,6 +7453,7 @@
       return Array.isArray(record.timeline) && record.timeline.length <= 300 && record.timeline.every(item => Number.isSafeInteger(item?.turn) && item.turn >= 1 && typeof item.message === 'string');
     }
     function syncFinishedMatchHistory() {
+      if (game?.practiceLine) return;
       if (!game?.matchHistory || game.phase !== 'finished' || !game.deckIds || game.matchCancelled) return;
       const seenDecks = new Set();
       for (const side of ['you','codex']) {
@@ -7468,7 +7475,8 @@
     let matchSummaryPreviewMarkup = '', revealedMasteryMatchId;
     function renderMatchSummaryCard() {
       const panel = $('matchSummaryCard'), summary = matchFinishPresentationBusy() ? null : buildMatchSummary();
-      panel.hidden = !summary;
+      panel.hidden = !summary || !!game?.practiceLine;
+      if (game?.practiceLine) return;
       $('matchCampaignBtn').hidden = !summary || !game.campaign;
       $('revengeMatchBtn').hidden = !summary || summary.cancelled || !!game.campaign || !game.deckIds?.you || !game.deckIds?.codex;
       $('downloadMatchRecordingBtn').hidden = !summary || pendingRecording?.id !== game?.matchHistory?.id;
@@ -7560,8 +7568,7 @@
           <p class="summary-meta">${escapeHtml(new Date(summary.endedAt).toLocaleString())} · ${summary.turns} turns${summary.reason ? ' · '+escapeHtml(summary.reason) : ''}${style ? ' · Yami: '+escapeHtml(style) : ''}</p>
         </header>
         ${masteryAwardsMarkup(summary.masteryAwards)}
-        ${prizeTimelineMarkup(summary)}
-        ${matchCoachMarkup(summary)}
+        ${practiceLineMarkup(summary)}
         <section class="summary-detail-section"><h4>Match activity</h4>
           <table class="match-summary-table"><thead><tr><th scope="col">Activity</th><th scope="col">${names.you}</th><th scope="col">${names.codex}</th></tr></thead><tbody>${rows.map(([label,key])=>`<tr><th scope="row">${label}</th><td>${summary.players.you[key]}</td><td>${summary.players.codex[key]}</td></tr>`).join('')}</tbody></table>
           <p class="data-tools-note">Pokémon counts include opening Pokémon and Evolutions. Energy counts are physical card attachments, including attachments from effects. Moving attached Energy is excluded.</p>
@@ -7578,6 +7585,90 @@
     let visibleRecordings = [];
     let replayRecord = null;
 
+    // Keep playable positions local. The synced match history only needs their turn labels.
+    let practiceReturn = null, lineCacheMatch = null, lineWrite = Promise.resolve();
+    const lineCache = new Map();
+    const linePrefix = id => 'practice/'+encodeURIComponent(id)+'/';
+    function canStampLine() {
+      return game?.phase==='play' && game.turn==='you' && !game.practiceLine && game.matchHistory?.id &&
+        !game.pendingPromotion && !game.pendingCheckup && !game.pendingStartDrawSide && !game.pendingAttackTurn &&
+        !matchCheckpointBusy() && pendingAnimatedTurn?.match!==game && !visualTransitionBusy() && !gameplayEffectsBusy();
+    }
+    function captureLinePoint(stamp) {
+      if (!canStampLine()) return;
+      const id=game.matchHistory.id, turn=game.turnNumber, point=turn+(stamp ? '-stamp' : '-start');
+      const points=game.linePoints ||= [];
+      const index=points.indexOf(point);
+      if (!stamp && index>=0) return;
+      if (lineCacheMatch!==id) { lineCache.clear(); lineCacheMatch=id; }
+      const prefix=linePrefix(id), key=prefix+point;
+      const remove=stamp && index>=0;
+      let state;
+      if (remove) { points.splice(index,1); lineCache.delete(key); }
+      else {
+        points.push(point);
+        state=JSON.stringify({...game,linePoints:undefined,progressBaseline:undefined});
+        lineCache.set(key,state);
+      }
+      if (typeof indexedDB!=='undefined') {
+        lineWrite=lineWrite.then(()=>recordingTransaction('readwrite',store=>{
+          if (remove) store.delete(key); else store.put(state,key);
+          const recent=store.get('practice/recent');
+          recent.onsuccess=()=>{
+            const ids=[id,...(recent.result || []).filter(previous=>previous!==id)];
+            for (const previous of ids.slice(20)) {
+              const old=linePrefix(previous);
+              store.delete(IDBKeyRange.bound(old,old+'\uffff'));
+            }
+            store.put(ids.slice(0,20),'practice/recent');
+          };
+        })).catch(()=>{if (stamp && !remove) showToast('Stamp available in this tab only. Device storage is unavailable.');});
+      }
+      if (stamp) { showToast(remove ? 'Turn stamp removed.' : 'Stamped this position on turn '+turn+'.'); render(); }
+    }
+    function practiceLineMarkup(summary) {
+      const points=Array.isArray(summary.linePoints) ? summary.linePoints.filter(key=>/^\d+-(start|stamp)$/.test(key)) : [];
+      if (!points.length) return '';
+      const ordered=points.slice().sort((a,b)=>Number(b.endsWith('stamp'))-Number(a.endsWith('stamp')) || parseInt(a)-parseInt(b));
+      const options=ordered.map(key=>'<option value="'+key+'">Turn '+parseInt(key)+(key.endsWith('stamp')?' · ★ Stamped position':' · Start of turn')+'</option>');
+      return '<section class="summary-detail-section"><h4>Try another line</h4><p class="data-tools-note">Practice against Yami from a position saved on this device. Your original result stands.</p>'+
+        '<div class="replay-controls"><select aria-label="Practice position">'+options.join('')+'</select> <button class="btn small primary" type="button" data-practice-match="'+
+        escapeHtml(summary.id.replace(/:(you|codex)$/,''))+'">Play from here</button></div></section>';
+    }
+    async function startPracticeLine(id,point) {
+      if (practiceReturn || game && game.phase!=='finished') { showToast('Finish the current match before starting practice.'); return false; }
+      const original=game, key=linePrefix(id)+point;
+      let state=lineCache.get(key);
+      if (!state && typeof indexedDB!=='undefined') {
+        try { await lineWrite; state=await recordingTransaction('readonly',store=>store.get(key)); } catch { /* No local position available. */ }
+      }
+      if (!state) { showToast('This position is unavailable on this device.'); return false; }
+      if (game!==original || practiceReturn || matchCheckpointBusy()) return false;
+      const branch=JSON.parse(state);
+      if (branch.matchHistory?.id!==id || branch.phase!=='play' || branch.turn!=='you') return false;
+      practiceReturn={game,ai:localAiEnabled,view:Object.keys(hubRoutes).find(view=>hubRoutes[view]===window.location?.hash) || 'match'};
+      clearTimeout(matchSaveTimer); clearTimeout(localAiTimer); localAiTimer=null; clearPlaymatEffects();
+      branch.practiceLine=true; branch.campaign=null; branch.matchHistory.id='practice-'+Date.now();
+      game=branch; game.log.forEach(entry=>entry.time=new Date(entry.time));
+      localAiEnabled=true; localAiActionCount=0; controlSide='you'; selected=null; pendingEvolutionId=null; lastUndoSnapshot=null;
+      $('matchHistoryModal').classList.add('hidden');
+      setView('match'); render(); showToast('Practice · Turn '+game.turnNumber); return true;
+    }
+    function leavePracticeLine(reopen=true) {
+      if (!practiceReturn) return false;
+      if (matchCheckpointBusy() || pendingAnimatedTurn?.match===game || gameplayEffectsBusy()) {showToast('Finish the current action first.');return false;}
+      clearTimeout(localAiTimer); localAiTimer=null; clearPlaymatEffects();
+      const previous=practiceReturn; practiceReturn=null;
+      game=previous.game; localAiEnabled=previous.ai; localAiActionCount=0; controlSide='you';
+      selected=null; pendingEvolutionId=null; lastUndoSnapshot=null;
+      if (reopen) setView(previous.view);
+      render();
+      const hasRecording=!!pendingRecording && pendingRecording.id===game?.matchHistory?.id;
+      $('saveMatchRecordingBtn').hidden=!hasRecording;
+      $('downloadMatchRecordingBtn').hidden=!hasRecording;
+      if (reopen) $('matchHistoryModal').classList.remove('hidden');
+      return true;
+    }
     function openRecordingDatabase() {
       return new Promise((resolve,reject) => {
         const request = indexedDB.open('codexPokemonPlaymat.recordings',1);
@@ -7611,6 +7702,7 @@
       };
     }
     function captureRecordedStep() {
+      if (game?.practiceLine) return;
       if (matchCheckpointBusy()) return;
       if (matchRecording?.record.id !== game?.matchHistory?.id) matchRecording = null;
       if (!matchRecording) startMatchRecording();
@@ -8252,6 +8344,7 @@
       else setView('menu');
     }
     function setView(view, matchup = null) {
+      if (view!=='match' && game?.practiceLine && !leavePracticeLine(false)) return;
       const hash = hubRoutes[view];
       if (window.history?.pushState && window.location.hash !== hash) {
         window.history.pushState({matchup}, '', window.location.pathname + window.location.search + hash);
@@ -10503,9 +10596,11 @@
       if (activeCardChoiceResolver) finishCardChoice(null);
       if (activeBoardChoiceResolver) finishBoardChoice(null);
       const snapshot = lastUndoSnapshot; lastUndoSnapshot = null;
+      const points=game.linePoints;
       game = cloneSerializable(snapshot.game);
+      if (points) game.linePoints=points;
       game.log = (game.log || []).map(item => ({ ...item, time: item.time instanceof Date ? item.time : new Date(item.time) }));
-      deckStats = cloneSerializable(snapshot.deckStats);
+      if (!game.practiceLine) deckStats = cloneSerializable(snapshot.deckStats);
       controlSide = snapshot.controlSide; selected = snapshot.selected;
       pendingEvolutionId = null;
       persistDeckStats();
@@ -15675,7 +15770,7 @@
       game.finishReason = reason || '';
       if (cancelled) game.matchCancelled = true;
       if (game.matchHistory) game.matchHistory.endedAt = new Date().toISOString();
-      if (!cancelled) {
+      if (!cancelled && !game.practiceLine) {
         if (!game.progressBaseline && typeof progressMatchBaseline === 'function') game.progressBaseline = progressMatchBaseline();
         if (typeof awardMastery==='function') awardMastery(winner);
         recordDeckResult(winner);
@@ -15916,8 +16011,8 @@
     function restoreResolutionState(snapshot, label = 'Effect') {
       game = snapshot.game;
       game.log = (game.log || []).map(item => item && typeof item === 'object' && typeof item.time === 'string' ? { ...item, time: new Date(item.time) } : item);
-      deckStats = snapshot.deckStats;
-      if (snapshot.campaign && typeof saveCampaign === 'function') saveCampaign(snapshot.campaign,false);
+      if (!game.practiceLine) deckStats = snapshot.deckStats;
+      if (!game.practiceLine && snapshot.campaign && typeof saveCampaign === 'function') saveCampaign(snapshot.campaign,false);
       selected = snapshot.selected;
       controlSide = snapshot.controlSide;
       logEvent(`${label} resolution failed; no changes were kept.`, false);
@@ -21712,6 +21807,14 @@
       $('energyTarget').hidden = true;
       $('selectionHint').innerHTML = activeBoardChoice ? 'Click one of the highlighted Pokémon on the playmat.' : selectedHand && current.meta?.category === 'Energy' ? `Selected: <strong>${escapeHtml(current.name)}</strong> · choose Attach Energy, or drag it onto a Pokémon.` : current ? `Selected: <strong>${escapeHtml(current.name)}</strong> · ${selected.zone === 'hand' ? 'choose a legal action' : `on ${selected.zone}`}` : (game?.phase === 'setup' ? 'Select a Basic Pokémon, then tap Active or Bench.' : active ? 'Select a card in hand or on the field to make a move.' : 'Load two valid decks to begin a match.');
       const canPass = canEndTurnManually(side);
+      const stamp=$('lineStamp'), marked=game?.linePoints?.includes(game.turnNumber+'-stamp');
+      stamp.hidden=!game || game.phase!=='play' || game.turn!=='you' || !!game.practiceLine;
+      stamp.disabled=!turnReady;
+      stamp.textContent=marked ? '★ Stamped' : '☆ Stamp';
+      stamp.setAttribute('aria-pressed',String(!!marked));
+      stamp.title=marked ? 'Remove this turn’s stamp' : 'Mark this exact position for post-match practice';
+      $('leavePractice').hidden=!game?.practiceLine;
+      if (game?.practiceLine) $('matchSaveStatus').textContent='Practice · Turn '+game.turnNumber;
       $('endTurnBtn').disabled = !canPass;
       $('undoBtn').disabled = !lastUndoSnapshot || coinPresentationPending || game?.phase === 'finished';
       $('forfeitMatchBtn').disabled = !canEndMatch(false);
@@ -22241,6 +22344,7 @@
       } catch {}
     }
     function queueFinishedProgress() {
+      if (game?.practiceLine) return;
       if (!game?.progressBaseline || !game.matchHistory || game.matchCancelled || game.progressQueued ||
           typeof progressStatsDelta!=='function') return;
       const id = game.matchHistory.id;
@@ -22402,6 +22506,8 @@
       showToast(game.historySaved ? 'Match result saved.' : 'Browser storage still could not save this result. Keep this tab open or download a backup.');
     });
     $('matchHistoryContent').addEventListener('click',event=>{
+      const practice=event.target.closest('[data-practice-match]');
+      if (practice) { void startPracticeLine(practice.dataset.practiceMatch,practice.parentElement.querySelector('select').value); return; }
       const step = event.target.closest('[data-coach-step], [data-knockout-id], [data-replay-turn]');
       if (step) void openCoachReplay(step);
     });
@@ -22671,6 +22777,8 @@
     $('copyStateBtn').addEventListener('click', copyState);
     $('localAiToggle').addEventListener('change', event => setLocalAiEnabled(event.target.checked));
     $('runCodexTurnBtn').addEventListener('click', runCodexTurnNow);
+    $('lineStamp').addEventListener('click',()=>captureLinePoint(true));
+    $('leavePractice').addEventListener('click',()=>leavePracticeLine());
     $('undoBtn').addEventListener('click', undoLastAction);
     $('cardChoiceCancelBtn').addEventListener('click', () => finishCardChoice(null));
     $('cardChoiceCloseBtn').addEventListener('click', () => finishCardChoice(null));
