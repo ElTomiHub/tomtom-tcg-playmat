@@ -10,7 +10,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="assets/hub-emblem-32.png">
   <link rel="apple-touch-icon" sizes="180x180" href="assets/hub-emblem-180.png">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="playmat.css?v=hub21">
+  <link rel="stylesheet" href="playmat.css?v=hub22">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -389,6 +389,7 @@
         </section>
         <section><h3>Campaign paths</h3>
           <div id="campaignPaths" class="campaign-paths" role="group" aria-label="Opponent deck pool"></div>
+          <div id="campaignSelectedBadge"></div>
           <div id="campaignOverview" class="matchup-stat-grid campaign-overview"></div>
           <div class="campaign-match">
             <div class="campaign-arena" id="campaignArena" aria-live="polite"></div>
@@ -8414,6 +8415,28 @@
     function playableCampaignDecks() {
       return decksInManagerDisplayOrder().filter(deck => deckReadiness(deck).playable);
     }
+    function campaignPathRecord(stats, path) {
+      const record = stats?.byPath?.[path];
+      if (!stats || path!=='final') return record;
+      const tracked = Object.values(stats.byPath || {});
+      const legacyRuns = Math.max(0,(stats.completed || 0)-tracked.reduce((sum,row)=>sum+(row.completed || 0),0));
+      if (!legacyRuns) return record;
+      const legacyVictories = Math.max(0,(stats.cleared || 0)-tracked.reduce((sum,row)=>sum+(row.cleared || 0),0));
+      const recordedBest = Math.max(0,...tracked.map(row=>row.bestWins || 0));
+      // Earlier totals can identify a better legacy score, or establish a minimum through victories.
+      const legacyBest = stats.bestWins>recordedBest ? stats.bestWins : legacyVictories ? 3 : 0;
+      return {completed:(record?.completed || 0)+legacyRuns,cleared:(record?.cleared || 0)+legacyVictories,
+        bestWins:Math.max(record?.bestWins || 0,legacyBest)};
+    }
+    function campaignPathBadge(path,wins,earned=true) {
+      const tier = {3:'bronze',4:'silver',5:'gold'}[wins];
+      if (!tier) return '';
+      const [name,,icon] = campaignPaths[path];
+      const title = path==='masters' && wins===5 ? 'Grandmaster' :
+        {regional:'Challenger',final:'Ascension',masters:'Gauntlet'}[path]+' '+{3:'Veteran',4:'Elite',5:'Champion'}[wins];
+      return '<span class="campaign-path-medal" data-tier="'+tier+'" data-earned="'+earned+'" title="'+name+' · '+wins+'/5 wins'+(earned?'':' · Locked')+'">'+
+        '<span class="campaign-shield" aria-hidden="true">'+icon+'<i></i></span><span>'+title+'</span></span>';
+    }
     function renderCampaignDeckPreview(activePath) {
       const deck = registeredDecks.find(item=>item.id === $('campaignDeckSelect').value);
       const panel = $('campaignDeckPreview');
@@ -8424,14 +8447,14 @@
       const image = deck.coverImage || imageFor(cover);
       const stats = deckStats[deck.id]?.campaign;
       const pathRows = Object.entries(campaignPaths).map(([id,[name]])=>{
-        const record = stats?.byPath?.[id];
+        const record = campaignPathRecord(stats,id);
         return '<li'+(id===activePath?' aria-current="true"':'')+'><strong>'+name+'</strong><small>'+
-          (record?.completed ? record.completed+' runs · '+record.cleared+' victories · Best '+(record.bestWins ?? 0)+'/5' : 'No completed runs')+'</small></li>';
+          (record?.completed ? record.completed+' runs · '+record.cleared+' victories · Best '+(record.bestWins ?? 0)+'/5' : 'No completed runs')+'</small><div class="campaign-tier-track">'+[3,4,5].map(wins=>campaignPathBadge(id,wins,(record?.bestWins || 0)>=wins)).join('')+'</div></li>';
       }).join('');
       panel.innerHTML = `<div class="matchup-deck-hero"><div class="matchup-deck-cover">${image ?
         `<img src="${escapeHtml(image)}" alt="">` : escapeHtml(deck.name.slice(0,2))}</div><div>
         <h3 class="matchup-deck-name">${escapeHtml(deckDisplayName(deck))}</h3>
-        ${campaignDeckBadge(deck.id)}</div></div>
+        <small>${stats?.completed || 0} completed runs · Highest tier ${{3:"Bronze",4:"Silver",5:"Gold"}[stats?.bestWins] || "—"}</small></div></div>
         <ul class="campaign-deck-paths" aria-label="Selected deck results by path">${pathRows}</ul>`;
     }
     const campaignPaths = {
@@ -8499,11 +8522,13 @@
       select.disabled=!choosingDeck;
       const path=choosingDeck ? selectedCampaignPath : run.path || 'final';
       renderCampaignDeckPreview(path);
+      const selectedBest = campaignPathRecord(deckStats[select.value]?.campaign,path)?.bestWins || 0;
+      $('campaignSelectedBadge').innerHTML=selectedBest>=3 ? campaignPathBadge(path,selectedBest) : '';
       const completed=Object.values(deckStats).reduce((total,stats)=>total+(stats.campaign?.completed || 0),0);
       $('campaignOverview').textContent=completed+' completed runs across all decks';
       $('campaignCancelRunBtn').hidden=!run || finished;
       $('campaignPaths').innerHTML=Object.entries(campaignPaths).map(([id,[name,description,icon]])=>{
-        const records=registeredDecks.map(deck=>({deck,stats:deckStats[deck.id]?.campaign?.byPath?.[id]}))
+        const records=registeredDecks.map(deck=>({deck,stats:campaignPathRecord(deckStats[deck.id]?.campaign,id)}))
           .filter(entry=>entry.stats?.completed);
         const leaders=records.slice().sort((a,b)=>b.stats.cleared-a.stats.cleared || b.stats.completed-a.stats.completed).slice(0,2);
         const best=records.slice().sort((a,b)=>(b.stats.bestWins || 0)-(a.stats.bestWins || 0) || b.stats.cleared-a.stats.cleared)[0];
@@ -8520,7 +8545,7 @@
         const round=run?.rounds[i], result=run?.results[i];
         const revealed=result || round?.face;
         return '<li><small>Round '+(i+1)+' · '+YAMI_DIFFICULTY_LABELS[level]+'</small><strong>'+ (revealed ? escapeHtml(deckName(round.deckId,round.deckName)) : 'Opponent to reveal')+'</strong><span data-outcome="'+(result || '')+'">'+({win:'Won',loss:'Lost',draw:'Draw'}[result] || (run && !finished && i===run.results.length ? 'Up next' : '—'))+'</span></li>';
-      }).join('')+'</ol>'+(won ? '<div class="campaign-trophy'+(celebration?' campaign-trophy-reveal':'')+'">'+campaignChampionBadge(wins,true)+'</div>' : '');
+      }).join('')+'</ol>'+(won ? '<div class="campaign-trophy'+(celebration?' campaign-trophy-reveal':'')+'">'+campaignPathBadge(run.path || 'final',wins)+'</div>' : '');
       const index=choosingDeck ? 0 : run.results.length, face=choosingDeck ? null : run.rounds[index].face;
       renderCampaignArena(choosingDeck ? null : run,index);
       const unavailable=choosingDeck && (![0,4].every(i=>campaignRivals(pool,select.value,path,i).length) || !select.value);

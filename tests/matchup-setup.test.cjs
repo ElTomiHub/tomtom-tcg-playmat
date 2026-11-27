@@ -196,7 +196,7 @@ test('campaign locks the deck, advances after losses, and awards the winning dec
   }
   assert.match(el('campaignHeading').textContent,/Campaign victory/);
   assert.match(el('campaignProgress').innerHTML,/data-tier="bronze"[\s\S]*3\/5 wins/);
-  assert.match(el('campaignProgress').innerHTML,/campaign-trophy[^>]*>[\s\S]*Campaign Champion/);
+  assert.match(el('campaignProgress').innerHTML,/campaign-trophy[^>]*>[\s\S]*Gauntlet Veteran/);
   assert.match(el('campaignDeckPreview').innerHTML,/3\/5/);
   await el('closeCampaignBtn').click();
   await el('menuManageDecks').click();

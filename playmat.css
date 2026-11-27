@@ -3362,3 +3362,18 @@ button.recap-marker:hover, button.recap-marker:focus-visible { border-color: #f5
   display:block; width:100%; max-width:none; min-width:0;
   overflow:hidden; white-space:nowrap; text-overflow:ellipsis; text-align:left; line-height:1.2;
 }
+.campaign-tier-track { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:5px; margin-top:8px; }
+.campaign-path-medal { display:inline-flex; flex-direction:column; align-items:center; gap:5px; text-align:center; font-size:11px; color:#fff1c5; }
+.campaign-shield {
+  --metal-light:#ffd09e; --metal-dark:#945522; --gem:#59acff;
+  display:grid; place-items:center; position:relative; width:34px; height:40px; padding-bottom:9px;
+  clip-path:polygon(0 0,100% 0,93% 65%,50% 100%,7% 65%);
+  background:linear-gradient(140deg,var(--metal-light),var(--metal-dark) 43%,var(--metal-light) 92%);
+  color:#14243b; font-size:19px; text-shadow:0 1px #ffffff88;
+}
+[data-tier="silver"] > .campaign-shield { --metal-light:#edfaff; --metal-dark:#839cb7; --gem:#1dba86; }
+[data-tier="gold"] > .campaign-shield { --metal-light:#fff2a6; --metal-dark:#bd8628; --gem:#df355d; }
+.campaign-shield i { position:absolute; bottom:8px; width:7px; height:7px; rotate:45deg; background:var(--gem); border:1px solid #16273c; }
+.campaign-path-medal[data-earned="false"] { filter:grayscale(1); opacity:.55; }
+#campaignSelectedBadge:not(:empty) { margin-top:12px; }
+#campaignSelectedBadge .campaign-path-medal,.campaign-trophy .campaign-path-medal { flex-direction:row; font-size:14px; font-weight:800; }
