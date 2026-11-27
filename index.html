@@ -10,7 +10,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="assets/hub-emblem-32.png">
   <link rel="apple-touch-icon" sizes="180x180" href="assets/hub-emblem-180.png">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="playmat.css?v=hub14">
+  <link rel="stylesheet" href="playmat.css?v=hub15">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -468,15 +468,17 @@
     <section class="setup-card campaign-card">
       <div class="setup-top"><div><div class="eyebrow">Regional Tournament Circuit</div><h2 id="campaignHeading">Campaign</h2></div>
         <button class="btn small" id="closeCampaignBtn" aria-label="Close campaign">✕</button></div>
-      <div id="campaignProgress"></div>
-      <div class="campaign-arena" id="campaignArena" aria-live="polite"></div>
-      <div id="campaignDeckChoice"><label for="campaignDeckSelect">Your deck for all five matches</label>
-        <select class="deck-select" id="campaignDeckSelect"></select>
-        <div class="campaign-deck-preview" id="campaignDeckPreview" aria-live="polite"></div></div>
-      <button class="btn primary" id="campaignActionBtn" type="button">Start campaign</button>
-      <button class="btn small" id="campaignNewRunBtn" type="button" hidden>Choose a new run</button>
-      <button class="btn small" id="campaignManageDecksBtn" type="button">Manage Decks</button>
+      <div class="campaign-prep">
+        <div id="campaignDeckChoice"><label for="campaignDeckSelect">Your deck for all five rounds</label>
+          <select class="deck-select" id="campaignDeckSelect"></select></div>
+        <button class="btn campaign-flip" id="campaignActionBtn" type="button"><img id="campaignCoin" src="assets/coins/tails.png" alt=""><strong id="campaignCoinLabel">Flip for round 1</strong></button>
+      </div>
       <p class="matchup-stat-note" id="campaignActionStatus" role="status"></p>
+      <div class="campaign-columns"><section><h3>Run record</h3><div id="campaignDeckPreview"></div><div id="campaignProgress"></div></section>
+        <section><h3>Campaign path</h3><div id="campaignPaths" class="campaign-paths" role="group" aria-label="Opponent deck pool"></div>
+          <div class="campaign-arena" id="campaignArena" aria-live="polite"></div></section></div>
+      <div class="campaign-footer"><button class="btn small" id="campaignNewRunBtn" type="button" hidden>Choose a new run</button>
+      <button class="btn small" id="campaignManageDecksBtn" type="button">Manage decks</button></div>
     </section>
   </div>
   <input class="file-input" type="file" id="deckFile" accept=".txt,.deck,text/plain">
@@ -8417,23 +8419,33 @@
         ${campaignDeckBadge(deck.id)}</div></div>
         <div class="matchup-stat-grid">${stat('Completed runs',runs)}${stat('Victories',clears)}${stat('Best run',best == null ? '—' : best+'/5')}</div>`;
     }
-    function newCampaign(deckId, pool) {
-      const rivals = pool.filter(deck => deck.id !== deckId);
-      const boss = shuffled(rivals.filter(deck=>deck.category==='Master')).pop();
-      if (!boss) return null;
-      let remaining = [], styles = [];
-      const earlyRivals = rivals.filter(deck=>deck.id!==boss.id);
-      const rounds = CAMPAIGN_LEVELS.map((_,index) => {
-        if (!remaining.length) remaining = shuffled(index === 0 && earlyRivals.length ? earlyRivals : rivals);
-        if (!styles.length) styles = shuffled(Object.keys(YAMI_STYLE_LABELS));
-        return {deckId:index===CAMPAIGN_LEVELS.length-1 ? boss.id : remaining.pop().id, style:styles.pop()};
-      });
-      return {id:newMatchHistory().id,deckId,rounds,results:[]};
+    const campaignPaths = {
+      regional:['Regional Circuit','Toma, A and R decks in all five rounds.'],
+      final:['Master Final','Four regional opponents, then a Master deck.'],
+      masters:['Master Circuit','Master decks in all five rounds.']
+    };
+    let selectedCampaignPath = 'final';
+    function campaignRivals(pool,deckId,path,index) {
+      const master = path==='masters' || path==='final' && index===4;
+      return pool.filter(deck=>deck.id!==deckId && (master ? deck.category==='Master' : ['Toma','A','R'].includes(deck.category)));
+    }
+    function newCampaign(deckId,pool,path='final') {
+      if (!Object.hasOwn(campaignPaths,path)) return null;
+      let bag=[],styles=[];
+      const rounds=[];
+      for (let i=0;i<CAMPAIGN_LEVELS.length;i++) {
+        const eligible=campaignRivals(pool,deckId,path,i);
+        if (!eligible.length) return null;
+        if (!bag.length || !eligible.includes(bag[bag.length-1])) bag=shuffled(eligible);
+        if (!styles.length) styles=shuffled(Object.keys(YAMI_STYLE_LABELS));
+        rounds.push({deckId:bag.pop().id,style:styles.pop()});
+      }
+      return {id:newMatchHistory().id,deckId,path,rounds,results:[]};
     }
     function renderCampaignArena(run, index) {
       const arena = $('campaignArena');
-      if (!run) {
-        arena.innerHTML = '<div><span class="panel-kicker">The opening arena</span><h3>Choose your challenger deck</h3><p>Your first opponent is revealed when you enter the circuit.</p></div>';
+      if (!run || !run.results[index] && !run.rounds[index].face) {
+        arena.innerHTML = '<div><span class="panel-kicker">Next opponent</span><h3>Flip to reveal</h3><p>The coin reveals your opponent and who plays first.</p></div>';
         return;
       }
       const round = run.rounds[index];
@@ -8446,8 +8458,6 @@
       arena.innerHTML = `${image ? `<img class="campaign-arena-cover" src="${escapeHtml(image)}" alt="">` : ''}
         <div><span class="panel-kicker">${stage} · ${result ? {win:'Victory',loss:'Defeat',draw:'Draw'}[result] : 'Up next'}</span>
         <h3>${escapeHtml(deck ? deckDisplayName(deck) : 'Unavailable opponent deck')}</h3><p>Yami · ${YAMI_DIFFICULTY_LABELS[CAMPAIGN_LEVELS[index]]}</p></div>`;
-      $('campaignProgress').querySelectorAll('[data-campaign-node]').forEach(node=>
-        node.setAttribute('aria-pressed',String(Number(node.dataset.campaignNode)===index)));
     }
     function campaignChampionBadge(wins, large = false) {
       const tier = {3:'Bronze',4:'Silver',5:'Gold'}[wins];
@@ -8463,41 +8473,35 @@
       const wins = run?.results.filter(result=>result==='win').length || 0;
       const won = finished && wins >= 3;
       const losses = run?.results.filter(result=>result==='loss').length || 0;
-      $('campaignHeading').textContent = won ? '★ Campaign victory!' : finished ? 'Circuit complete' : 'The Road to Master';
-      const score = run ? `<strong>${escapeHtml(deckName(run.deckId))}</strong> · ${wins} wins · ${losses} losses · ${run.results.length-wins-losses} draws` :
-        'Five arenas. One deck. Win three matches to earn the Champion badge.';
-      const champion = won && registeredDecks.find(deck=>deck.id===run.deckId);
-      const cover = champion && resolveDeckCoverImage(champion);
-      const celebration = won && celebrate && playmatEffectsEnabled && !prefersReducedPlaymatMotion();
-      $('campaignProgress').innerHTML = `<p class="campaign-score">${score}</p>
-        <ol class="campaign-route${celebration ? ' campaign-route-celebrate' : ''}${celebration && fastPlaymatEffects ? ' campaign-celebration-fast' : ''}" aria-label="Campaign arenas">${CAMPAIGN_LEVELS.map((level,index)=>{
-          const result = run?.results[index], current = run && index===run.results.length;
-          const status = result || (current ? 'Current match' : 'Locked');
-          return `<li style="--arena-index:${index}"><button class="campaign-node" type="button" data-campaign-node="${index}" data-result="${result || ''}"
-            aria-label="Arena ${index+1}, ${YAMI_DIFFICULTY_LABELS[level]}, ${status}" aria-pressed="false"
-            ${current ? 'aria-current="step"' : ''} ${result || current ? '' : 'disabled'}>${index+1}</button>
-            <small>${result ? {win:'Won',loss:'Lost',draw:'Draw'}[result] : current ? 'Up next' : index===4 ? 'Final' : 'Locked'}</small></li>`;
-        }).join('')}</ol>${won ? `<div class="campaign-trophy${celebration ? ' campaign-trophy-reveal' : ''}${celebration && fastPlaymatEffects ? ' campaign-celebration-fast' : ''}">
-          ${cover ? `<img src="${escapeHtml(cover)}" alt="">` : ''}<div>${campaignChampionBadge(wins,true)}<strong>${escapeHtml(deckName(run.deckId))}</strong></div></div>` : ''}`;
-      renderCampaignArena(run, Math.min(run?.results.length || 0,CAMPAIGN_LEVELS.length-1));
-      $('campaignDeckChoice').hidden = !choosingDeck;
-      const playable = choosingDeck ? playableCampaignDecks() : [];
-      const pool = playable.filter(deck=>playable.some(rival=>rival.id!==deck.id && rival.category==='Master'));
-      const select = $('campaignDeckSelect'), previous = select.value;
-      select.innerHTML = pool.map(deck=>`<option value="${escapeHtml(deck.id)}">${escapeHtml(deckDisplayName(deck))}</option>`).join('');
-      if (pool.length) select.value = pool.find(deck=>deck.id===previous)?.id || pool[0].id;
-      else select.value = '';
+      $('campaignHeading').textContent = won ? 'Campaign victory' : finished ? 'Circuit complete' : 'Campaign';
+      const pool=playableCampaignDecks(), select=$('campaignDeckSelect'), previous=select.value;
+      select.innerHTML=pool.map(deck=>`<option value="${escapeHtml(deck.id)}">${escapeHtml(deckDisplayName(deck))}</option>`).join('');
+      select.value=choosingDeck ? pool.find(deck=>deck.id===previous)?.id || pool.find(deck=>deck.id===run?.deckId)?.id || pool[0]?.id || '' : run.deckId;
+      select.disabled=!choosingDeck;
       renderCampaignDeckPreview();
-      $('campaignActionStatus').textContent = choosingDeck && !pool.length ?
-        'A new campaign needs two playable decks, including a different deck tagged Master. Set the category in Manage Decks.' :
-        campaignChoosingNewRun ? 'Starting a new run replaces the unfinished campaign. Your deck records and earned badges are kept.' : '';
-      $('campaignNewRunBtn').hidden = !run || finished || campaignChoosingNewRun;
-      $('campaignActionBtn').disabled = choosingDeck && !pool.length;
-      $('campaignActionBtn').textContent = campaignChoosingNewRun ? 'Replace run and start' :
-        finished ? 'Start a new campaign' : run ? 'Continue campaign' : 'Start campaign';
+      const path=choosingDeck ? selectedCampaignPath : run.path || 'final';
+      $('campaignPaths').innerHTML=Object.entries(campaignPaths).map(([id,[name,description]])=>
+        '<button type="button" class="btn campaign-path" data-path="'+id+'" aria-pressed="'+(path===id)+'" '+(choosingDeck?'':'disabled')+'><strong>'+name+'</strong><small>'+description+'</small></button>').join('');
+      const celebration=won && celebrate && playmatEffectsEnabled && !prefersReducedPlaymatMotion();
+      const score=run ? wins+' wins · '+losses+' losses · '+(run.results.length-wins-losses)+' draws' : 'Win three of five rounds to earn a badge.';
+      $('campaignProgress').innerHTML='<p class="campaign-score">'+(run && select.value!==run.deckId ? escapeHtml(deckName(run.deckId))+' · ' : '')+score+'</p><ol class="campaign-ledger">'+CAMPAIGN_LEVELS.map((level,i)=>{
+        const round=run?.rounds[i], result=run?.results[i];
+        const revealed=result || round?.face;
+        return '<li><small>Round '+(i+1)+' · '+YAMI_DIFFICULTY_LABELS[level]+'</small><strong>'+ (revealed ? escapeHtml(deckName(round.deckId)) : 'Opponent to reveal')+'</strong><span data-outcome="'+(result || '')+'">'+({win:'Won',loss:'Lost',draw:'Draw'}[result] || (run && i===run.results.length ? 'Up next' : '—'))+'</span></li>';
+      }).join('')+'</ol>'+(won ? '<div class="campaign-trophy'+(celebration?' campaign-trophy-reveal':'')+'">'+campaignChampionBadge(wins,true)+'</div>' : '');
+      const index=choosingDeck ? 0 : run.results.length, face=choosingDeck ? null : run.rounds[index].face;
+      renderCampaignArena(choosingDeck ? null : run,index);
+      const unavailable=choosingDeck && (![0,4].every(i=>campaignRivals(pool,select.value,path,i).length) || !select.value);
+      $('campaignActionBtn').disabled=unavailable;
+      $('campaignCoin').src=face==='HEADS' ? coinDesignForDisplay().image : COIN_TAILS_IMAGE;
+      const ongoing=!choosingDeck && game?.phase!=='finished' && game?.campaign?.id===run.id && game.campaign.round===index;
+      $('campaignCoinLabel').textContent=ongoing ? 'Resume round '+(index+1) : face ? 'Start round '+(index+1) : campaignChoosingNewRun ? 'Replace run and flip' : 'Flip for round '+(index+1);
+      $('campaignActionStatus').textContent=unavailable ? 'This path needs a different playable opponent in each required category group. Choose another deck or path.' :
+        face ? (face==='HEADS'?'Heads · Toma':'Tails · Yami')+' plays first.' : campaignChoosingNewRun ? 'Flipping replaces the unfinished run.' : '';
+      $('campaignNewRunBtn').hidden=!run || finished || campaignChoosingNewRun;
       $('campaignModal').classList.remove('hidden');
     }
-    function advanceCampaignSetup() {
+    async function advanceCampaignSetup() {
       const status = message => { $('campaignActionStatus').textContent = message; };
       if (matchCheckpointBusy() || deckResolutionBusy || setupCoinAnimation) {
         status('Wait for the current action or choice to finish before starting a campaign.');
@@ -8519,25 +8523,37 @@
       if (!run || run.results.length === CAMPAIGN_LEVELS.length || campaignChoosingNewRun) {
         const deckId = $('campaignDeckSelect').value, pool = playableCampaignDecks();
         if (!pool.some(deck=>deck.id===deckId)) { status('Choose a playable deck to start.'); return; }
-        run = newCampaign(deckId,pool);
-        if (!run) { status('Choose a deck with a different playable Master deck available as the final opponent.'); return; }
-        if (!saveCampaign(run)) return;
+        run = newCampaign(deckId,pool,selectedCampaignPath);
+        if (!run) { status('Choose a deck with playable opponents for this path.'); return; }
       }
       const index = run.results.length, round = run.rounds[index];
       const playable = playableCampaignDecks();
-      if (index === CAMPAIGN_LEVELS.length - 1 &&
-          !playable.some(deck=>deck.id===round.deckId && deck.category==='Master')) {
-        const boss = shuffled(playable.filter(deck=>deck.id!==run.deckId && deck.category==='Master')).pop();
-        if (!boss) { status('Tag a playable opponent deck as Master before starting the final round.'); return; }
-        round.deckId = boss.id;
-        if (!saveCampaign(run)) return;
+      const eligible=run.path ? campaignRivals(playable,run.deckId,run.path,index) :
+        playable.filter(deck=>deck.id!==run.deckId && (index!==4 || deck.category==='Master'));
+      if (!eligible.some(deck=>deck.id===round.deckId)) {
+        if (!eligible.length) {status('Restore an eligible opponent deck or choose a new run.');return;}
+        round.deckId=shuffled(eligible).pop().id;
+        delete round.face;
       }
       if (![run.deckId,round.deckId].every(id=>playable.some(deck=>deck.id===id))) {
         status('A campaign deck is unavailable. Restore the deck and verify its cards to continue, or choose a new run.');
         return;
       }
-      $('campaignModal').classList.add('hidden');
-      openStartGame({campaignRound:{id:run.id,round:index,you:run.deckId,codex:round.deckId,style:round.style}});
+      if (!round.face) {
+        round.face=randomCoin({visual:false}) ? 'HEADS' : 'TAILS';
+        if (!saveCampaign(run)) return;
+        openCampaign();
+        if (playmatEffectsEnabled && !prefersReducedPlaymatMotion()) $('campaignCoin').animate?.([{transform:'rotateY(0)'},{transform:'rotateY(360deg)'}],{duration:fastPlaymatEffects?300:600});
+        return;
+      }
+      campaignSetup={id:run.id,round:index,you:run.deckId,codex:round.deckId,style:round.style};
+      populateDeckSelectors();
+      for (const side of ['you','codex']) {
+        $(side+'RegisteredDeck').value=campaignSetup[side]; applyDeckChoice(side);
+      }
+      await handleStartAction({campaignFace:round.face});
+      if (game?.campaign?.id===run.id && game.campaign.round===index && game.phase!=='finished') $('campaignModal').classList.add('hidden');
+      else if (!$('campaignModal').classList.contains('hidden')) status($('setupStatus').textContent);
     }
     function recordCampaignResult(winner) {
       const run = loadCampaign(), round = game.campaign;
@@ -8545,7 +8561,7 @@
           game.deckIds?.you !== run.deckId || game.deckIds?.codex !== run.rounds[round.round]?.deckId) return false;
       run.results.push(winner === 'you' ? 'win' : winner === 'codex' ? 'loss' : 'draw');
       if (!saveCampaign(run,false)) return false;
-      if (run.results.length !== CAMPAIGN_LEVELS.length) return false;
+      if (run.results.length !== CAMPAIGN_LEVELS.length) return true;
       const wins = run.results.filter(result=>result==='win').length, deck = statsForDeck(run.deckId);
       const stats = deck.campaign ||= {completed:0,cleared:0,bestWins:0};
       stats.completed++;
@@ -10343,10 +10359,12 @@
       else reveal();
       showValidation('you'); showValidation('codex');
     }
-    async function handleStartAction({first = null} = {}) {
-      if (deckResolutionBusy || setupCoinAnimation || $('setupModal').classList.contains('hidden')) return;
+    async function handleStartAction({first = null,campaignFace = null} = {}) {
+      const setupScreen=campaignFace ? $('campaignModal') : $('setupModal');
+      if (deckResolutionBusy || setupCoinAnimation || setupScreen.classList.contains('hidden')) return;
       const begin = () => {
-        if ($('setupModal').classList.contains('hidden')) return;
+        if (setupScreen.classList.contains('hidden')) return;
+        if (campaignFace) { coinResult={face:campaignFace,first:campaignFace==='HEADS'?'you':'codex'}; startMatch(); return; }
         if (first === 'you' || first === 'codex') {
           coinResult = {face:null,first,method:'chosen'};
           startMatch();
@@ -15751,7 +15769,8 @@
         if (typeof awardMastery==='function') awardMastery(winner);
         recordDeckResult(winner);
       }
-      const campaignFinished = !cancelled && game.campaign && recordCampaignResult(winner);
+      const campaignAdvanced = !cancelled && game.campaign && recordCampaignResult(winner);
+      if (campaignAdvanced) pendingCampaignPresentation = game;
       if (game.yamiStyle) {
         logEvent('Yami played ' + YAMI_STYLE_LABELS[game.yamiStyle] + ' on ' + YAMI_DIFFICULTY_LABELS[game.yamiDifficulty || 'competitor'] + '.');
         game.log[0].afterPresentation = true;
@@ -15763,11 +15782,8 @@
       if (!cancelled && typeof queueFinishedProgress === 'function' && !runResolutionTransaction.depth) queueFinishedProgress();
       $('localAiStatus').textContent = cancelled ? 'Match cancelled.' : winner === 'codex' ? 'Local opponent won this match.' : winner === 'you' ? 'You won this match.' : 'The match is a draw.';
       render();
-      if (typeof mobileMatchLayout==='function' && mobileMatchLayout() && !campaignFinished && !matchFinishPresentationBusy()) setMobileMatchPanel('log');
-      if (campaignFinished) {
-        pendingCampaignPresentation = game;
-        if (!matchFinishPresentationBusy()) presentFinishedMatch();
-      }
+      if (typeof mobileMatchLayout==='function' && mobileMatchLayout() && !campaignAdvanced && !matchFinishPresentationBusy()) setMobileMatchPanel('log');
+      if (campaignAdvanced && !matchFinishPresentationBusy()) presentFinishedMatch();
     }
     function promoteCodexAfterKnockout(preferredId = null) {
       const codex = player('codex');
@@ -22563,13 +22579,12 @@
       $('campaignModal').classList.add('hidden');
       openDeckManager();
     });
-    $('campaignProgress').addEventListener('click', event => {
-      const node = event.target.closest('[data-campaign-node]'), run = loadCampaign();
-      if (!node || !run) return;
-      const index = Number(node.dataset.campaignNode);
-      if (Number.isInteger(index) && index >= 0 && index <= run.results.length && run.rounds[index]) renderCampaignArena(run,index);
+    $('campaignDeckSelect').addEventListener('change',()=>openCampaign({newRun:campaignChoosingNewRun}));
+    $('campaignPaths').addEventListener('click',event=>{
+      const choice=event.target.closest('[data-path]');
+      if (!choice || choice.disabled || !Object.hasOwn(campaignPaths,choice.dataset.path)) return;
+      selectedCampaignPath=choice.dataset.path; openCampaign({newRun:campaignChoosingNewRun});
     });
-    $('campaignDeckSelect').addEventListener('change',renderCampaignDeckPreview);
     $('closeCampaignBtn').addEventListener('click', () => $('campaignModal').classList.add('hidden'));
     $('startGameBtn').addEventListener('click', openStartGame);
     $('menuManageCards').addEventListener('click', openCardLibrary);

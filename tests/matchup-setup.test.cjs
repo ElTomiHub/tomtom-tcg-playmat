@@ -113,7 +113,11 @@ test('new campaigns reserve a playable Master rival for the final round',()=>{
     {id:'toma',category:'Toma'},{id:'friend-a',category:'A'},
     {id:'friend-r',category:'R'},{id:'boss',category:'Master'}])`,r.context);
   assert.equal(plan.rounds[4].deckId,'boss');
-  assert.notEqual(plan.rounds[0].deckId,'boss');
+  assert.ok(plan.rounds.slice(0,4).every(round=>round.deckId.startsWith('friend-')));
+  const pools=vm.runInContext(`['regional','masters'].map(path=>newCampaign('toma',[
+    {id:'toma',category:'Toma'},{id:'regional',category:'R'},{id:'boss',category:'Master'},{id:'other',category:''}],path))`,r.context);
+  assert.ok(pools[0].rounds.every(round=>round.deckId==='regional'));
+  assert.ok(pools[1].rounds.every(round=>round.deckId==='boss'));
   assert.equal(vm.runInContext("newCampaign('toma',[{id:'toma',category:'Master'},{id:'friend',category:'A'}])",r.context),null);
 });
 
@@ -137,15 +141,15 @@ test('campaign shows why starting is blocked and lets an unfinished run reach th
   const {r,f,el}=ready();
   await el('menuCampaign').click();
   assert.equal(el('campaignActionBtn').disabled,true);
-  assert.match(el('campaignActionStatus').textContent,/tagged Master/);
+  assert.match(el('campaignActionStatus').textContent,/playable opponent/);
   r.context.campaignFixtureIds={you:f.decks.human.id,codex:f.decks.ai.id};
   vm.runInContext(`registeredDecks.find(deck=>deck.id===campaignFixtureIds.codex).category='Master';
-    saveCampaign(newCampaign(campaignFixtureIds.you,playableCampaignDecks()));`,r.context);
+    saveCampaign(newCampaign(campaignFixtureIds.you,playableCampaignDecks(),'masters'));`,r.context);
   await el('menuCampaign').click();
   assert.equal(el('campaignNewRunBtn').hidden,false);
   await el('campaignNewRunBtn').click();
   assert.equal(el('campaignDeckChoice').hidden,false);
-  assert.match(el('campaignActionBtn').textContent,/Replace run/);
+  assert.match(el('campaignCoinLabel').textContent,/Replace run/);
   await el('campaignActionBtn').click();
   assert.match(el('campaignActionStatus').textContent,/unfinished match/);
 });
@@ -155,28 +159,32 @@ test('campaign locks the deck, advances after losses, and awards the winning dec
   vm.runInContext(`registeredDecks.find(deck=>deck.id===${JSON.stringify(f.decks.ai.id)}).category='Master'`,r.context);
   r.api.finishMatch(null,'Close initial fixture match');
   await el('menuCampaign').click();
+  vm.runInContext("selectedCampaignPath='masters';openCampaign()",r.context);
   el('campaignDeckSelect').value=f.decks.human.id;
   const finishEffects = controlPlaymatTimers(r);
   const winners=['you','codex','you',null,'you'];
   const levels=['casual','competitor','competitor','competitor','master'];
   for (let round=0;round<levels.length;round++) {
     await el('campaignActionBtn').click();
-    assert.equal(el('setupHeading').textContent,`Campaign · Match ${round+1} of 5`);
-    assert.equal(el('setupModal').classList.contains('campaign-coin-setup'),true);
-    assert.equal(el('youRegisteredDeck').disabled,true);
-    assert.equal(el('randomYamiDeckBtn').disabled,true);
-    await el('coinDisc').click();
+    assert.equal(el('setupModal').classList.contains('hidden'),true);
+    assert.match(el('campaignCoinLabel').textContent,/Start round/);
+    const result=el('campaignActionStatus').textContent;
+    assert.match(result,/plays first/);
+    vm.runInContext('openCampaign()',r.context);
+    assert.equal(el('campaignActionStatus').textContent,result);
+    await el('campaignActionBtn').click();
     const game=r.api.state();
     assert.equal(game.deckIds.you,f.decks.human.id);
     assert.equal(game.deckIds.codex,f.decks.ai.id);
     assert.equal(game.yamiDifficulty,levels[round]);
     assert.equal(game.campaign.round,round);
+    assert.equal(game.firstPlayer,result.startsWith('Heads')?'you':'codex');
     r.api.finishMatch(winners[round],'Campaign test result');
     const progress=vm.runInContext('JSON.stringify(loadCampaign().results)',r.context);
     assert.equal(JSON.parse(progress).length,round+1);
     if (round === levels.length - 1) assert.doesNotMatch(el('campaignHeading').textContent,/Campaign victory/);
     finishEffects();
-    if (round<levels.length-1) await el('matchCampaignBtn').click();
+    assert.equal(el('campaignModal').classList.contains('hidden'),false);
   }
   assert.match(el('campaignHeading').textContent,/Campaign victory/);
   assert.match(el('campaignProgress').innerHTML,/data-tier="bronze"[\s\S]*3\/5 wins/);
