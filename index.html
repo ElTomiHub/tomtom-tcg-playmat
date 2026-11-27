@@ -10,7 +10,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="assets/hub-emblem-32.png">
   <link rel="apple-touch-icon" sizes="180x180" href="assets/hub-emblem-180.png">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="playmat.css?v=hub13">
+  <link rel="stylesheet" href="playmat.css?v=hub14">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -253,12 +253,8 @@
       <div class="statistics-header"><div><span class="panel-kicker">MATCH RECORDS</span><h1 id="statisticsTitle" tabindex="-1">Statistics</h1></div></div>
       <div class="statistics-overview">
         <div><label class="statistics-filter">Deck played by Toma<select class="deck-select" id="statisticsDeck"></select></label><div id="statisticsDeckSummary"></div></div>
-        <div class="statistics-chart" id="statisticsChart"></div>
-      </div>
-      <section class="statistics-overview statistics-matchup-overview" aria-label="Matchup usage and suggestions">
-        <div id="statisticsUsage"></div>
         <div id="statisticsSuggestions"></div>
-      </section>
+      </div>
       <details class="statistics-notes" id="statisticsNotes" open><summary>How to read these results</summary><p class="data-tools-note" id="statisticsNote">Results are from Toma’s perspective. Statistics count wins and losses with both Yami settings recorded. Overall combines all archetypes and difficulties. A dash means no recorded results. The small percentages show the chance of each combination for that matchup when both settings are on Random.</p></details>
       <details class="statistics-filter-panel" id="statisticsFilterPanel" open><summary>Filters &amp; sorting</summary><div class="statistics-controls">
         <label>Opponent <input class="btn" id="statsOpponent" type="search" placeholder="Search deck name"></label>
@@ -8634,24 +8630,6 @@
       const image = resolveDeckCoverImage(deck);
       return image ? `<img class="statistics-cover" src="${escapeHtml(image)}" alt="" loading="lazy">` : "";
     }
-    function matchupDifficultyChart(deckId) {
-      const results = Object.entries(YAMI_DIFFICULTY_LABELS).map(([level, label]) => {
-        let wins = 0, losses = 0;
-        for (const opponent of registeredDecks) {
-          const matchup = yamiMatchup(opponent.id, deckId);
-          const styles = matchup?.difficulties?.[level]?.styles;
-          for (const style of Object.keys(YAMI_STYLE_LABELS)) {
-            wins += styles?.[style]?.losses || 0;
-            losses += styles?.[style]?.wins || 0;
-          }
-        }
-        return { label, wins, losses };
-      });
-      const max = Math.max(0, ...results.map(({wins, losses}) => wins + losses));
-      return "<h2>Results by difficulty</h2>" + (max ? results.map(({label,wins,losses}) =>
-        `<div class="statistics-chart-row"><span>${escapeHtml(label)}</span><div class="statistics-chart-bar" aria-hidden="true"><span class="statistics-chart-wins" style="width:${100*wins/max}%"></span><span class="statistics-chart-losses" style="width:${100*losses/max}%"></span></div><strong>${wins} W · ${losses} L</strong></div>`).join("") :
-        '<p class="data-tools-note">No results with saved difficulty and archetype yet.</p>');
-    }
     function matchupStatisticsMarkup(deckId, { query = "", levelFilter = "", styleFilter = "", sort = "", played = false, compact = false } = {}) {
       const levels = Object.entries(YAMI_DIFFICULTY_LABELS).filter(([level]) => !levelFilter || level === levelFilter);
       const styles = Object.entries(YAMI_STYLE_LABELS).filter(([style]) => !styleFilter || style === styleFilter);
@@ -8724,18 +8702,6 @@
         return {deck,games:wins+losses,wins,losses};
       });
     }
-    function renderStatisticsUsage(decks) {
-      const rows = decks.map(deck=>{
-        const pairings = matchupUsageFor(deck.id,decks);
-        const most = pairings.filter(pair=>pair.games>0).sort((a,b)=>b.games-a.games)[0];
-        const games = pairings.reduce((sum,pair)=>sum+pair.games,0);
-        return {deck,most,games};
-      }).filter(row=>row.games>0).sort((a,b)=>b.games-a.games);
-      const body = rows.map(({deck,most,games})=>`<tr><th scope="row">${escapeHtml(deckDisplayName(deck))}</th><td>${games}</td><td>${escapeHtml(deckDisplayName(most.deck))} · ${most.games}</td></tr>`).join('');
-      $('statisticsUsage').innerHTML = '<h2>Most-played decks</h2>'+(body ?
-        '<details open><summary>Completed matchups as Toma</summary><div class="statistics-usage-scroll"><table class="statistics-usage-table"><thead><tr><th scope="col">Your deck</th><th scope="col">Games</th><th scope="col">Most-played opponent</th></tr></thead><tbody>'+body+'</tbody></table></div></details>' :
-        '<p class="data-tools-note">No completed matchups are recorded yet.</p>');
-    }
     function renderStatisticsSuggestions(deck, decks) {
       const root = $('statisticsSuggestions');
       if (!deck) { root.innerHTML = ''; return; }
@@ -8765,9 +8731,7 @@
       const deckId = $("statisticsDeck").value;
       const deck = registeredDecks.find(item => item.id === deckId);
       $("statisticsDeckSummary").innerHTML = deck ? `<div class="statistics-deck-summary">${statisticsDeckCover(deck)}<strong>${escapeHtml(deckDisplayName(deck))}</strong></div>` : "";
-      $("statisticsChart").innerHTML = deck ? matchupDifficultyChart(deck.id) : "";
       const decks = decksInManagerDisplayOrder();
-      renderStatisticsUsage(decks);
       renderStatisticsSuggestions(deck,decks);
       renderStatisticsTable();
     }

@@ -576,11 +576,6 @@
     .statistics-cover { flex:none; width:34px; aspect-ratio:5/7; object-fit:cover; border-radius:4px; background:#254566; }
     .statistics-deck-summary .statistics-cover { width:68px; }
     .statistics-deck-name span { overflow-wrap:anywhere; }
-    .statistics-chart h2 { margin:0 0 8px; font-size:1rem; }
-    .statistics-chart-row { display:grid; grid-template-columns: minmax(90px, 1fr) minmax(36px, 2fr) auto; align-items:center; gap:8px; margin:8px 0; font-size:.83rem; }
-    .statistics-chart-bar { display:flex; height:10px; overflow:hidden; border-radius:6px; background:#081a31; }
-    .statistics-chart-wins { background:#58c79e; }
-    .statistics-chart-losses { background:#f0808d; }
     @media (max-width:700px) { .statistics-overview { grid-template-columns:1fr; } .statistics-page { overflow-y:visible; } }
     .statistics-controls { display:flex; flex-wrap:wrap; gap:10px 16px; align-items:center; margin:12px 0; }
     .statistics-header { display:flex; justify-content:space-between; align-items:center; gap:16px; }
@@ -2447,11 +2442,7 @@
 
 .hand-card.hand-reorder-target { outline: 2px dashed #f5cf72; outline-offset: -3px; }
 
-.statistics-matchup-overview h2 { margin: 0 0 8px; font-size: 1rem; }
-.statistics-usage-scroll { max-height: 215px; overflow: auto; }
-.statistics-usage-table { width: 100%; border-collapse: collapse; text-align: left; font-size: .82rem; }
-.statistics-usage-table th, .statistics-usage-table td { padding: 8px; border-bottom: 1px solid #adc5df38; }
-.statistics-usage-table td:nth-child(2) { font-variant-numeric: tabular-nums; }
+#statisticsSuggestions h2 { margin: 0 0 8px; font-size: 1rem; }
 .statistics-suggestion, .statistics-suggestion > div { display: flex; align-items: center; gap: 10px; }
 .statistics-suggestion { justify-content: space-between; margin-top: 8px; padding: 8px; border: 1px solid #adc5df38; border-radius: 8px; }
 .statistics-suggestion strong, .statistics-suggestion small { display: block; }
@@ -2802,14 +2793,9 @@
   .statistics-header .panel-kicker { font-size: 8px; }
   .statistics-header h1 { font-size: clamp(25px,8vw,34px); }
   .statistics-header .btn { padding: 6px 9px; white-space: nowrap; font-size: 11px; }
-  .statistics-page > .statistics-header + .statistics-overview { display: contents; }
-  .statistics-page > .statistics-header + .statistics-overview > div {
-    display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px;
-    padding: 8px; border-radius: 10px;
-  }
-  .statistics-page > .statistics-header + .statistics-overview .statistics-chart {
-    display: block; order: 5;
-  }
+  .statistics-overview { display:grid; grid-template-columns:minmax(0,1fr); gap:8px; margin:0; }
+  .statistics-overview > div { padding:9px; }
+  .statistics-overview > div:first-child { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:8px; }
   .statistics-filter { margin: 0; gap: 4px; font-size: 12px; }
   .statistics-filter select { min-width: 0; min-height: 40px; font-size: 16px; }
   .statistics-deck-summary .statistics-cover { width: 31px; }
@@ -2851,9 +2837,6 @@
   .statistics-breakdown dl > div { padding: 4px 3px; border-radius: 4px; background: #102d4c; text-align: center; }
   .statistics-breakdown dt { color: #c2daf0; font-size: 9px; }
   .statistics-breakdown dd { margin: 2px 0 0; font-size: 11px; }
-  .statistics-matchup-overview { order: 6; display: grid; grid-template-columns: minmax(0,1fr); gap: 8px; margin: 0; }
-  .statistics-matchup-overview > div { padding: 9px; }
-  #statisticsSuggestions { order: -1; }
 }
 @media (orientation: landscape) and (max-height: 570px) and (pointer: coarse) {
   .statistics-page { padding: 7px 7px 50px; }
