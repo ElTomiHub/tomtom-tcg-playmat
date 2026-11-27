@@ -10,7 +10,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="assets/hub-emblem-32.png">
   <link rel="apple-touch-icon" sizes="180x180" href="assets/hub-emblem-180.png">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="playmat.css?v=hub18">
+  <link rel="stylesheet" href="playmat.css?v=hub19">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -273,7 +273,7 @@
 
       <div id="inspectorPanelDivider" class="panel-divider" role="separator" tabindex="0" aria-label="Resize card inspector" aria-orientation="vertical" aria-controls="cardInspectorPanel" title="Drag to resize Inspector. Use arrow keys for small steps, Shift for larger steps; double-click to reset."></div>
       <section id="playmatPanel" class="table-column">
-        <div class="match-heading"><span class="autosave-status" id="matchSaveStatus" role="status"></span><h1 class="effect-announcement">Tomtom TCG Hub</h1><div class="playmat-turn-status" id="playmatTurnStatus" role="status" aria-live="polite" aria-atomic="true"><strong>No match started</strong></div></div>
+        <div class="match-heading"><span class="autosave-status" id="matchSaveStatus" role="status"></span><h1 class="effect-announcement">Tomtom TCG Hub</h1><div class="arena-header"><div class="playmat-turn-status" id="playmatTurnStatus" role="status" aria-live="polite" aria-atomic="true"><strong>No match started</strong></div><div class="arena-ribbon" id="arenaRibbon" hidden><span id="arenaMessage"></span></div></div></div>
         <section class="board-wrap" aria-label="Pokémon TCG playmat">
           <div class="board-toolbar" id="matchBoardToolbar">
             <div class="match-end-controls" role="group" aria-label="End match">
@@ -287,8 +287,7 @@
           <div class="field" id="matchField">
             <section class="player-row opponent" id="codexRow" data-board-side="codex"></section>
             <div class="battle-center" id="battleCenter"><div class="zone active-zone battle-active" id="codexActiveZone" data-board-side="codex"></div><div class="battle-stadium"><div class="zone-title">STADIUM</div><div class="stadium-slot" id="stadiumSlot"></div></div><div class="zone active-zone battle-active" id="youActiveZone" data-board-side="you"></div>
-              <div class="arena-crowd" aria-hidden="true"><div><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
-              <div class="arena-ribbon" id="arenaRibbon" hidden><span id="arenaMessage"></span></div>
+              <div class="arena-crowd" aria-hidden="true"><div><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
             </div>
             <section class="player-row" id="youRow" data-board-side="you"></section>
           </div>
@@ -21761,17 +21760,22 @@
       const message = $('arenaMessage');
       const next = arenaMessages[arenaMessageIndex];
       if (!next) return;
-      const changed=message.textContent!==next;
       message.textContent = next;
-      if (changed && playmatEffectsEnabled && !prefersReducedPlaymatMotion())
-        message.animate?.([{opacity:0,transform:'translateX(14px)'},{opacity:1,transform:'translateX(0)'}],{duration:230});
+      const scrolling=playmatEffectsEnabled && !prefersReducedPlaymatMotion();
+      const ribbon=$('arenaRibbon');
+      message.getAnimations?.().forEach(animation=>animation.cancel());
+      const duration=scrolling ? Math.max(4200,(ribbon.clientWidth + message.scrollWidth)*13) : 4200;
+      if (scrolling) message.animate?.([
+        {left:'100%',transform:'translateX(0)'},
+        {left:'0%',transform:'translateX(-100%)'}
+      ],{duration,easing:'linear',fill:'forwards'});
       clearTimeout(arenaTimer);
       arenaTimer=setTimeout(()=>{
         arenaTimer=null;
         if (!arenaMessages.length || $('matchLayout').classList.contains('app-hidden')) return;
         arenaMessageIndex=(arenaMessageIndex+1)%arenaMessages.length;
         showArenaMessage();
-      },4200);
+      },duration);
     }
     function renderArenaRibbon() {
       $('arenaRibbon').hidden=!game;
