@@ -105,6 +105,7 @@ function createLibrarySyncClient({projectUrl,publishableKey,storage,fetcher,cloc
     read:()=>rpc('playmat_library_read',{}),
     scanTranslation:(set_code,collector_number)=>rpc('playmat_scan_translation',{set_code,collector_number}),
     priceLookup:(set_code,collector_number)=>rpc('playmat_price_lookup',{set_code,collector_number}),
+    collectionShareLink:()=>rpc('playmat_collection_share_link',{}),
     readCollection:()=>rpc('playmat_collection_read',{}),
     writeCollection:(expected_revision,collection_data)=>rpc('playmat_collection_write',{expected_revision,collection_data}),
     readProgress:()=>rpc('playmat_progress_read',{}),

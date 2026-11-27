@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Shared collection · Tomtom TCG Hub</title>
+  <link rel="icon" href="assets/playmat-icon-192.png">
+  <link rel="stylesheet" href="assets/pokedex.css?v=26">
+  <script defer src="assets/library-sync.js?v=7"></script>
+  <script defer src="assets/pokedex-species-names.js?v=1"></script>
+  <script defer src="assets/shared-collection.js?v=1"></script>
+  <script defer src="assets/pokedex.js?v=33"></script>
+  <style>
+    #gallerySearch { margin-bottom: 1rem; }
+    #galleryMore { margin-top: 1rem; }
+    #sharedPrints { max-height: 88vh; overflow: auto; }
+    #sharedPrints form { display: flex; justify-content: flex-end; }
+    #sharedPrints img { height: clamp(160px, 38vh, 320px); }
+  </style>
+</head>
+<body><main id="sharedCollection">
+  <header class="hero"><div class="heading"><img src="logo.png" width="48" height="48" alt=""><div><p>Tomtom TCG Hub</p><h1>Shared collection</h1></div></div></header>
+  <p role="status" id="shareStatus">Loading collection…</p>
+  <section id="gallery" hidden>
+    <nav aria-label="Shared collection"><button id="dexTab" aria-pressed="true">Pokédex</button><button id="specialTab" aria-pressed="false">Special Collection</button></nav>
+    <label>Search <input id="gallerySearch" type="search" placeholder="Pokémon, card, set or number"></label>
+    <div id="galleryResults" class="grid"></div><button id="galleryMore" hidden>Show more</button>
+  </section>
+  <dialog id="sharedPrints"><form method="dialog"><button autofocus>Close</button></form><h2></h2><div class="grid"></div></dialog>
+</main></body></html>

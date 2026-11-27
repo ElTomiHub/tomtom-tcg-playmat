@@ -200,6 +200,12 @@
     return;
   }
 
+  if (document.getElementById('sharedCollection')) {
+    await mountSharedCollection({catalog,catalogEntry,entryName:entry=>[entry.label,globalThis.POKEDEX_SPECIES_NAMES[entry.id-1]?.[0]].filter(Boolean).join(' '),
+      featuredCard,safeImage,normalizeSearch});
+    return;
+  }
+
   const el = id => document.getElementById(id);
   const empty = () => ({cards: [], binder: [], preferences: []});
   const node = (tag, content, className) => {
@@ -863,6 +869,8 @@
     el('addCard').hidden = ['progress','value'].includes(view) || showingDetails;
     el('filters').hidden = ['progress','value','recent'].includes(view) || showingDetails;
     const showCollection = view === 'cards' && !showingDetails;
+    el('copyMissing').hidden = !showCollection;
+    el('copyMissing').disabled = damagedStorage;
     el('collectionFilter').hidden = !showCollection;
     for (const button of collectionButtons) button.setAttribute('aria-pressed',String(button.dataset.collection === collection));
     el('variantField').hidden = special || wanted;
@@ -1239,6 +1247,43 @@
     if (!el('collectionFilter').hidden) collection = 'all';
     limit = pageSize;
     render();
+  });
+  async function copyCollectionText(text,heading,confirmation) {
+    try {
+      await navigator.clipboard.writeText(text);
+      el('notice').textContent=confirmation;
+    } catch {
+      el('copyHeading').textContent=heading;
+      el('copyText').value=text;
+      el('copyDialog').showModal();
+      el('copyText').focus(); el('copyText').select();
+    }
+  }
+  el('copyMissing').addEventListener('click',()=>{
+    const collected=new Set(data.cards.map(card=>catalogEntry(card).key));
+    const missing=catalog.filter(entry=>!collected.has(entry.key));
+    if (!missing.length) { el('notice').textContent='Every Pokémon and regional form is collected.'; return; }
+    void copyCollectionText(missing.map(entry=>dexLabel(entry.id)+' '+entryName(entry)).join('\n'),
+      'Missing Pokémon','Copied '+missing.length+' missing Pokémon and forms.');
+  });
+  el('shareLibrary').addEventListener('click',async ()=>{
+    const share=el('shareLibrary');
+    share.disabled=true;
+    const client=createLibrarySyncClient({...playmatSyncConfig,storage:localStorage,fetcher:fetch.bind(window)});
+    try {
+      if (!client.getSession()) { el('collectionSync').open=true; el('notice').textContent='Sign in to share your collection.'; return; }
+      if (damagedStorage) throw Error('Recover your collection before sharing.');
+      const synced=await collectionStore.sync(client,client.getSession());
+      if (!synced) throw Error('Sync is catching up. Please try sharing again.');
+      await refreshCollection(); render();
+      const key=await client.collectionShareLink();
+      const url=new URL('shared-collection.html',location.href);
+      url.hash=new URLSearchParams({key}).toString();
+      await copyCollectionText(url.href,'Read-only collection link','Read-only link copied. Anyone with the link can browse both collections.');
+    } catch(error) {
+      el('notice').textContent=error.status===404 ? 'Sharing needs the collection-share.sql update in Supabase.' :
+        'Could not share the collection. '+error.message;
+    } finally { share.disabled=false; }
   });
   el('more').addEventListener('click', () => {limit += pageSize; render();});
   for (const [region] of regions) {

@@ -12,13 +12,13 @@
   <script defer src="assets/starter-library.js"></script>
   <script defer src="assets/pokedex-species-names.js?v=1"></script>
   <script defer src="assets/pokedex-evolutions.js?v=1"></script>
-  <script defer src="assets/library-sync.js?v=6"></script>
+  <script defer src="assets/library-sync.js?v=7"></script>
   <script defer src="assets/pokedex-sync.js?v=5"></script>
   <script defer src="assets/pokedex-scan.js?v=10"></script>
   <script defer src="assets/pokedex-imported-prices.js?v=1"></script>
   <script defer src="assets/pokedex-prices.js?v=3"></script>
   <script defer src="assets/pokedex-prices-ui.js?v=3"></script>
-  <script defer src="assets/pokedex.js?v=32"></script>
+  <script defer src="assets/pokedex.js?v=33"></script>
 </head>
 <body>
   <main>
@@ -33,6 +33,7 @@
         <button type="button" data-view="value" aria-pressed="false">Value</button>
       </nav>
       <div class="pokedex-tools">
+        <button type="button" id="shareLibrary">Share collection</button>
         <button type="button" data-view="progress" aria-pressed="false">Progress</button>
         <button type="button" data-view="recent" aria-pressed="false">History</button>
       <details id="collectionSync">
@@ -85,12 +86,14 @@
     <section aria-labelledby="viewHeading">
       <div class="toolbar">
         <h2 id="viewHeading" tabindex="-1">Pokédex</h2>
+        <button type="button" id="copyMissing">Copy missing Pokémon</button>
       </div>
       <p id="resultCount" aria-live="polite"></p>
       <div id="results"></div>
       <button type="button" id="more" hidden>Show more</button>
     </section>
   </main>
+  <dialog id="copyDialog"><h2 id="copyHeading"></h2><label>Copy and share<textarea id="copyText" readonly rows="5"></textarea></label><form method="dialog"><button>Close</button></form></dialog>
   <div class="collection-actions">
     <button class="primary" type="button" id="addCard">＋ Add card</button>
   </div>
