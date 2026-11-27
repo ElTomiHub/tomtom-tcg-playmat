@@ -3351,3 +3351,14 @@ button.recap-marker:hover, button.recap-marker:focus-visible { border-color: #f5
 @media(max-width:700px) {
   .match-heading .arena-ribbon { height:20px; align-self:stretch; }
 }
+/* Reserve the same header space for every turn status. */
+.match-heading .autosave-status { flex:0 0 74px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+#matchLayout .match-heading #playmatTurnStatus {
+  box-sizing:border-box; height:44px; min-height:44px; min-width:0;
+  display:grid; grid-template-rows:16px 13px; align-content:center;
+  padding:4px 9px; gap:2px; overflow:hidden;
+}
+#matchLayout .match-heading #playmatTurnStatus > :is(strong,span) {
+  display:block; width:100%; max-width:none; min-width:0;
+  overflow:hidden; white-space:nowrap; text-overflow:ellipsis; text-align:left; line-height:1.2;
+}

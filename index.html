@@ -10,7 +10,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="assets/hub-emblem-32.png">
   <link rel="apple-touch-icon" sizes="180x180" href="assets/hub-emblem-180.png">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="playmat.css?v=hub20">
+  <link rel="stylesheet" href="playmat.css?v=hub21">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -21753,9 +21753,10 @@
       status.dataset.turn = game?.phase === 'play' && !visualBusy && !game.pendingCheckup ? game.turn : game?.phase || 'idle';
       const markup = `<strong>${escapeHtml(title)}</strong>${detail ? `<span>${escapeHtml(detail)}</span>` : ''}`;
       if (status.innerHTML !== markup) status.innerHTML = markup;
+      status.title = detail;
     }
 
-    let arenaMatch = null, arenaMessages = [], arenaMessageIndex = 0, arenaKnockoutId = null, arenaTimer;
+    let arenaMatch = null, arenaMessages = [], arenaMessageIndex = 0, arenaKnockoutId = null, arenaFinished = false, arenaTimer;
     function showArenaMessage() {
       const message = $('arenaMessage');
       const ribbon = $('arenaRibbon');
@@ -21790,7 +21791,7 @@
       $('arenaRibbon').hidden=!game;
       if (game!==arenaMatch) {
         clearTimeout(arenaTimer); arenaTimer=null;
-        arenaMatch=game; arenaMessages=[]; arenaMessageIndex=0; arenaKnockoutId=null;
+        arenaMatch=game; arenaMessages=[]; arenaMessageIndex=0; arenaKnockoutId=null; arenaFinished=false;
         $('arenaMessage').textContent='';
       }
       if (!game || visualTransitionBusy() || gameplayEffectsBusy()) return;
@@ -21812,15 +21813,17 @@
       const changed=messages.join('\n')!==arenaMessages.join('\n');
       arenaMessages=messages;
       arenaMessageIndex=newKnockout ? messages.indexOf('Last KO · '+knockout.name) : Math.max(0,messages.indexOf(current));
-      if (newKnockout && playmatEffectsEnabled && !prefersReducedPlaymatMotion()) {
+      const finalCheer = game.phase==='finished' && !game.matchCancelled && !arenaFinished && !matchFinishPresentationBusy();
+      if (finalCheer) arenaFinished=true;
+      if ((newKnockout || finalCheer) && playmatEffectsEnabled && !prefersReducedPlaymatMotion()) {
         const crowd = $('battleCenter').querySelector('.arena-crowd');
-        crowd?.animate?.([{opacity:.5},{opacity:1},{opacity:.8},{opacity:.5}],{duration:1450});
+        crowd?.animate?.([{opacity:.5},{opacity:1},{opacity:.8},{opacity:.5}],{duration:finalCheer ? 2100 : 1450});
         crowd?.querySelectorAll('span:nth-child(2n)').forEach((fan,index)=>{
           fan.animate?.([
             {translate:'0 0',filter:'brightness(1)'},
             {translate:'0 -9px',filter:'brightness(1.9)'},
             {translate:'0 0',filter:'brightness(1)'}
-          ],{duration:490,delay:index%5*65,iterations:2,easing:'ease-in-out'});
+          ],{duration:490,delay:index%5*65,iterations:finalCheer ? 3 : 2,easing:'ease-in-out'});
         });
       }
       arenaKnockoutId=knockout?.id;
