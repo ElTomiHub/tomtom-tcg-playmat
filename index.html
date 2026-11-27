@@ -8453,7 +8453,8 @@
         if (!eligible.length) return null;
         if (!bag.length || !eligible.includes(bag[bag.length-1])) bag=shuffled(eligible);
         if (!styles.length) styles=shuffled(Object.keys(YAMI_STYLE_LABELS));
-        rounds.push({deckId:bag.pop().id,style:styles.pop()});
+        const deck = bag.pop();
+        rounds.push({deckId:deck.id,deckName:deckDisplayName(deck),style:styles.pop()});
       }
       return {id:newMatchHistory().id,deckId,path,rounds,results:[]};
     }
@@ -8484,7 +8485,10 @@
       const run = loadCampaign(), finished = run?.cancelled || run?.results.length === CAMPAIGN_LEVELS.length;
       campaignChoosingNewRun = newRun && !!run && !finished;
       const choosingDeck = !run || finished || campaignChoosingNewRun;
-      const deckName = id => deckLabel(id,'Unavailable deck');
+      const deckName = (id,savedName) => {
+        const deck=registeredDecks.find(item=>item.id===id);
+        return deck ? deckDisplayName(deck) : savedName || 'Unavailable deck';
+      };
       const wins = run?.results.filter(result=>result==='win').length || 0;
       const won = finished && !run.cancelled && wins >= 3;
       const losses = run?.results.filter(result=>result==='loss').length || 0;
@@ -8515,7 +8519,7 @@
       $('campaignProgress').innerHTML='<p class="campaign-score">'+(run && select.value!==run.deckId ? escapeHtml(deckName(run.deckId))+' · ' : '')+(run?.cancelled?'Previous run cancelled · ':'')+score+'</p><ol class="campaign-ledger">'+CAMPAIGN_LEVELS.map((level,i)=>{
         const round=run?.rounds[i], result=run?.results[i];
         const revealed=result || round?.face;
-        return '<li><small>Round '+(i+1)+' · '+YAMI_DIFFICULTY_LABELS[level]+'</small><strong>'+ (revealed ? escapeHtml(deckName(round.deckId)) : 'Opponent to reveal')+'</strong><span data-outcome="'+(result || '')+'">'+({win:'Won',loss:'Lost',draw:'Draw'}[result] || (run && !finished && i===run.results.length ? 'Up next' : '—'))+'</span></li>';
+        return '<li><small>Round '+(i+1)+' · '+YAMI_DIFFICULTY_LABELS[level]+'</small><strong>'+ (revealed ? escapeHtml(deckName(round.deckId,round.deckName)) : 'Opponent to reveal')+'</strong><span data-outcome="'+(result || '')+'">'+({win:'Won',loss:'Lost',draw:'Draw'}[result] || (run && !finished && i===run.results.length ? 'Up next' : '—'))+'</span></li>';
       }).join('')+'</ol>'+(won ? '<div class="campaign-trophy'+(celebration?' campaign-trophy-reveal':'')+'">'+campaignChampionBadge(wins,true)+'</div>' : '');
       const index=choosingDeck ? 0 : run.results.length, face=choosingDeck ? null : run.rounds[index].face;
       renderCampaignArena(choosingDeck ? null : run,index);
@@ -8560,7 +8564,9 @@
         playable.filter(deck=>deck.id!==run.deckId && (index!==4 || deck.category==='Master'));
       if (!eligible.some(deck=>deck.id===round.deckId)) {
         if (!eligible.length) {status('Restore an eligible opponent deck or choose a new run.');return;}
-        round.deckId=shuffled(eligible).pop().id;
+        const replacement=shuffled(eligible).pop();
+        round.deckId=replacement.id;
+        round.deckName=deckDisplayName(replacement);
         delete round.face;
       }
       if (![run.deckId,round.deckId].every(id=>playable.some(deck=>deck.id===id))) {
@@ -8587,6 +8593,8 @@
       const run = loadCampaign(), round = game.campaign;
       if (!round || run?.cancelled || run?.id !== round.id || run.results.length !== round.round ||
           game.deckIds?.you !== run.deckId || game.deckIds?.codex !== run.rounds[round.round]?.deckId) return false;
+      const opponent=registeredDecks.find(deck=>deck.id===game.deckIds.codex);
+      if (opponent) run.rounds[round.round].deckName=deckDisplayName(opponent);
       run.results.push(winner === 'you' ? 'win' : winner === 'codex' ? 'loss' : 'draw');
       if (!saveCampaign(run,false)) return false;
       if (run.results.length !== CAMPAIGN_LEVELS.length) return true;

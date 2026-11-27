@@ -191,6 +191,8 @@ test('campaign locks the deck, advances after losses, and awards the winning dec
     assert.equal(el('matchCampaignBtn').hidden,false);
     await el('matchCampaignBtn').click();
     assert.equal(el('campaignModal').classList.contains('hidden'),false);
+    assert.doesNotMatch(el('campaignProgress').innerHTML,/Unavailable deck/);
+    assert.ok(el('campaignProgress').innerHTML.includes(f.decks.ai.name));
   }
   assert.match(el('campaignHeading').textContent,/Campaign victory/);
   assert.match(el('campaignProgress').innerHTML,/data-tier="bronze"[\s\S]*3\/5 wins/);
