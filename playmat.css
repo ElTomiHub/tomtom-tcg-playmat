@@ -3248,9 +3248,7 @@ button.recap-marker:hover, button.recap-marker:focus-visible { border-color: #f5
  .rivalry-settings summary span { display:block; margin:4px 0 0; }
 }
 .campaign-card { width:min(920px,100%); max-width:920px; }
-.campaign-prep, .campaign-columns { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:start; gap:16px; }
-.campaign-prep { align-items:center; }
-.campaign-prep select { width:100%; }
+.campaign-columns { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:start; gap:16px; }
 .campaign-flip { justify-self:start; display:inline-flex; align-items:center; gap:12px; color:#ffe29b; }
 .campaign-flip img { width:50px; height:50px; object-fit:contain; }
 .campaign-columns > section { min-width:0; padding:16px; background:#102a47; border:1px solid #adc5df38; border-radius:12px; }
@@ -3267,9 +3265,27 @@ button.recap-marker:hover, button.recap-marker:focus-visible { border-color: #f5
 .campaign-ledger [data-outcome=loss] { color:#ffb4aa; }
 .campaign-footer { display:flex; justify-content:flex-end; gap:8px; margin-top:14px; }
 @media(max-width:650px) {
-  .campaign-prep { grid-template-columns:minmax(0,1fr) auto; gap:8px; }
   .campaign-flip { flex-direction:column; gap:3px; }
   .campaign-flip img { width:36px; height:36px; }
   .campaign-columns { grid-template-columns:1fr; gap:10px; }
   .campaign-columns > section:last-child { grid-row:1; }
+}
+#campaignModal { padding:0; }
+#campaignModal .campaign-card { width:100%; max-width:none; height:100dvh; max-height:100dvh; border-radius:0; padding:clamp(14px,3vw,42px); }
+.campaign-card .campaign-columns { grid-template-columns:minmax(0,1fr) minmax(0,1.15fr); }
+.campaign-record, .campaign-match { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:16px; align-items:start; }
+.campaign-card #campaignDeckChoice { margin:0; }
+.campaign-card select { width:100%; min-width:0; }
+.campaign-overview { margin:14px 0; }
+.campaign-overview strong { overflow-wrap:anywhere; }
+.campaign-match { grid-template-columns:minmax(0,1fr) auto; align-items:center; }
+.campaign-match .campaign-arena { margin:0; }
+.campaign-flip img { width:30px; height:30px; }
+@media (max-width:900px) {
+  .campaign-card .campaign-columns { grid-template-columns:minmax(0,1fr); }
+  .campaign-card .campaign-columns > section:last-child { grid-row:1; }
+}
+@media (max-width:550px) {
+  .campaign-record { grid-template-columns:minmax(0,1fr); }
+  .campaign-flip { font-size:12px; }
 }

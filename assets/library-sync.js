@@ -327,6 +327,8 @@ function newerCampaignRun(current, incoming) {
   if (!current) return incoming;
   if (!incoming) return current;
   if (current.id===incoming.id) {
+    if (current.cancelled) return current;
+    if (incoming.cancelled) return {...current,cancelled:true};
     if (current.results.some((result,index)=>index<incoming.results.length && result!==incoming.results[index])) {
       return current;
     }
