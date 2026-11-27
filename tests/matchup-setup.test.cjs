@@ -183,7 +183,13 @@ test('campaign locks the deck, advances after losses, and awards the winning dec
     const progress=vm.runInContext('JSON.stringify(loadCampaign().results)',r.context);
     assert.equal(JSON.parse(progress).length,round+1);
     if (round === levels.length - 1) assert.doesNotMatch(el('campaignHeading').textContent,/Campaign victory/);
+    assert.equal(el('matchSummaryCard').hidden,true);
+    assert.equal(el('matchCampaignBtn').hidden,true);
     finishEffects();
+    assert.equal(el('campaignModal').classList.contains('hidden'),true);
+    assert.equal(el('matchSummaryCard').hidden,false);
+    assert.equal(el('matchCampaignBtn').hidden,false);
+    await el('matchCampaignBtn').click();
     assert.equal(el('campaignModal').classList.contains('hidden'),false);
   }
   assert.match(el('campaignHeading').textContent,/Campaign victory/);

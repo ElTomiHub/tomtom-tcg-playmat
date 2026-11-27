@@ -367,7 +367,7 @@
           <p class="summary-meta" id="matchSummaryMeta"></p>
           <div id="matchSummaryPreview"></div>
           <div class="summary-records" id="matchSummaryDeckRecord"></div>
-          <div class="summary-card-actions"><button class="btn small" id="revengeMatchBtn" type="button" hidden>Revenge · Flip coin</button> <button class="btn small primary" id="viewMatchSummaryBtn">View full summary</button> <button class="btn small" id="downloadMatchRecordingBtn" type="button" hidden>Download recording</button> <button class="btn small" id="saveMatchRecordingBtn" type="button" hidden>Save to history</button> <button class="btn small" id="retryMatchSaveBtn" type="button" hidden>Retry saving result</button> <button class="btn small" id="matchCampaignBtn" type="button" hidden>Campaign progress</button></div>
+          <div class="summary-card-actions"><button class="btn small" id="revengeMatchBtn" type="button" hidden>Revenge · Flip coin</button> <button class="btn small primary" id="viewMatchSummaryBtn">View full summary</button> <button class="btn small" id="downloadMatchRecordingBtn" type="button" hidden>Download recording</button> <button class="btn small" id="saveMatchRecordingBtn" type="button" hidden>Save to history</button> <button class="btn small" id="retryMatchSaveBtn" type="button" hidden>Retry saving result</button> <button class="btn small" id="matchCampaignBtn" type="button" hidden>Continue campaign</button></div>
           <p class="summary-save-status" id="matchSummarySaved"></p>
         </section>
         <div class="log-list" id="moveLog" role="region" aria-labelledby="moveLogHeading" tabindex="0"><div class="empty-log">Moves will appear here as the match progresses.</div></div>
@@ -15766,7 +15766,6 @@
       if (/\b(ex|vstar|v|gx)\b/.test(name)) return 2;
       return 1;
     }
-    let pendingCampaignPresentation = null;
     const presentedFinishedMatches = new WeakSet();
     function matchFinishPresentationBusy() {
       const effect = activePlaymatEffect;
@@ -15776,11 +15775,8 @@
     function presentFinishedMatch() {
       if (game?.phase !== 'finished' || presentedFinishedMatches.has(game) || matchFinishPresentationBusy()) return;
       presentedFinishedMatches.add(game);
-      const showCampaign = pendingCampaignPresentation === game;
-      pendingCampaignPresentation = null;
       render();
-      if (showCampaign) openCampaign({celebrate:true});
-      else if (typeof mobileMatchLayout==='function' && mobileMatchLayout()) setMobileMatchPanel('log');
+      if (typeof mobileMatchLayout==='function' && mobileMatchLayout()) setMobileMatchPanel('log');
     }
     function finishMatch(winner, reason, { cancelled = false } = {}) {
       if (!game || game.phase === 'finished') return;
@@ -15797,8 +15793,7 @@
         if (typeof awardMastery==='function') awardMastery(winner);
         recordDeckResult(winner);
       }
-      const campaignAdvanced = !cancelled && game.campaign && recordCampaignResult(winner);
-      if (campaignAdvanced) pendingCampaignPresentation = game;
+      if (!cancelled && game.campaign) recordCampaignResult(winner);
       if (game.yamiStyle) {
         logEvent('Yami played ' + YAMI_STYLE_LABELS[game.yamiStyle] + ' on ' + YAMI_DIFFICULTY_LABELS[game.yamiDifficulty || 'competitor'] + '.');
         game.log[0].afterPresentation = true;
@@ -15810,8 +15805,7 @@
       if (!cancelled && typeof queueFinishedProgress === 'function' && !runResolutionTransaction.depth) queueFinishedProgress();
       $('localAiStatus').textContent = cancelled ? 'Match cancelled.' : winner === 'codex' ? 'Local opponent won this match.' : winner === 'you' ? 'You won this match.' : 'The match is a draw.';
       render();
-      if (typeof mobileMatchLayout==='function' && mobileMatchLayout() && !campaignAdvanced && !matchFinishPresentationBusy()) setMobileMatchPanel('log');
-      if (campaignAdvanced && !matchFinishPresentationBusy()) presentFinishedMatch();
+      if (!matchFinishPresentationBusy()) presentFinishedMatch();
     }
     function promoteCodexAfterKnockout(preferredId = null) {
       const codex = player('codex');
@@ -22600,7 +22594,11 @@
     window.addEventListener('beforeunload', saveMatchCheckpoint);
     $('menuStartGame').addEventListener('click', openStartGame);
     $('menuCampaign').addEventListener('click', openCampaign);
-    $('matchCampaignBtn').addEventListener('click', openCampaign);
+    $('matchCampaignBtn').addEventListener('click', () => {
+      if (game?.phase==='finished' && game.campaign && !game.practiceLine && !matchFinishPresentationBusy()) {
+        openCampaign({celebrate:true});
+      }
+    });
     $('campaignActionBtn').addEventListener('click', advanceCampaignSetup);
     $('campaignNewRunBtn').addEventListener('click', () => openCampaign({newRun:true}));
     $('campaignCancelRunBtn').addEventListener('click',()=>{
