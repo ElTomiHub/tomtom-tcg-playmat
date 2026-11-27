@@ -10,10 +10,10 @@
   <link rel="stylesheet" href="assets/pokedex.css?v=26">
   <script defer src="assets/library-sync.js?v=7"></script>
   <script defer src="assets/pokedex-species-names.js?v=1"></script>
-  <script defer src="assets/shared-collection.js?v=1"></script>
-  <script defer src="assets/pokedex.js?v=33"></script>
+  <script defer src="assets/shared-collection.js?v=2"></script>
+  <script defer src="assets/pokedex.js?v=34"></script>
   <style>
-    #gallerySearch { margin-bottom: 1rem; }
+    #galleryFilters { margin-bottom: 1rem; }
     #galleryMore { margin-top: 1rem; }
     #sharedPrints { max-height: 88vh; overflow: auto; }
     #sharedPrints form { display: flex; justify-content: flex-end; }
@@ -25,7 +25,23 @@
   <p role="status" id="shareStatus">Loading collection…</p>
   <section id="gallery" hidden>
     <nav aria-label="Shared collection"><button id="dexTab" aria-pressed="true">Pokédex</button><button id="specialTab" aria-pressed="false">Special Collection</button></nav>
-    <label>Search <input id="gallerySearch" type="search" placeholder="Pokémon, card, set or number"></label>
+    <div id="galleryFilters">
+      <div class="inputs filter-fields">
+        <label>Search <input id="gallerySearch" type="search" placeholder="Name (EN, FR, JP), set or number"></label>
+        <label id="galleryRegionField">Region <select id="galleryRegion"><option value="">All regions</option></select></label>
+        <label id="galleryVariantField">Variant <select id="galleryVariant"><option value="">All variants</option></select></label>
+        <label id="galleryTagField" hidden>Tag <select id="galleryTag"></select></label>
+      </div>
+      <div class="filter-actions">
+        <div id="collectionFilter" role="group" aria-label="Collection status">
+          <button data-status="all" aria-pressed="true">All</button>
+          <button data-status="collected" aria-pressed="false">Collected</button>
+          <button data-status="missing" aria-pressed="false">Missing</button>
+        </div>
+        <button id="galleryReset">Reset filters</button>
+      </div>
+      <small id="galleryCount" role="status"></small>
+    </div>
     <div id="galleryResults" class="grid"></div><button id="galleryMore" hidden>Show more</button>
   </section>
   <dialog id="sharedPrints"><form method="dialog"><button autofocus>Close</button></form><h2></h2><div class="grid"></div></dialog>

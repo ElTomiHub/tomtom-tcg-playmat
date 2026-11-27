@@ -200,9 +200,20 @@
     return;
   }
 
+  const variantIcons = {
+    normal:'●', holo:'✦', 'reverse-holo':'◈', 'pokeball-reverse-holo':'◉', 'masterball-reverse-holo':'✪',
+    'energy-reverse-holo':'ϟ', 'illustration-rare':'▧', special:'★'
+  };
+  function displayVariant(value) {
+    return (value || 'unknown variant').toLowerCase().replace('pokeball','poké-ball')
+      .replace('masterball','master-ball').replaceAll('-',' ').replace(/\S+/g,word=>word[0].toUpperCase()+word.slice(1));
+  }
+  const variantOptionLabel = value => (variantIcons[value] || '◇') + ' ' + displayVariant(value);
+  const specialTagKey = tag => tag.toLowerCase();
+
   if (document.getElementById('sharedCollection')) {
     await mountSharedCollection({catalog,catalogEntry,entryName:entry=>[entry.label,globalThis.POKEDEX_SPECIES_NAMES[entry.id-1]?.[0]].filter(Boolean).join(' '),
-      featuredCard,safeImage,normalizeSearch});
+      featuredCard,safeImage,normalizeSearch,regions,regionIcons,entryInRegion,variants,variantOptionLabel,normalizeVariant,normalizeSpecialTags,specialTagKey});
     return;
   }
 
@@ -380,15 +391,6 @@
       entry.aliases.some(alias=>normalizeSearch(alias) === normalizeSearch(value)))};
   }
   function title(card) { return card.name || entryName(catalogEntry(card)); }
-  const variantIcons = {
-    normal:'●', holo:'✦', 'reverse-holo':'◈', 'pokeball-reverse-holo':'◉', 'masterball-reverse-holo':'✪',
-    'energy-reverse-holo':'ϟ', 'illustration-rare':'▧', special:'★'
-  };
-  function displayVariant(value) {
-    return (value || 'unknown variant').toLowerCase().replace('pokeball','poké-ball')
-      .replace('masterball','master-ball').replaceAll('-',' ').replace(/\S+/g,word=>word[0].toUpperCase()+word.slice(1));
-  }
-  const variantOptionLabel = value => (variantIcons[value] || '◇') + ' ' + displayVariant(value);
   function variantBadge(value) {
     const badge = node('span',null,'variant-badge');
     badge.dataset.variant = value || '';
@@ -771,7 +773,7 @@
 
   const specialOrderId = 'binder:special-order';
   let reorderingSpecial = false, draggedSpecial = '';
-  const specialTagKey = tag => tag.toLowerCase();
+
 
   function normalizeSpecialTags(value) {
     let list = value;

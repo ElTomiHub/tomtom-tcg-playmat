@@ -25,7 +25,8 @@ returns jsonb language sql stable security definer set search_path = '' as $$
       from jsonb_array_elements(collection_payload->'cards') with ordinality as cards(c,n)),
     'binder', (select coalesce(jsonb_agg(jsonb_build_object(
       'id', c->'id', 'name', c->'name', 'set', c->'set', 'number', c->'number',
-      'variant', c->'variant', 'image', c->'image') order by n), '[]')
+      'variant', c->'variant', 'image', c->'image', 'tags', c->'tags',
+      'pokemonId', c->'pokemonId') order by n), '[]')
       from jsonb_array_elements(collection_payload->'binder') with ordinality as binder(c,n)),
     'preferences', (select coalesce(jsonb_agg(case when p->>'id' = 'binder:special-order'
       then jsonb_build_object('id',p->'id','order',p->'order')
