@@ -10,7 +10,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="assets/hub-emblem-32.png">
   <link rel="apple-touch-icon" sizes="180x180" href="assets/hub-emblem-180.png">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="playmat.css?v=hub16">
+  <link rel="stylesheet" href="playmat.css?v=hub17">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -373,6 +373,34 @@
         <div class="log-list" id="moveLog" role="region" aria-labelledby="moveLogHeading" tabindex="0"><div class="empty-log">Moves will appear here as the match progresses.</div></div>
       </aside>
     </div>
+  <div class="hub-page campaign-page hidden" id="campaignModal" role="region" aria-labelledby="campaignHeading">
+    <section class="setup-card campaign-card">
+      <div class="setup-top"><div><div class="eyebrow">Regional Tournament Circuit</div><h2 id="campaignHeading">Campaign</h2></div>
+        <button class="btn small" id="closeCampaignBtn" aria-label="Close campaign">✕</button></div>
+      <div class="campaign-columns">
+        <section><h3>Run record</h3>
+          <div class="campaign-record">
+            <div><div id="campaignDeckChoice"><label for="campaignDeckSelect">Your deck</label><select class="deck-select" id="campaignDeckSelect"></select></div>
+              <div id="campaignDeckPreview"></div></div>
+            <div id="campaignProgress"></div>
+          </div>
+        </section>
+        <section><h3>Campaign paths</h3>
+          <div id="campaignPaths" class="campaign-paths" role="group" aria-label="Opponent deck pool"></div>
+          <div id="campaignOverview" class="matchup-stat-grid campaign-overview"></div>
+          <div class="campaign-match">
+            <div class="campaign-arena" id="campaignArena" aria-live="polite"></div>
+            <button class="btn campaign-flip" id="campaignActionBtn" type="button"><img id="campaignCoin" src="assets/coins/tails.png" alt=""><strong id="campaignCoinLabel">Flip for round 1</strong></button>
+          </div>
+          <p class="matchup-stat-note" id="campaignActionStatus" role="status"></p>
+          <div class="campaign-footer">
+            <button class="btn small" id="campaignNewRunBtn" type="button" hidden>Choose a new run</button>
+            <button class="btn small" id="campaignCancelRunBtn" type="button" hidden>Cancel run</button>
+          </div>
+        </section>
+      </div>
+    </section>
+  </div>
   </main>
   <section class="card-actions action-dock" id="cardActionMenu" aria-labelledby="actionDockHeading" hidden>
     <div class="card-action-menu-head"><div class="panel-kicker" id="actionDockHeading">CARD ACTIONS</div><button class="btn small" id="closeCardActionMenu" type="button" aria-label="Close card actions">×</button></div>
@@ -464,34 +492,7 @@
       <ul id="replayStepLog"></ul>
     </section>
   </div>
-  <div class="modal-backdrop hidden" id="campaignModal" role="dialog" aria-modal="true" aria-labelledby="campaignHeading">
-    <section class="setup-card campaign-card">
-      <div class="setup-top"><div><div class="eyebrow">Regional Tournament Circuit</div><h2 id="campaignHeading">Campaign</h2></div>
-        <button class="btn small" id="closeCampaignBtn" aria-label="Close campaign">✕</button></div>
-      <div class="campaign-columns">
-        <section><h3>Run record</h3>
-          <div class="campaign-record">
-            <div><div id="campaignDeckChoice"><label for="campaignDeckSelect">Your deck</label><select class="deck-select" id="campaignDeckSelect"></select></div>
-              <div id="campaignDeckPreview"></div></div>
-            <div id="campaignProgress"></div>
-          </div>
-        </section>
-        <section><h3>Campaign paths</h3>
-          <div id="campaignPaths" class="campaign-paths" role="group" aria-label="Opponent deck pool"></div>
-          <div id="campaignOverview" class="matchup-stat-grid campaign-overview"></div>
-          <div class="campaign-match">
-            <div class="campaign-arena" id="campaignArena" aria-live="polite"></div>
-            <button class="btn campaign-flip" id="campaignActionBtn" type="button"><img id="campaignCoin" src="assets/coins/tails.png" alt=""><strong id="campaignCoinLabel">Flip for round 1</strong></button>
-          </div>
-          <p class="matchup-stat-note" id="campaignActionStatus" role="status"></p>
-          <div class="campaign-footer">
-            <button class="btn small" id="campaignNewRunBtn" type="button" hidden>Choose a new run</button>
-            <button class="btn small" id="campaignCancelRunBtn" type="button" hidden>Cancel run</button>
-          </div>
-        </section>
-      </div>
-    </section>
-  </div>
+
   <input class="file-input" type="file" id="deckFile" accept=".txt,.deck,text/plain">
   <div class="turn-done-banner" id="turnDoneBanner" aria-hidden="true"></div>
   <div class="board-target-prompt" id="boardTargetPrompt" hidden><strong id="boardTargetPromptText" role="status"></strong><div class="board-target-actions"><button class="btn small primary" id="finishBoardTargetBtn" type="button" hidden>Finish selection</button><button class="btn small" id="cancelBoardTargetBtn" type="button">Cancel</button></div></div>
@@ -8335,8 +8336,8 @@
       $('menuCampaignAction').textContent = run ?
         (run.cancelled || run.results.length===5 ? 'View campaign →' : 'Continue campaign →') : 'Start a campaign →';
     }
-    const hubRoutes = {menu:'', setup:'#playmat/setup', match:'#playmat', decks:'#decks', library:'#library', statistics:'#statistics'};
-    const hubPageIds = {setup:'setupModal', decks:'deckManagerModal', library:'cardLibraryModal'};
+    const hubRoutes = {menu:'', setup:'#playmat/setup', match:'#playmat', decks:'#decks', library:'#library', statistics:'#statistics', campaign:'#campaign'};
+    const hubPageIds = {setup:'setupModal', decks:'deckManagerModal', library:'cardLibraryModal', campaign:'campaignModal'};
     function showAddressedPage() {
       const view = Object.keys(hubRoutes).find(key=>hubRoutes[key] === window.location?.hash);
       if (!view) return;
@@ -8350,6 +8351,7 @@
       else if (view === 'decks') openDeckManager();
       else if (view === 'library') openCardLibrary();
       else if (view === 'statistics') openMatchupStatistics();
+      else if (view === 'campaign') openCampaign();
       else setView('menu');
     }
     function setView(view, matchup = null) {
@@ -8360,7 +8362,7 @@
       }
       if (view !== 'setup' && setupCoinAnimation) clearCoinDecision();
       for (const [key,id] of Object.entries(hubPageIds)) $(id).classList.toggle('hidden',key !== view);
-      document.title = ({menu:'Tomtom TCG Hub', setup:'New match', match:'Playmat', decks:'Deck Manager', library:'Card Library', statistics:'Statistics'})[view] + (view === 'menu' ? '' : ' · Tomtom TCG Hub');
+      document.title = ({menu:'Tomtom TCG Hub', setup:'New match', match:'Playmat', decks:'Deck Manager', library:'Card Library', statistics:'Statistics', campaign:'Campaign'})[view] + (view === 'menu' ? '' : ' · Tomtom TCG Hub');
       if (view !== 'match' && typeof clearPlaymatEffects === 'function') clearPlaymatEffects();
       if (view!=='match' && typeof setMobileMatchPanel==='function') setMobileMatchPanel(null);
       $('matchLogBtn').hidden=view!=='match';
@@ -8408,7 +8410,7 @@
     function playableCampaignDecks() {
       return registeredDecks.filter(deck => deckReadiness(deck).playable);
     }
-    function renderCampaignDeckPreview() {
+    function renderCampaignDeckPreview(activePath) {
       const deck = registeredDecks.find(item=>item.id === $('campaignDeckSelect').value);
       const panel = $('campaignDeckPreview');
       panel.hidden = !deck;
@@ -8416,24 +8418,22 @@
       const cards = parseDeck(deck.decklist).cards.map(registeredCardForPrint).filter(Boolean);
       const cover = cards.find(card=>card.id===deck.coverCardId) || cards.find(card=>card.meta?.category==='Pokemon');
       const image = deck.coverImage || imageFor(cover);
-      const run = loadCampaign();
-      const recentWins = run?.deckId === deck.id && run.results.length === CAMPAIGN_LEVELS.length ?
-        run.results.filter(result=>result==='win').length : null;
       const stats = deckStats[deck.id]?.campaign;
-      const runs = stats?.completed ?? Number(recentWins !== null);
-      const clears = stats?.cleared ?? Number(recentWins >= 3);
-      const best = stats?.bestWins ?? recentWins;
-      const stat = (label,value) => `<div><strong>${escapeHtml(value)}</strong><span>${label}</span></div>`;
+      const pathRows = Object.entries(campaignPaths).map(([id,[name]])=>{
+        const record = stats?.byPath?.[id];
+        return '<li'+(id===activePath?' aria-current="true"':'')+'><strong>'+name+'</strong><small>'+
+          (record?.completed ? record.completed+' runs · '+record.cleared+' victories · Best '+(record.bestWins ?? 0)+'/5' : 'No completed runs')+'</small></li>';
+      }).join('');
       panel.innerHTML = `<div class="matchup-deck-hero"><div class="matchup-deck-cover">${image ?
         `<img src="${escapeHtml(image)}" alt="">` : escapeHtml(deck.name.slice(0,2))}</div><div>
         <h3 class="matchup-deck-name">${escapeHtml(deckDisplayName(deck))}</h3>
         ${campaignDeckBadge(deck.id)}</div></div>
-        <div class="matchup-stat-grid">${stat('Completed runs',runs)}${stat('Victories',clears)}${stat('Best run',best == null ? '—' : best+'/5')}</div>`;
+        <ul class="campaign-deck-paths" aria-label="Selected deck results by path">${pathRows}</ul>`;
     }
     const campaignPaths = {
-      regional:['Regional Circuit','Toma, A and R decks in all five rounds.'],
-      final:['Master Final','Four regional opponents, then a Master deck.'],
-      masters:['Master Circuit','Master decks in all five rounds.']
+      regional:['Path of the Challenger','Face Toma, A and R decks across five rounds.','★'],
+      final:['Ascension Ladder','Climb through four regional opponents to a Master final.','▤'],
+      masters:['Grandmaster Gauntlet','Face a Master deck in every round.','♛']
     };
     let selectedCampaignPath = 'final';
     function campaignRivals(pool,deckId,path,index) {
@@ -8484,28 +8484,31 @@
       const wins = run?.results.filter(result=>result==='win').length || 0;
       const won = finished && !run.cancelled && wins >= 3;
       const losses = run?.results.filter(result=>result==='loss').length || 0;
-      $('campaignHeading').textContent = run?.cancelled ? 'Run cancelled' : won ? 'Campaign victory' : finished ? 'Circuit complete' : 'Campaign';
+      $('campaignHeading').textContent = run?.cancelled ? 'Campaign' : won ? 'Campaign victory' : finished ? 'Circuit complete' : 'Campaign';
       const pool=playableCampaignDecks(), select=$('campaignDeckSelect'), previous=select.value;
       select.innerHTML=pool.map(deck=>`<option value="${escapeHtml(deck.id)}">${escapeHtml(deckDisplayName(deck))}</option>`).join('');
       select.value=choosingDeck ? pool.find(deck=>deck.id===previous)?.id || pool.find(deck=>deck.id===run?.deckId)?.id || pool[0]?.id || '' : run.deckId;
       select.disabled=!choosingDeck;
-      renderCampaignDeckPreview();
-      const records=registeredDecks.map(deck=>({deck,stats:deckStats[deck.id]?.campaign})).filter(entry=>entry.stats?.completed);
-      records.sort((a,b)=>b.stats.bestWins-a.stats.bestWins || b.stats.cleared-a.stats.cleared);
-      const best=records[0];
-      const completed=Object.values(deckStats).reduce((total,stats)=>total+(stats.campaign?.completed || 0),0);
-      $('campaignOverview').innerHTML=[
-        ['Best deck',best ? deckDisplayName(best.deck) : '—'],
-        ['Best run',best ? best.stats.bestWins+'/5 wins' : '—'],
-        ['Completed runs',completed]
-      ].map(([label,value])=>'<div><strong>'+escapeHtml(value)+'</strong><span>'+label+'</span></div>').join('');
-      $('campaignCancelRunBtn').hidden=!run || finished;
       const path=choosingDeck ? selectedCampaignPath : run.path || 'final';
-      $('campaignPaths').innerHTML=Object.entries(campaignPaths).map(([id,[name,description]])=>
-        '<button type="button" class="btn campaign-path" data-path="'+id+'" aria-pressed="'+(path===id)+'" '+(choosingDeck?'':'disabled')+'><strong>'+name+'</strong><small>'+description+'</small></button>').join('');
+      renderCampaignDeckPreview(path);
+      const completed=Object.values(deckStats).reduce((total,stats)=>total+(stats.campaign?.completed || 0),0);
+      $('campaignOverview').textContent=completed+' completed runs across all decks';
+      $('campaignCancelRunBtn').hidden=!run || finished;
+      $('campaignPaths').innerHTML=Object.entries(campaignPaths).map(([id,[name,description,icon]])=>{
+        const records=registeredDecks.map(deck=>({deck,stats:deckStats[deck.id]?.campaign?.byPath?.[id]}))
+          .filter(entry=>entry.stats?.completed);
+        const leaders=records.slice().sort((a,b)=>b.stats.cleared-a.stats.cleared || b.stats.completed-a.stats.completed).slice(0,2);
+        const best=records.slice().sort((a,b)=>(b.stats.bestWins || 0)-(a.stats.bestWins || 0) || b.stats.cleared-a.stats.cleared)[0];
+        const leadersText=leaders.map(({deck,stats})=>escapeHtml(deckDisplayName(deck))+' · '+stats.completed+' runs · '+stats.cleared+' victories').join('<br>');
+        const bestText=best ? escapeHtml(deckDisplayName(best.deck))+' · '+(best.stats.bestWins || 0)+'/5 wins' : '';
+        const summary=best ? 'Leading decks<br>'+leadersText+'<br>Best run · '+bestText : 'No completed runs';
+        return '<button type="button" class="btn campaign-path" data-path="'+id+'" aria-pressed="'+(path===id)+'" '+(choosingDeck?'':'disabled')+
+          '><span class="campaign-path-icon" aria-hidden="true">'+icon+'</span><span><strong>'+name+'</strong><small>'+description+'</small></span>'+
+          '<small class="campaign-path-results">'+summary+'</small></button>';
+      }).join('');
       const celebration=won && celebrate && playmatEffectsEnabled && !prefersReducedPlaymatMotion();
       const score=run ? wins+' wins · '+losses+' losses · '+(run.results.length-wins-losses)+' draws' : 'Win three of five rounds to earn a badge.';
-      $('campaignProgress').innerHTML='<p class="campaign-score">'+(run && select.value!==run.deckId ? escapeHtml(deckName(run.deckId))+' · ' : '')+score+'</p><ol class="campaign-ledger">'+CAMPAIGN_LEVELS.map((level,i)=>{
+      $('campaignProgress').innerHTML='<p class="campaign-score">'+(run && select.value!==run.deckId ? escapeHtml(deckName(run.deckId))+' · ' : '')+(run?.cancelled?'Previous run cancelled · ':'')+score+'</p><ol class="campaign-ledger">'+CAMPAIGN_LEVELS.map((level,i)=>{
         const round=run?.rounds[i], result=run?.results[i];
         const revealed=result || round?.face;
         return '<li><small>Round '+(i+1)+' · '+YAMI_DIFFICULTY_LABELS[level]+'</small><strong>'+ (revealed ? escapeHtml(deckName(round.deckId)) : 'Opponent to reveal')+'</strong><span data-outcome="'+(result || '')+'">'+({win:'Won',loss:'Lost',draw:'Draw'}[result] || (run && !finished && i===run.results.length ? 'Up next' : '—'))+'</span></li>';
@@ -8514,13 +8517,13 @@
       renderCampaignArena(choosingDeck ? null : run,index);
       const unavailable=choosingDeck && (![0,4].every(i=>campaignRivals(pool,select.value,path,i).length) || !select.value);
       $('campaignActionBtn').disabled=unavailable;
-      $('campaignCoin').src=face==='HEADS' ? coinDesignForDisplay().image : COIN_TAILS_IMAGE;
+      $('campaignCoin').src=face==='TAILS' ? COIN_TAILS_IMAGE : COIN_HEAD_DESIGNS[0].image;
       const ongoing=!choosingDeck && game?.phase!=='finished' && game?.campaign?.id===run.id && game.campaign.round===index;
       $('campaignCoinLabel').textContent=ongoing ? 'Resume round '+(index+1) : face ? 'Start round '+(index+1) : campaignChoosingNewRun ? 'Replace run and flip' : 'Flip for round '+(index+1);
       $('campaignActionStatus').textContent=unavailable ? 'This path needs a different playable opponent in each required category group. Choose another deck or path.' :
         face ? (face==='HEADS'?'Heads · Toma':'Tails · Yami')+' plays first.' : campaignChoosingNewRun ? 'Flipping replaces the unfinished run.' : '';
       $('campaignNewRunBtn').hidden=!run || finished || campaignChoosingNewRun;
-      $('campaignModal').classList.remove('hidden');
+      if ($('campaignModal').classList.contains('hidden')) setView('campaign');
     }
     async function advanceCampaignSetup() {
       const status = message => { $('campaignActionStatus').textContent = message; };
@@ -8585,9 +8588,13 @@
       if (run.results.length !== CAMPAIGN_LEVELS.length) return true;
       const wins = run.results.filter(result=>result==='win').length, deck = statsForDeck(run.deckId);
       const stats = deck.campaign ||= {completed:0,cleared:0,bestWins:0};
-      stats.completed++;
-      stats.bestWins = Math.max(stats.bestWins,wins);
-      if (wins >= 3) { stats.cleared++; deck.campaignChampion = true; }
+      const paths = stats.byPath ||= {};
+      const pathStats = paths[run.path || 'final'] ||= {completed:0,cleared:0,bestWins:0};
+      for (const record of [stats,pathStats]) {
+        record.completed++;
+        record.bestWins = Math.max(record.bestWins,wins);
+      }
+      if (wins >= 3) { stats.cleared++; pathStats.cleared++; deck.campaignChampion = true; }
       persistDeckStats();
       return true;
     }
@@ -22617,7 +22624,7 @@
       if (!choice || choice.disabled || !Object.hasOwn(campaignPaths,choice.dataset.path)) return;
       selectedCampaignPath=choice.dataset.path; openCampaign({newRun:campaignChoosingNewRun});
     });
-    $('closeCampaignBtn').addEventListener('click', () => $('campaignModal').classList.add('hidden'));
+    $('closeCampaignBtn').addEventListener('click', () => setView('menu'));
     $('startGameBtn').addEventListener('click', openStartGame);
     $('menuManageCards').addEventListener('click', openCardLibrary);
     $("menuStatistics").addEventListener("click", openMatchupStatistics);
@@ -23200,7 +23207,7 @@
         else if (!$('discardViewer').classList.contains('hidden')) $('discardViewer').classList.add('hidden');
         else if (!$('cardLibraryModal').classList.contains('hidden')) setView('menu');
         else if (!$('deckManagerModal').classList.contains('hidden')) setView('menu');
-        else if (!$('campaignModal').classList.contains('hidden')) $('campaignModal').classList.add('hidden');
+        else if (!$('campaignModal').classList.contains('hidden')) setView('menu');
         else if (openCardActionKey) closeCardActionMenu(true);
         else if (mobileMatchLayout() && $('matchLayout').dataset.mobilePanel) setMobileMatchPanel(null,true);
         else if (!$('setupModal').classList.contains('hidden')) {

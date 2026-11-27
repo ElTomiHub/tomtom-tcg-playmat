@@ -3289,3 +3289,21 @@ button.recap-marker:hover, button.recap-marker:focus-visible { border-color: #f5
   .campaign-record { grid-template-columns:minmax(0,1fr); }
   .campaign-flip { font-size:12px; }
 }
+.campaign-path { grid-template-columns:auto minmax(0,1fr) minmax(0,1fr); align-items:center; gap:12px; padding:12px; }
+.campaign-path strong, .campaign-path small { display:block; }
+.campaign-path-icon { display:grid; place-items:center; width:38px; aspect-ratio:1; border-radius:50%; background:#ffd66813; border:1px solid #efc26880; color:#ffda7a; font-size:23px; }
+.campaign-path[data-path="masters"] .campaign-path-icon { background:#b695ff22; color:#d5c1ff; border-color:#b695ff80; }
+.campaign-path-results { padding-left:12px; border-left:1px solid #adc5df38; overflow-wrap:anywhere; }
+.campaign-deck-paths { list-style:none; padding:0; margin:12px 0 0; display:grid; gap:6px; }
+.campaign-deck-paths li { padding:8px; background:#0c2138; border-left:2px solid transparent; border-radius:5px; }
+.campaign-deck-paths [aria-current] { border-color:#ffdb78; }
+.campaign-deck-paths small { display:block; color:#c7d8e9; }
+.campaign-flip { flex-direction:column; gap:6px; border-color:#edc46d; background:radial-gradient(ellipse at top,#344e66,#102841 74%); }
+.campaign-flip img { width:60px; height:60px; border-radius:50%; filter:drop-shadow(0 0 8px #ffdc784c); }
+@media(max-width:550px) {
+  .campaign-path { grid-template-columns:auto minmax(0,1fr); }
+  .campaign-path-results { grid-column:2; border:0; padding:0; }
+  .campaign-flip img { width:44px; height:44px; }
+}
+.campaign-page { min-height:0; flex:1 1 auto; overflow:auto; }
+#campaignModal .campaign-card { height:auto; min-height:100%; max-height:none; overflow:visible; }
