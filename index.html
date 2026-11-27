@@ -8408,7 +8408,7 @@
       return best >= 3 || stats?.campaignChampion === true ? campaignChampionBadge(best) : '';
     }
     function playableCampaignDecks() {
-      return registeredDecks.filter(deck => deckReadiness(deck).playable);
+      return decksInManagerDisplayOrder().filter(deck => deckReadiness(deck).playable);
     }
     function renderCampaignDeckPreview(activePath) {
       const deck = registeredDecks.find(item=>item.id === $('campaignDeckSelect').value);

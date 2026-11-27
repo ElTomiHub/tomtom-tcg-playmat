@@ -202,7 +202,7 @@ test('campaign locks the deck, advances after losses, and awards the winning dec
   assert.equal(el('youRegisteredDeck').disabled,false);
 });
 
-test('Statistics and both matchup selectors follow the visible Deck Manager order',async()=>{
+test('Statistics, Campaign and both matchup selectors follow the visible Deck Manager order',async()=>{
   const {r,el}=ready();
   vm.runInContext(`
     const testDeckOrder = [
@@ -219,6 +219,8 @@ test('Statistics and both matchup selectors follow the visible Deck Manager orde
   await el('menuStatistics').click();
   const optionIds=id=>Array.from(el(id).innerHTML.matchAll(/<option value="([^"]+)"/g),m=>m[1]);
   assert.deepEqual(optionIds('statisticsDeck'),expected);
+  await el('menuCampaign').click();
+  assert.deepEqual(optionIds('campaignDeckSelect'),expected);
   const rowNames=sort=>Array.from(vm.runInContext('matchupStatisticsMarkup("alpha",'+JSON.stringify({sort})+')',r.context)
     .matchAll(/<th scope="row">.*?<span>([^<]+)<\/span><\/div><\/th>/g),m=>m[1]);
   assert.deepEqual(rowNames(''),['[T] Alpha','[T] Zulu','[M] Boss','Untagged']);
