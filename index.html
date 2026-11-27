@@ -10,7 +10,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="assets/hub-emblem-32.png">
   <link rel="apple-touch-icon" sizes="180x180" href="assets/hub-emblem-180.png">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="playmat.css?v=hub19">
+  <link rel="stylesheet" href="playmat.css?v=hub20">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -21758,24 +21758,33 @@
     let arenaMatch = null, arenaMessages = [], arenaMessageIndex = 0, arenaKnockoutId = null, arenaTimer;
     function showArenaMessage() {
       const message = $('arenaMessage');
+      const ribbon = $('arenaRibbon');
       const next = arenaMessages[arenaMessageIndex];
       if (!next) return;
-      message.textContent = next;
-      const scrolling=playmatEffectsEnabled && !prefersReducedPlaymatMotion();
-      const ribbon=$('arenaRibbon');
+      const scrolling = playmatEffectsEnabled && !prefersReducedPlaymatMotion() && !!message.animate;
+      ribbon.classList.toggle('arena-scrolling',scrolling);
       message.getAnimations?.().forEach(animation=>animation.cancel());
-      const duration=scrolling ? Math.max(4200,(ribbon.clientWidth + message.scrollWidth)*13) : 4200;
-      if (scrolling) message.animate?.([
-        {left:'100%',transform:'translateX(0)'},
-        {left:'0%',transform:'translateX(-100%)'}
-      ],{duration,easing:'linear',fill:'forwards'});
       clearTimeout(arenaTimer);
+      if (scrolling) {
+        const ordered = [...arenaMessages.slice(arenaMessageIndex),...arenaMessages.slice(0,arenaMessageIndex)];
+        const line = ordered.join('   ◆   ')+'   ◆   ';
+        const group = document.createElement('span');
+        group.textContent = line;
+        message.replaceChildren(group);
+        const width = group.getBoundingClientRect().width;
+        const copies = Math.max(2,Math.ceil(ribbon.clientWidth/Math.max(1,width))+1);
+        for (let i=1;i<copies;i++) message.append(group.cloneNode(true));
+        message.animate([{transform:'translateX(0)'},{transform:'translateX(-'+width+'px)'}],
+          {duration:Math.max(1000,width*24),iterations:Infinity,easing:'linear'});
+        return;
+      }
+      message.textContent=next;
       arenaTimer=setTimeout(()=>{
         arenaTimer=null;
         if (!arenaMessages.length || $('matchLayout').classList.contains('app-hidden')) return;
         arenaMessageIndex=(arenaMessageIndex+1)%arenaMessages.length;
         showArenaMessage();
-      },duration);
+      },4200);
     }
     function renderArenaRibbon() {
       $('arenaRibbon').hidden=!game;
@@ -21800,6 +21809,7 @@
       if (game.phase==='play') messages.push(you===1 ? 'One Prize left. Finish strong, Toma!' : 'Let’s go, Toma!');
       const newKnockout=knockout && knockout.id!==arenaKnockoutId;
       const current=arenaMessages[arenaMessageIndex];
+      const changed=messages.join('\n')!==arenaMessages.join('\n');
       arenaMessages=messages;
       arenaMessageIndex=newKnockout ? messages.indexOf('Last KO · '+knockout.name) : Math.max(0,messages.indexOf(current));
       if (newKnockout && playmatEffectsEnabled && !prefersReducedPlaymatMotion()) {
@@ -21807,7 +21817,9 @@
           fan.animate?.([{translate:'0 0'},{translate:'0 -4px'},{translate:'0 0'}],{duration:350,iterations:2});
       }
       arenaKnockoutId=knockout?.id;
-      if (newKnockout || $('arenaMessage').textContent!==messages[arenaMessageIndex] || !arenaTimer) showArenaMessage();
+      const motionChanged = $('arenaRibbon').classList.contains('arena-scrolling') !==
+        (playmatEffectsEnabled && !prefersReducedPlaymatMotion() && !!$('arenaMessage').animate);
+      if (newKnockout || changed || motionChanged || (!arenaTimer && !$('arenaMessage').getAnimations?.().length)) showArenaMessage();
     }
     function render() {
       applyMatchPlaymat();

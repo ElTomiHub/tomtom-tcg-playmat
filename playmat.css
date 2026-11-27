@@ -3338,3 +3338,16 @@ button.recap-marker:hover, button.recap-marker:focus-visible { border-color: #f5
   .arena-ribbon { flex:auto; }
   .arena-crowd { inset-inline:3px; opacity:.32; }
 }
+.match-heading .arena-header:has(.arena-ribbon:not([hidden])) {
+  display:grid; grid-template-columns:minmax(0, 2fr) minmax(0, 3fr);
+}
+.arena-ribbon > span { display:flex; }
+.arena-ribbon > span > span { white-space:pre; }
+.arena-ribbon:not(.arena-scrolling) > span { display:block; width:100%; overflow:hidden; text-overflow:ellipsis; }
+@media(max-width:700px) {
+  .match-heading .arena-header:has(.arena-ribbon:not([hidden])) { grid-template-columns:minmax(0,1fr); }
+}
+.match-heading .arena-ribbon { height:28px; align-self:center; }
+@media(max-width:700px) {
+  .match-heading .arena-ribbon { height:20px; align-self:stretch; }
+}
