@@ -8762,7 +8762,7 @@
         const result = history?.[option];
         const wins = result?.wins || 0, losses = result?.losses || 0;
         // Start with two wins and two losses of prior weight and retain room to explore.
-        return Math.max(0.15, (2 + wins) / (4 + wins + losses));
+        return (2 + losses) / (4 + wins + losses); // Records use Yami’s perspective.
       });
     }
     function yamiStyleWeights(yamiDeckId, tomaDeckId, difficulty = 'competitor') {
@@ -8781,12 +8781,15 @@
     }
     function yamiDifficultyWeights() {
       const wins = {casual:0, competitor:0, master:0};
+      const losses = {...wins};
       const levels = Object.keys(wins);
       for (const stats of Object.values(deckStats)) {
         for (const matchup of Object.values(stats?.matchups || {})) {
           const difficulties = matchup?.bySide?.codex?.difficulties;
           if (!difficulties) continue;
           for (const level of levels) {
+            const tomaLosses = difficulties[level]?.wins;
+            if (Number.isSafeInteger(tomaLosses) && tomaLosses > 0) losses[level] += tomaLosses;
             const tomaWins = difficulties[level]?.losses;
             if (Number.isSafeInteger(tomaWins) && tomaWins > 0) wins[level] += tomaWins;
           }
@@ -8795,7 +8798,16 @@
       // Three weight points equal one percentage point. Casual wins shift some odds to Competitor and more to Master.
       const master = Math.min(300, 100 + 18*wins.casual + 27*wins.competitor + 42*wins.master);
       const competitor = Math.max(0, Math.min(300-master, 100 + 9*wins.casual - 9*wins.competitor - 21*wins.master));
-      return [300-master-competitor, competitor, master];
+      const harder = [300-master-competitor, competitor, master];
+      const winCount = levels.reduce((sum,level)=>sum+wins[level],0);
+      const lossCount = levels.reduce((sum,level)=>sum+losses[level],0);
+      if (!lossCount) return harder;
+      // Mirror the progression toward Casual after losses, then blend both records.
+      // This lets a loss reopen easier settings even after a long run at 100% Master.
+      const casual = Math.min(300, 100 + 42*losses.casual + 27*losses.competitor + 18*losses.master);
+      const middle = Math.max(0, Math.min(300-casual, 100 - 21*losses.casual - 9*losses.competitor + 9*losses.master));
+      const easier = [casual,middle,300-casual-middle];
+      return harder.map((weight,index)=>(weight*winCount+easier[index]*lossCount)/(winCount+lossCount));
     }
     function chooseYamiDifficulty(selection) {
       return chooseWeightedYamiSetting(selection, Object.keys(YAMI_DIFFICULTY_LABELS), yamiDifficultyWeights());
@@ -8812,10 +8824,10 @@
       const select = $('yamiStyleSelect'), note = $('yamiStyleNote');
       note.textContent = Object.hasOwn(YAMI_STYLE_LABELS, select.value) ?
         'Selected: ' + YAMI_STYLE_LABELS[select.value] + ' · Used for the whole match.' :
-        'Yami picks randomly at match start, favoring styles that have won this deck matchup.';
+        'Yami picks randomly at match start, shifting the odds toward other styles when you lose at this difficulty in this matchup.';
       const difficulty = $('yamiDifficultySelect').value;
       $('yamiDifficultyNote').textContent = difficulty === 'random' ?
-        'Your wins across decks raise the odds of harder games until Random always picks Master. The choice is revealed after the match.' :
+        'Wins across decks favor harder games. Losses favor easier games. The choice is revealed after the match.' :
         'Competitor uses the standard planner. Casual looks ahead less, and Master checks more replies.';
     }
     function renderSetupDeckRecords() {

@@ -107,7 +107,7 @@ test('AI attaches to a Benched attacker, pays Retreat, and takes a Prize through
   assert.equal(p.prizes.length, prizes - 1);
 });
 
-test('Random style learns from a Yami loss only for the same ordered deck matchup', () => {
+test('Random style favors alternatives after a Toma loss only for the same ordered deck matchup', () => {
   const {runInContext} = require('node:vm');
   const {r} = prizePosition();
   const game = r.api.state();
@@ -116,7 +116,7 @@ test('Random style learns from a Yami loss only for the same ordered deck matchu
   const weights = (yami, toma) => Array.from(runInContext(
     `yamiStyleWeights(${JSON.stringify(yami)}, ${JSON.stringify(toma)})`, r.context));
   assert.deepEqual(weights('yami-test','toma-test'), [0.5,0.5,0.5]);
-  runInContext("recordDeckResult('you'); recordDeckResult('you');", r.context);
+  runInContext("recordDeckResult('codex'); recordDeckResult('codex');", r.context);
   assert.deepEqual(weights('yami-test','toma-test'), [0.4,0.5,0.5]);
   assert.deepEqual(weights('toma-test','yami-test'), [0.5,0.5,0.5]);
   assert.deepEqual(weights('yami-test','other-deck'), [0.5,0.5,0.5]);
@@ -135,7 +135,7 @@ test('Random difficulty increases both harder odds after a Casual win and learns
   game.yamiStyle = 'control';
   runInContext("recordDeckResult('you')", r.context);
   assert.deepEqual(weights(), [73,109,118]);
-  assert.deepEqual(Array.from(runInContext("yamiStyleWeights('yami-difficulty','toma-difficulty','casual')",r.context)), [0.5,0.5,0.4]);
+  assert.deepEqual(Array.from(runInContext("yamiStyleWeights('yami-difficulty','toma-difficulty','casual')",r.context)), [0.5,0.5,0.6]);
   assert.deepEqual(Array.from(runInContext("yamiStyleWeights('yami-difficulty','toma-difficulty','master')",r.context)), [0.5,0.5,0.5]);
   r.api.setChoices(() => 0.3, r.choose);
   assert.equal(runInContext("chooseYamiDifficulty('random')",r.context), 'competitor');
@@ -153,7 +153,7 @@ test('Random difficulty increases both harder odds after a Casual win and learns
   assert.ok(r.api.validateBackup(r.api.backup()));
 });
 
-test('Random difficulty reaches 100% Master and keeps progress after losses, draws, and forfeits', () => {
+test('Random difficulty reopens easier settings after a loss at 100% Master and ignores draws and forfeits', () => {
   const {runInContext} = require('node:vm');
   const {r} = prizePosition(), game = r.api.state();
   const weights = () => Array.from(runInContext('yamiDifficultyWeights()',r.context));
@@ -167,10 +167,6 @@ test('Random difficulty reaches 100% Master and keeps progress after losses, dra
   game.yamiStyle = 'balanced';
   result('you','all Prize cards taken');
   assert.deepEqual(weights(), [79,79,142]);
-  result('codex','all Prize cards taken');
-  result(null,'draw');
-  result('codex','Toma forfeited');
-  assert.deepEqual(weights(), [79,79,142]);
   for (let wins=1; wins<5; wins++) result('you','all Prize cards taken');
   assert.deepEqual(weights(), [0,0,300]);
   for (const roll of [0,0.4,0.999]) {
@@ -179,9 +175,17 @@ test('Random difficulty reaches 100% Master and keeps progress after losses, dra
   }
   assert.equal(runInContext("chooseYamiDifficulty('casual')",r.context), 'casual');
   assert.equal(runInContext("chooseYamiDifficulty('competitor')",r.context), 'competitor');
-  const backup = r.api.backup();
+  result('codex','all Prize cards taken');
+  const afterLoss = weights();
+  assert.ok(afterLoss[0]>0 && afterLoss[1]>0 && afterLoss[2]<300);
+  result(null,'draw');
+  result('codex','Toma forfeited');
+  assert.deepEqual(weights(),afterLoss);
+  result('you','all Prize cards taken');
+  assert.ok(weights()[2]>afterLoss[2]);
+  const expected=weights(), backup=r.api.backup();
   r.api.restoreBackup(backup);
-  assert.deepEqual(weights(), [0,0,300]);
+  assert.deepEqual(weights(),expected);
 });
 
 test('Casual skips projected Prize lines while Master can plan without changing the live board', () => {
@@ -330,9 +334,9 @@ test('matchup statistics show Toma’s results by Yami difficulty and archetype'
   assert.deepEqual(Array.from(row.matchAll(/<td[^>]*>([^<]*)<small/g), match => match[1]),
     ['—','—','1 W · 0 L','0 W · 1 L','—','—','—','—','—']);
   const odds = markup => Array.from(markup.matchAll(/class="statistics-odds"[^>]*>([^<]+)<\/small>/g),match=>match[1]);
-  assert.deepEqual(odds(row),['8.7%','8.7%','7.0%','13.6%','11.4%','11.4%','13.1%','13.1%','13.1%']);
+  assert.deepEqual(odds(row),['10.4%','10.4%','12.5%','9.5%','11.9%','11.9%','11.1%','11.1%','11.1%']);
   const filtered = runInContext("matchupStatisticsMarkup(game.deckIds.you,{levelFilter:'competitor',styleFilter:'aggro',played:true})",r.context);
-  assert.deepEqual(odds(filtered),['13.6%']);
+  assert.deepEqual(odds(filtered),['9.5%']);
 });
 
 test('the move log groups turns and keeps a collapsed turn closed when new moves arrive', async () => {
