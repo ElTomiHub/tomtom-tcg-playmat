@@ -193,3 +193,15 @@ test('the sync outbox can survive the tab closing when browser string storage is
   await run("acknowledgeProgress(['test-match-quota'])");
   assert.equal((await run('readPendingProgress()')).length,0);
 });
+
+test('each campaign flip syncs and an equal-progress stale snapshot preserves the reveal',()=>{
+  const {mergePlaymatProgress}=require('../assets/library-sync.js');
+  const campaign={id:'match-100-run',deckId:'deck',results:['win'],rounds:[{deckId:'a',face:'HEADS'},{deckId:'b'}]};
+  const cloud={schemaVersion:1,deckStats:{},campaign,receipts:['campaign-coin:match-100-run:0:a']};
+  const revealed={...campaign,rounds:[campaign.rounds[0],{deckId:'b',face:'TAILS'}]};
+  const merged=mergePlaymatProgress(cloud,[
+    {id:'campaign-coin:match-100-run:1:b',campaign:revealed},
+    {id:'stale-round',campaign}
+  ]);
+  assert.deepEqual(merged.campaign,revealed);
+});

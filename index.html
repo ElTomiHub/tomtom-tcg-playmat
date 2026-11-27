@@ -517,7 +517,7 @@
   <div class="toast" id="toast" role="status"></div>
 
   <script src="assets/starter-library.js"></script>
-  <script src="assets/library-sync.js?v=6"></script>
+  <script src="assets/library-sync.js?v=7"></script>
   <script>
     const $ = (id) => document.getElementById(id);
     const deckInputs = { you: $('youDeck'), codex: $('codexDeck') };
@@ -8396,7 +8396,9 @@
       try { localStorage.setItem(CAMPAIGN_KEY,JSON.stringify(run)); }
       catch { showToast('Campaign progress could not be saved in this browser.'); return false; }
       if (sync && typeof queueProgressEvent === 'function') {
-        queueProgressEvent({id:'campaign:'+run.id+':'+run.rounds.map(round=>round.deckId).join('|'),campaign:run});
+        const index=run.results.length;
+        const round=run.rounds[index];
+        queueProgressEvent({id:'campaign-coin:'+run.id+':'+index+':'+round.deckId,campaign:run});
       }
       return true;
     }

@@ -332,7 +332,9 @@ function newerCampaignRun(current, incoming) {
     if (current.results.some((result,index)=>index<incoming.results.length && result!==incoming.results[index])) {
       return current;
     }
-    return incoming.results.length>=current.results.length ? incoming : current;
+    const roundIndex = current.results.length;
+    if (incoming.results.length===roundIndex && current.rounds?.[roundIndex]?.face && !incoming.rounds?.[roundIndex]?.face) return current;
+    return incoming.results.length>=roundIndex ? incoming : current;
   }
   const started = run=>Number(/^match-(\d+)-/.exec(run.id)?.[1] || 0);
   return started(incoming)>started(current) || (started(incoming)===started(current) && incoming.id>current.id) ? incoming : current;
