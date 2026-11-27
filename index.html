@@ -10,7 +10,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="assets/hub-emblem-32.png">
   <link rel="apple-touch-icon" sizes="180x180" href="assets/hub-emblem-180.png">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="playmat.css?v=hub17">
+  <link rel="stylesheet" href="playmat.css?v=hub18">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -286,7 +286,10 @@
           </div>
           <div class="field" id="matchField">
             <section class="player-row opponent" id="codexRow" data-board-side="codex"></section>
-            <div class="battle-center" id="battleCenter"><div class="zone active-zone battle-active" id="codexActiveZone" data-board-side="codex"></div><div class="battle-stadium"><div class="zone-title">STADIUM</div><div class="stadium-slot" id="stadiumSlot"></div></div><div class="zone active-zone battle-active" id="youActiveZone" data-board-side="you"></div></div>
+            <div class="battle-center" id="battleCenter"><div class="zone active-zone battle-active" id="codexActiveZone" data-board-side="codex"></div><div class="battle-stadium"><div class="zone-title">STADIUM</div><div class="stadium-slot" id="stadiumSlot"></div></div><div class="zone active-zone battle-active" id="youActiveZone" data-board-side="you"></div>
+              <div class="arena-crowd" aria-hidden="true"><div><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
+              <div class="arena-ribbon" id="arenaRibbon" hidden><span id="arenaMessage"></span></div>
+            </div>
             <section class="player-row" id="youRow" data-board-side="you"></section>
           </div>
           <div class="lower-controls">
@@ -21099,7 +21102,7 @@
             <div class="pile-zone"><div class="zone-title">Discard</div><button type="button" class="pile-card discard-pile-card" data-discard-side="${side}" title="${topDiscard ? `Top: ${escapeHtml(topDiscard.name)} · ` : ''}View discard pile" aria-label="View ${escapeHtml(p.name)} discard pile, ${discardCount} cards${topDiscard ? `, top card ${escapeHtml(topDiscard.name)}` : ''}">${discardTop}</button><span class="lost-zone-marker" data-used="${!!lostCount || !!lostArrivals.size}" aria-label="Lost Zone, ${lostCount} cards">Lost <b>${lostCount}</b></span></div>
           </div>
           <div class="main-zones">
-            <div class="zone bench-zone" data-bench-drop-side="${side}"><div class="zone-title">Bench <span class="zone-note">${benchCards.length} / 5</span></div><div class="bench-grid">${bench}</div></div>
+            <div class="zone bench-zone" aria-label="${p.name} Bench" data-bench-drop-side="${side}"><div class="bench-grid">${bench}</div></div>
           </div>
           <div class="side-prizes"><div class="zone-title">PRIZES</div><div class="prize-display" aria-label="${prizeCount} Prize cards remaining, ${6-prizeCount} taken"><div class="prize-grid">${Array.from({length:6},(_,i)=>`<span class="prize-slot${i<prizeCount?'':' taken'}" aria-hidden="true"></span>`).join('')}</div><div class="prize-total"><strong>${prizeCount}</strong><small>LEFT</small></div></div></div>
         </div>`;
@@ -21753,8 +21756,58 @@
       if (status.innerHTML !== markup) status.innerHTML = markup;
     }
 
+    let arenaMatch = null, arenaMessages = [], arenaMessageIndex = 0, arenaKnockoutId = null, arenaTimer;
+    function showArenaMessage() {
+      const message = $('arenaMessage');
+      const next = arenaMessages[arenaMessageIndex];
+      if (!next) return;
+      const changed=message.textContent!==next;
+      message.textContent = next;
+      if (changed && playmatEffectsEnabled && !prefersReducedPlaymatMotion())
+        message.animate?.([{opacity:0,transform:'translateX(14px)'},{opacity:1,transform:'translateX(0)'}],{duration:230});
+      clearTimeout(arenaTimer);
+      arenaTimer=setTimeout(()=>{
+        arenaTimer=null;
+        if (!arenaMessages.length || $('matchLayout').classList.contains('app-hidden')) return;
+        arenaMessageIndex=(arenaMessageIndex+1)%arenaMessages.length;
+        showArenaMessage();
+      },4200);
+    }
+    function renderArenaRibbon() {
+      $('arenaRibbon').hidden=!game;
+      if (game!==arenaMatch) {
+        clearTimeout(arenaTimer); arenaTimer=null;
+        arenaMatch=game; arenaMessages=[]; arenaMessageIndex=0; arenaKnockoutId=null;
+        $('arenaMessage').textContent='';
+      }
+      if (!game || visualTransitionBusy() || gameplayEffectsBusy()) return;
+      const run = game.campaign && loadCampaign();
+      const path = run && run.id===game.campaign.id ? campaignPaths[run.path || 'final']?.[0] : null;
+      const names=['you','codex'].map(side=>{
+        const deck=registeredDecks.find(item=>item.id===game.deckIds?.[side]);
+        return deck?.name || PLAYER_NAMES[side];
+      });
+      const you=player('you').prizes.length, yami=player('codex').prizes.length;
+      const knockout=game.matchHistory?.knockouts.at(-1);
+      const messages=[];
+      if (path) messages.push(path+' · Round '+(game.campaign.round+1)+' of 5');
+      messages.push(names.join(' vs '),'Prizes left · Toma '+you+'–'+yami+' Yami');
+      if (knockout) messages.push('Last KO · '+knockout.name);
+      if (game.phase==='play') messages.push(you===1 ? 'One Prize left. Finish strong, Toma!' : 'Let’s go, Toma!');
+      const newKnockout=knockout && knockout.id!==arenaKnockoutId;
+      const current=arenaMessages[arenaMessageIndex];
+      arenaMessages=messages;
+      arenaMessageIndex=newKnockout ? messages.indexOf('Last KO · '+knockout.name) : Math.max(0,messages.indexOf(current));
+      if (newKnockout && playmatEffectsEnabled && !prefersReducedPlaymatMotion()) {
+        for (const fan of $('battleCenter').querySelectorAll('.arena-crowd span:nth-child(3n)'))
+          fan.animate?.([{translate:'0 0'},{translate:'0 -4px'},{translate:'0 0'}],{duration:350,iterations:2});
+      }
+      arenaKnockoutId=knockout?.id;
+      if (newKnockout || $('arenaMessage').textContent!==messages[arenaMessageIndex] || !arenaTimer) showArenaMessage();
+    }
     function render() {
       applyMatchPlaymat();
+      renderArenaRibbon();
       const active = !!game, side = viewedSide();
       const visualBusy = visualTransitionBusy();
       const turnReady = game?.phase === 'play' && !game.pendingCheckup && !game.pendingPromotion && !visualBusy && !gameplayEffectsBusy() && pendingAnimatedTurn?.match !== game;
