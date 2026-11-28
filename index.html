@@ -10,7 +10,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="assets/hub-emblem-32.png">
   <link rel="apple-touch-icon" sizes="180x180" href="assets/hub-emblem-180.png">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="playmat.css?v=hub23">
+  <link rel="stylesheet" href="playmat.css?v=hub24">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -21812,6 +21812,24 @@
       clearTimeout(arenaKoTimer);
       arenaKoTimer=setTimeout(()=>{banner.hidden=true;},3300);
     }
+    const arenaSponsors = {
+      gear: {name:'Trackside Gear', slogan:'Built for your next evolution.'},
+      cafe: {name:'Halftime Café', slogan:'A Berry break between battles.'}
+    };
+    function arenaMessageNode(message) {
+      const sponsor = Object.hasOwn(arenaSponsors,message) ? arenaSponsors[message] : null;
+      if (!sponsor) return document.createTextNode(message);
+      const ad = document.createElement('span');
+      ad.className = 'arena-sponsor';
+      ad.dataset.brand = message;
+      const logo = document.createElement('i');
+      logo.className = 'arena-sponsor-logo';
+      logo.setAttribute('aria-hidden','true');
+      const name = document.createElement('strong');
+      name.textContent = sponsor.name;
+      ad.append(logo,name,document.createTextNode(sponsor.slogan));
+      return ad;
+    }
     function showArenaMessage() {
       const message = $('arenaMessage');
       const ribbon = $('arenaRibbon');
@@ -21823,9 +21841,8 @@
       clearTimeout(arenaTimer);
       if (scrolling) {
         const ordered = [...arenaMessages.slice(arenaMessageIndex),...arenaMessages.slice(0,arenaMessageIndex)];
-        const line = ordered.join('   ◆   ')+'   ◆   ';
         const group = document.createElement('span');
-        group.textContent = line;
+        for (const item of ordered) group.append(arenaMessageNode(item),document.createTextNode('   ◆   '));
         message.replaceChildren(group);
         const width = group.getBoundingClientRect().width;
         const copies = Math.max(2,Math.ceil(ribbon.clientWidth/Math.max(1,width))+1);
@@ -21834,7 +21851,7 @@
           {duration:Math.max(1000,width*28),iterations:Infinity,easing:'linear'});
         return;
       }
-      message.textContent=next;
+      message.replaceChildren(arenaMessageNode(next));
       arenaTimer=setTimeout(()=>{
         arenaTimer=null;
         if (!arenaMessages.length || $('matchLayout').classList.contains('app-hidden')) return;
@@ -21887,7 +21904,7 @@
           const hp=effectivePokemonHp(active), left=hp-(active.damage || 0);
           if (left>0 && left<=Math.min(50,hp/3)) messages.push(active.name+' is in trouble · Only '+left+' HP left');
         }
-        messages.push('◈ Trackside Gear · Stadium sponsor','✦ Halftime Café · Stadium sponsor');
+        messages.push(...Object.keys(arenaSponsors));
       }
       if (game.phase==='play') messages.push(you===1 ? 'One Prize left. Finish strong, Toma!' : 'Let’s go, Toma!');
       const newKnockout=knockout && knockout.id!==arenaKnockoutId;

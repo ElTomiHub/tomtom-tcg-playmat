@@ -3389,3 +3389,23 @@ button.recap-marker:hover, button.recap-marker:focus-visible { border-color: #f5
 .arena-ko > span { min-width:0; }
 .arena-ko > span > * { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .arena-ko small { color:#ffefce; }
+.arena-sponsor { display:inline-flex; align-items:center; gap:8px; vertical-align:middle; color:#fff0bc; }
+.arena-sponsor[data-brand="cafe"] { color:#ffd6e1; }
+.arena-sponsor strong { font-weight:900; letter-spacing:.09em; }
+.arena-sponsor-logo {
+  position:relative; display:inline-grid; place-items:center; width:24px; height:24px;
+  border-radius:5px; background:#ffe49a; color:#263746;
+}
+.arena-sponsor-logo::before {
+  content:""; width:17px; height:14px; background:currentColor;
+  clip-path:polygon(0 43%,63% 43%,53% 0,100% 50%,53% 100%,63% 60%,0 60%);
+}
+[data-brand="cafe"] .arena-sponsor-logo { background:#ffced9; color:#743a52; }
+[data-brand="cafe"] .arena-sponsor-logo::before {
+  width:12px; height:10px; clip-path:none;
+  border-radius:2px 2px 5px 5px; box-shadow:0 5px 0 -3px currentColor;
+}
+[data-brand="cafe"] .arena-sponsor-logo::after {
+  content:""; position:absolute; width:4px; height:5px; left:16px; top:7px;
+  border:1px solid currentColor; border-radius:0 3px 3px 0;
+}
