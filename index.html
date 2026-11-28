@@ -10921,6 +10921,8 @@
       if (!panel && !previous) return;
       const buttons = {log:'matchLogBtn',inspector:'mobileInspectorBtn',tools:'mobileToolsBtn'};
       layout.dataset.mobilePanel = panel || '';
+      if (panel==='inspector') pauseYamiForInspector();
+      else if (previous==='inspector') resumeYamiAfterInspection();
       for (const [key,id] of Object.entries(buttons)) $(id).setAttribute('aria-expanded',String(key===panel));
       if (panel) {
         closeCardActionMenu();
@@ -11003,6 +11005,13 @@
       const key = cardActionKey(next);
       if (key === openCardActionKey) { closeCardActionMenu(keyboard); return; }
       selected = next;
+      if (localAiEnabled && game?.phase==='play' && game.turn==='codex') {
+        if (mobileMatchLayout()) setMobileMatchPanel('inspector');
+        else pauseYamiForInspector();
+        closeCardActionMenu();
+        render();
+        return;
+      }
       openCardActionKey = key;
       render();
       if (keyboard && !$('cardActionMenu').hidden) {
@@ -20106,9 +20115,25 @@
       }
       return { type: 'end_turn' };
     }
+    let inspectorPause = null;
+    function yamiPausedForInspector() {
+      return !!inspectorPause && inspectorPause.match===game && inspectorPause.turn===game?.turnNumber && game.turn==='codex';
+    }
+    function pauseYamiForInspector() {
+      if (!localAiEnabled || game?.phase!=='play' || game.turn!=='codex') return;
+      inspectorPause={match:game,turn:game.turnNumber};
+      clearTimeout(localAiTimer); localAiTimer=null;
+      $('localAiStatus').textContent='Yami is paused while you inspect.';
+      $('runCodexTurnBtn').disabled=true;
+    }
+    function resumeYamiAfterInspection() {
+      if (!yamiPausedForInspector()) return;
+      inspectorPause=null;
+      if (!matchCheckpointBusy()) scheduleLocalAiTurn(300);
+    }
     function scheduleLocalAiTurn(delay = 3000) {
       clearTimeout(localAiTimer); localAiTimer = null;
-      if ($('playmatConfirmDialog').open) return;
+      if ($('playmatConfirmDialog').open || yamiPausedForInspector()) return;
       if (!localAiEnabled || !game || game.phase !== 'play' || game.turn !== 'codex' || game.pendingPromotion || game.pendingCheckup || coinPresentationPending || visualTransitionBusy() || gameplayEffectsBusy() || pendingAnimatedTurn?.match === game || turnAnnouncementDeferred) return;
       $('localAiStatus').textContent = 'Yami is thinking locally…';
       $('runCodexTurnBtn').disabled = false;
@@ -20194,9 +20219,10 @@
     }
     async function runLocalAiStep() {
       localAiTimer = null;
-      if ($('playmatConfirmDialog').open) return;
+      if ($('playmatConfirmDialog').open || yamiPausedForInspector()) return;
       if (!localAiEnabled || !game || game.phase !== 'play' || game.turn !== 'codex' || game.pendingPromotion || game.pendingCheckup || coinPresentationPending || visualTransitionBusy() || gameplayEffectsBusy() || pendingAnimatedTurn?.match === game) return;
       if (typeof offerYamiMatchFinish==='function' && await offerYamiMatchFinish()) return;
+      if (yamiPausedForInspector()) return;
       if (++localAiActionCount > 24) {
         logEvent('Yami stopped after reaching its safe action limit and ended the turn.');
         controlSide = 'codex'; await endTurn(); return;
@@ -21016,7 +21042,9 @@
       if(!game || openingCardIsHidden(side) || coinPresentationPending || activeCardChoiceResolver || activeBoardChoiceResolver || window.effectResolutionPending || attackResolutionPending || visualTransitionBusy())return false;
       const host=[player(side)?.active,...(player(side)?.bench || [])].find(card=>card?.id===hostId);
       if(!host?.tools?.some(tool=>tool.id===toolId))return false;
-      selected={side,zone:'attached-tool',hostId,id:toolId};render();return true;
+      selected={side,zone:'attached-tool',hostId,id:toolId};
+      if (!mobileMatchLayout()) pauseYamiForInspector();
+      render();return true;
     }
 
     function pokemonHpSummaryMarkup(card, side) {
@@ -21254,6 +21282,7 @@
     }
     function openMatchCardZoom(card) {
       if (!card) return;
+      pauseYamiForInspector();
       const dialog = $('matchCardZoom'), body = $('matchCardZoomBody');
       $('matchCardZoomTitle').textContent = card.name;
       const sources = [...new Set([imageFor(card),imageFor(card,'high')].filter(Boolean))];
@@ -21977,7 +22006,7 @@
       $('controlCodex').disabled = coinPresentationPending || visualBusy || !!activeBoardChoiceResolver || localAiEnabled || game?.phase === 'setup';
       $('localAiToggle').checked = localAiEnabled;
       $('localAiToggle').disabled = !!game?.campaign && game.phase !== 'finished';
-      $('runCodexTurnBtn').disabled = coinPresentationPending || !active || game.phase !== 'play' || game.turn !== 'codex' || !localAiEnabled || !!game.pendingPromotion || !!game.pendingCheckup;
+      $('runCodexTurnBtn').disabled = yamiPausedForInspector() || coinPresentationPending || !active || game.phase !== 'play' || game.turn !== 'codex' || !localAiEnabled || !!game.pendingPromotion || !!game.pendingCheckup;
       const ownsTurn = active && game.phase === 'play' && side === game.turn && !game.pendingPromotion && !visualBusy;
       const p = active ? player(side) : null;
       const selectedHand = !!current && selected?.zone === 'hand';
@@ -22784,6 +22813,15 @@
     $('mobileInspectorBtn').addEventListener('click',()=>toggleMobileMatchPanel('inspector'));
     $('mobileReportBtn').addEventListener('click',()=>{setMobileMatchPanel(null);openProblemReport();});
     $('mobileToolsBtn').addEventListener('click',()=>toggleMobileMatchPanel('tools'));
+    $('matchCardZoom').addEventListener('close',resumeYamiAfterInspection);
+    $('matchField').addEventListener('click',event=>{
+      if (mobileMatchLayout() || !yamiPausedForInspector() ||
+          event.target.closest('[data-card],[data-attached-tool],[data-discard-side],[data-effect-detail]')) return;
+      selected=null;
+      closeCardActionMenu();
+      render();
+      resumeYamiAfterInspection();
+    },true);
     $('closeMobileInspectorBtn').addEventListener('click',()=>setMobileMatchPanel(null,true));
     $('mobilePlayTrainerBtn').addEventListener('click',()=>{
       const card = selected?.zone==='hand' && findSelected();
@@ -23104,6 +23142,7 @@
       if (!reference?.card || !['you', 'codex'].includes(reference.side)) return;
       pendingEvolutionId = null;
       selected = { side: reference.side, zone: 'history', id: reference.card.id, card: reference.card };
+      if (!mobileMatchLayout()) pauseYamiForInspector();
       render();
     });
     $('cardInspector').addEventListener('click', event => {

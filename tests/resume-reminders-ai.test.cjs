@@ -366,3 +366,17 @@ test('the move log groups turns and keeps a collapsed turn closed when new moves
   assert.match(log.innerHTML, /2 moves/);
   assert.match(log.innerHTML, /Another move on the second turn/);
 });
+test('inspecting a card pauses both scheduled and manual Yami steps until the inspector is dismissed',async()=>{
+  const {runInContext}=require('node:vm');
+  const {r}=prizePosition();
+  const run=code=>runInContext(code,r.context);
+  run("game.turn='codex'; localAiEnabled=true; pauseYamiForInspector(); scheduleLocalAiTurn()");
+  assert.equal(run('localAiTimer'),null);
+  const before=run('localAiActionCount');
+  await run('runLocalAiStep()');
+  assert.equal(run('localAiActionCount'),before);
+  run('resumeYamiAfterInspection()');
+  assert.equal(run('yamiPausedForInspector()'),false);
+  assert.ok(run('localAiTimer'));
+  run('clearTimeout(localAiTimer)');
+});
