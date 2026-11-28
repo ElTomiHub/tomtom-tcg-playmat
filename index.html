@@ -10,7 +10,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="assets/hub-emblem-32.png">
   <link rel="apple-touch-icon" sizes="180x180" href="assets/hub-emblem-180.png">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="playmat.css?v=hub24">
+  <link rel="stylesheet" href="playmat.css?v=hub25">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -7500,8 +7500,19 @@
       $('matchSummaryMeta').textContent = [summary.reason, summaryOpponentStyle(summary) && 'Yami: ' + summaryOpponentStyle(summary)].filter(Boolean).join(' · ');
       const metrics = [[summary.turns,'Turns'],[stats.pokemonPlayed,'Pokémon played'],[stats.energyAttached,'Energy attached'],[stats.attacks,'Attacks'],[stats.knockedOut,'Your Pokémon KO’d']];
       const preview = $('matchSummaryPreview');
+      const prizeReveal = '<section class="summary-prize-reveal"><h4>Remaining Prize cards</h4>'+
+        ['you','codex'].map(side=>{
+          const prizes=player(side).prizes;
+          const cards=prizes.map(card=>{
+            const image=imageFor(card);
+            return '<figure>'+(image ? '<img src="'+escapeHtml(image)+'" alt="" loading="lazy">' : '')+
+              '<figcaption>'+escapeHtml(card.name)+'</figcaption></figure>';
+          }).join('');
+          return '<div><strong>'+PLAYER_NAMES[side]+'</strong>'+(cards ?
+            '<div class="summary-prize-cards">'+cards+'</div>' : '<small>None remaining</small>')+'</div>';
+        }).join('')+'</section>';
       const previewMarkup = '<dl class="summary-metrics">' + metrics.map(([count,label]) =>
-        `<div><dt>${label}</dt><dd>${count}</dd></div>`).join('') + '</dl>' + masteryAwardsMarkup(summary.masteryAwards);
+        `<div><dt>${label}</dt><dd>${count}</dd></div>`).join('') + '</dl>' + masteryAwardsMarkup(summary.masteryAwards) + prizeReveal;
       if (matchSummaryPreviewMarkup !== previewMarkup) {
         preview.innerHTML = previewMarkup;
         matchSummaryPreviewMarkup = previewMarkup;
@@ -21101,7 +21112,6 @@
     }
     function renderRow(side) {
       const p = player(side), opponent = side === 'codex';
-      const canOperate = side === viewedSide();
       const incomingDiscard = new Set(activeVisualTransitions
         .filter(item => item.side === side && item.phase === 'knockout')
         .flatMap(({card}) => [card, ...(card.energy || []), ...(card.tools || []), ...(card.evolutionStack || [])].map(item => item.id)));
@@ -21133,9 +21143,8 @@
       const pendingPrizes = pendingPrizeEffects(side);
       const prizeCount = p.prizes.length + pendingPrizes.filter(effect => effect !== activePlaymatEffect).reduce((sum, effect) => sum + effect.count, 0);
       const handCount = handForPresentation(side).length;
-      const handText = opponent && game.phase !== 'finished' && !(canOperate && !openingCardIsHidden(side)) ? `${handCount} cards · hidden` : `${handCount} in hand`;
       return `${opponent ? opponentHandMarkup(handCount) : ''}
-        <div class="row-head"><div class="player-name"><span class="avatar">${PLAYER_NAMES[side][0]}</span><div>${escapeHtml(p.name)}<small>${escapeHtml(handText)}</small></div></div>${opponent ? `<span class="mobile-yami-hand"><strong>${handCount}</strong> in hand</span>` : ''}<div class="row-stats"><span class="row-deck-name" title="${escapeHtml(deckLabel(game.deckIds?.[side],p.deckName))}">${escapeHtml(deckLabel(game.deckIds?.[side],p.deckName))}</span></div></div>
+        <div class="row-head">${opponent ? `<span class="mobile-yami-hand"><strong>${handCount}</strong> in hand</span>` : ''}<div class="row-stats"><span class="row-deck-name" title="${escapeHtml(deckLabel(game.deckIds?.[side],p.deckName))}">${escapeHtml(deckLabel(game.deckIds?.[side],p.deckName))}</span></div></div>
         <div class="mat-layout">
           <div class="side-piles">
             <div class="pile-zone"><div class="zone-title">Deck</div><div class="pile-card deck-pile-card${p.deck.length ? '' : ' empty-deck'}" role="img" aria-label="${escapeHtml(p.name)}’s deck, ${p.deck.length} cards, face down"><span class="deck-pile-back" aria-hidden="true"></span><span class="pile-count">${p.deck.length}</span></div></div>
@@ -21814,21 +21823,41 @@
     }
     const arenaSponsors = {
       gear: {name:'Trackside Gear', slogan:'Built for your next evolution.'},
-      cafe: {name:'Halftime Café', slogan:'A Berry break between battles.'}
+      cafe: {name:'Halftime Café', slogan:'A Berry break between battles.'},
+      sleeves: {name:'Benchguard Sleeves', slogan:'Protect every evolution.'},
+      drinks: {name:'Berry Bolt', slogan:'Charge up for your next turn.'},
+      rail: {name:'Arena Express', slogan:'Next stop, the Active Spot.'}
     };
-    function arenaMessageNode(message) {
+    const arenaEvents = [
+      'Fan cam · Show your team colors!',
+      'Stadium wave · Starting in the west stands',
+      'Concourse notice · Trading tables are open',
+      'Fan challenge · Predict the next evolution',
+      'Stadium quiz · Name three Pokémon that evolve with a stone',
+      'Trainer shout-out · Make some noise for both decks'
+    ];
+    let arenaPlaylistTurn = null, arenaSponsorRotation = [], arenaEventRotation = [];
+    function rotateArenaAnnouncements() {
+      const turn = game.turnNumber;
+      if (arenaPlaylistTurn===turn) return;
+      arenaPlaylistTurn=turn;
+      // Cosmetic randomness stays independent of match draws and coin flips.
+      for (const [queue,items] of [[arenaSponsorRotation,Object.keys(arenaSponsors)],[arenaEventRotation,arenaEvents]]) {
+        if (queue.length) queue.shift();
+        if (!queue.length) {
+          queue.push(...items);
+          for (let i=queue.length-1;i>0;i--) {
+            const j=Math.floor(Math.random()*(i+1));
+            [queue[i],queue[j]]=[queue[j],queue[i]];
+          }
+        }
+      }
+    }
+    function arenaMessageMarkup(message) {
       const sponsor = Object.hasOwn(arenaSponsors,message) ? arenaSponsors[message] : null;
-      if (!sponsor) return document.createTextNode(message);
-      const ad = document.createElement('span');
-      ad.className = 'arena-sponsor';
-      ad.dataset.brand = message;
-      const logo = document.createElement('i');
-      logo.className = 'arena-sponsor-logo';
-      logo.setAttribute('aria-hidden','true');
-      const name = document.createElement('strong');
-      name.textContent = sponsor.name;
-      ad.append(logo,name,document.createTextNode(sponsor.slogan));
-      return ad;
+      if (!sponsor) return escapeHtml(message);
+      return '<span class="arena-sponsor" data-brand="'+message+'"><i class="arena-sponsor-logo" aria-hidden="true"></i><strong>'+
+        escapeHtml(sponsor.name)+'</strong>'+escapeHtml(sponsor.slogan)+'</span>';
     }
     function showArenaMessage() {
       const message = $('arenaMessage');
@@ -21842,7 +21871,7 @@
       if (scrolling) {
         const ordered = [...arenaMessages.slice(arenaMessageIndex),...arenaMessages.slice(0,arenaMessageIndex)];
         const group = document.createElement('span');
-        for (const item of ordered) group.append(arenaMessageNode(item),document.createTextNode('   ◆   '));
+        group.innerHTML=ordered.map(arenaMessageMarkup).join('   ◆   ')+'   ◆   ';
         message.replaceChildren(group);
         const width = group.getBoundingClientRect().width;
         const copies = Math.max(2,Math.ceil(ribbon.clientWidth/Math.max(1,width))+1);
@@ -21851,7 +21880,7 @@
           {duration:Math.max(1000,width*28),iterations:Infinity,easing:'linear'});
         return;
       }
-      message.replaceChildren(arenaMessageNode(next));
+      message.innerHTML=arenaMessageMarkup(next);
       arenaTimer=setTimeout(()=>{
         arenaTimer=null;
         if (!arenaMessages.length || $('matchLayout').classList.contains('app-hidden')) return;
@@ -21877,6 +21906,7 @@
         clearTimeout(arenaTimer); arenaTimer=null;
         clearTimeout(arenaKoTimer); $('arenaKo').hidden=true;
         arenaMatch=game; arenaMessages=[]; arenaMessageIndex=0; arenaKnockoutId=null; arenaFinished=false;
+        arenaPlaylistTurn=null; arenaSponsorRotation=[]; arenaEventRotation=[];
         $('arenaMessage').textContent='';
       }
       if (!game || visualTransitionBusy() || gameplayEffectsBusy()) return;
@@ -21904,9 +21934,11 @@
           const hp=effectivePokemonHp(active), left=hp-(active.damage || 0);
           if (left>0 && left<=Math.min(50,hp/3)) messages.push(active.name+' is in trouble · Only '+left+' HP left');
         }
-        messages.push(...Object.keys(arenaSponsors));
+        rotateArenaAnnouncements();
+        messages.splice(1,0,arenaSponsorRotation[0]);
+        messages.splice(Math.max(3,messages.length-1),0,arenaEventRotation[0]);
+        messages.push(you===1 ? 'One Prize left. Finish strong, Toma!' : 'Let’s go, Toma!');
       }
-      if (game.phase==='play') messages.push(you===1 ? 'One Prize left. Finish strong, Toma!' : 'Let’s go, Toma!');
       const newKnockout=knockout && knockout.id!==arenaKnockoutId;
       const current=arenaMessages[arenaMessageIndex];
       const changed=messages.join('\n')!==arenaMessages.join('\n');

@@ -3409,3 +3409,19 @@ button.recap-marker:hover, button.recap-marker:focus-visible { border-color: #f5
   content:""; position:absolute; width:4px; height:5px; left:16px; top:7px;
   border:1px solid currentColor; border-radius:0 3px 3px 0;
 }
+.arena-sponsor[data-brand="sleeves"] { color:#daf1ff; }
+[data-brand="sleeves"] .arena-sponsor-logo { background:#b3ddff; color:#19466d; }
+[data-brand="sleeves"] .arena-sponsor-logo::before { clip-path:polygon(0 0,100% 0,100% 61%,50% 100%,0 61%); width:12px; }
+.arena-sponsor[data-brand="drinks"] { color:#dcffcc; }
+[data-brand="drinks"] .arena-sponsor-logo { background:#c8f69e; color:#2e5b26; }
+[data-brand="drinks"] .arena-sponsor-logo::before { clip-path:polygon(54% 0,0 58%,45% 58%,39% 100%,100% 36%,54% 36%); }
+.arena-sponsor[data-brand="rail"] { color:#e8ddff; }
+[data-brand="rail"] .arena-sponsor-logo { background:#d7c4ff; color:#473274; }
+[data-brand="rail"] .arena-sponsor-logo::before { clip-path:polygon(0 12%,76% 12%,100% 50%,76% 88%,0 88%,24% 50%); }
+.summary-prize-reveal { margin-top:10px; display:grid; gap:8px; }
+.summary-prize-reveal h4 { margin:0; }
+.summary-prize-reveal small { margin-left:8px; }
+.summary-prize-cards { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin-top:4px; }
+.summary-prize-cards figure { margin:0; text-align:center; }
+.summary-prize-cards img { display:block; width:100%; max-width:70px; margin:auto; border-radius:4px; }
+.summary-prize-cards figcaption { font-size:10px; overflow-wrap:anywhere; }
