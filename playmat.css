@@ -3377,3 +3377,15 @@ button.recap-marker:hover, button.recap-marker:focus-visible { border-color: #f5
 .campaign-path-medal[data-earned="false"] { filter:grayscale(1); opacity:.55; }
 #campaignSelectedBadge:not(:empty) { margin-top:12px; }
 #campaignSelectedBadge .campaign-path-medal,.campaign-trophy .campaign-path-medal { flex-direction:row; font-size:14px; font-weight:800; }
+.match-heading .autosave-status { display:none; }
+#matchLayout .match-heading #playmatTurnStatus,
+#matchLayout .match-heading .arena-ribbon { height:52px; min-height:52px; }
+.arena-ko {
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:10px;
+  padding:3px 8px; background:#442235; color:#fff3d6;
+}
+.arena-ko[hidden] { display:none; }
+.arena-ko > strong { font-size:clamp(21px,3vw,33px); color:#ffda7b; }
+.arena-ko > span { min-width:0; }
+.arena-ko > span > * { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.arena-ko small { color:#ffefce; }

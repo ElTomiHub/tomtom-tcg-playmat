@@ -10,7 +10,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="assets/hub-emblem-32.png">
   <link rel="apple-touch-icon" sizes="180x180" href="assets/hub-emblem-180.png">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="playmat.css?v=hub22">
+  <link rel="stylesheet" href="playmat.css?v=hub23">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -273,7 +273,7 @@
 
       <div id="inspectorPanelDivider" class="panel-divider" role="separator" tabindex="0" aria-label="Resize card inspector" aria-orientation="vertical" aria-controls="cardInspectorPanel" title="Drag to resize Inspector. Use arrow keys for small steps, Shift for larger steps; double-click to reset."></div>
       <section id="playmatPanel" class="table-column">
-        <div class="match-heading"><span class="autosave-status" id="matchSaveStatus" role="status"></span><h1 class="effect-announcement">Tomtom TCG Hub</h1><div class="arena-header"><div class="playmat-turn-status" id="playmatTurnStatus" role="status" aria-live="polite" aria-atomic="true"><strong>No match started</strong></div><div class="arena-ribbon" id="arenaRibbon" hidden><span id="arenaMessage"></span></div></div></div>
+        <div class="match-heading"><span class="autosave-status" id="matchSaveStatus" role="status"></span><h1 class="effect-announcement">Tomtom TCG Hub</h1><div class="arena-header"><div class="playmat-turn-status" id="playmatTurnStatus" role="status" aria-live="polite" aria-atomic="true"><strong>No match started</strong></div><div class="arena-ribbon" id="arenaRibbon" hidden><span id="arenaMessage"></span><div class="arena-ko" id="arenaKo" hidden><strong>KO</strong><span id="arenaKoDetail"></span></div></div></div></div>
         <section class="board-wrap" aria-label="Pokémon TCG playmat">
           <div class="board-toolbar" id="matchBoardToolbar">
             <div class="match-end-controls" role="group" aria-label="End match">
@@ -14254,10 +14254,11 @@
         queueCardMovement(side,card,destination,target,'hand',target ? `${action} · ${target.name}` : action,showPlay,evolutionBefore);
       } catch { /* Presentation records cannot prevent a legal play. */ }
     }
-    function queuePokemonVisualEffect(kind, side, pokemon, amount = 0) {
+    function queuePokemonVisualEffect(kind, side, pokemon, amount = 0, prizeScore = null) {
       try {
         const effect={kind,side,cardId:pokemon.id,name:pokemon.name,image:imageFor(pokemon),point:playmatPointFor(side,pokemon),amount};
         if(kind==='knockout'){
+          effect.prizeScore=prizeScore;
           effect.destinationPoint=cardMovementPoint(side,'discard');
           const rect = boardCardElements(side).find(element => element.dataset.card === pokemon.id)?.getBoundingClientRect();
           if (rect?.width > 0 && rect.height > 0) { effect.width = rect.width; effect.height = rect.height; }
@@ -14597,7 +14598,7 @@
         const previousHealth = effect.kind === 'damage' && !reduced && typeof performance !== 'undefined'
           ? Number(visiblePokemonHealth(effect)?.textContent) : NaN;
         activePlaymatEffect = effect;
-        if (effect.kind==='knockout') cheerArenaCrowd();
+        if (effect.kind==='knockout') { cheerArenaCrowd(); showArenaKnockout(effect); }
         playPlaymatSound(effect.kind);
         renderYamiCharacter();
         if (effect.kind === 'promotion') {
@@ -15936,14 +15937,14 @@
         coachReturnKnockout(knockedOut,options.source || attacker.active);
       }
       if (typeof recordKnockoutDeckStats === 'function') recordKnockoutDeckStats(defenderSide, knockedOut, attackerSide, options.source || (fromAttack ? attacker.active : null));
-      if (typeof queuePokemonVisualEffect === 'function') queuePokemonVisualEffect('knockout', defenderSide, knockedOut);
+      const prizes = Math.min(prizeCountFor(knockedOut), attacker.prizes.length);
+      if (typeof queuePokemonVisualEffect === 'function') queuePokemonVisualEffect('knockout', defenderSide, knockedOut,0,['you','codex'].map(side=>player(side).prizes.length-(side===attackerSide ? prizes : 0)));
       defender.active = null;
       delete knockedOut.cannotAttackUntilTurn;
       defender.discard.push(typeof isOpeningDoll === 'function' && isOpeningDoll(knockedOut) ? cleanDiscardedDoll(knockedOut) : knockedOut, ...(knockedOut.energy || []), ...(knockedOut.tools || []));
       if (typeof queueCardMovement==='function') for(const card of [...(knockedOut.energy||[]),...(knockedOut.tools||[]),...(knockedOut.evolutionStack||[])])queueCardMovement(defenderSide,card,'discard',null,knockedOut,'Knockout → discard');
       (knockedOut.evolutionStack || []).forEach(stage => defender.discard.push({ ...stage, categoryHint: 'Pokemon', category: 'Pokemon', energy: [], evolutionStack: [] }));
       logEvent(`${defender.name}’s ${knockedOut.name} was Knocked Out.`, true, null, null, {knockout:true});
-      const prizes = Math.min(prizeCountFor(knockedOut), attacker.prizes.length);
       for (let i = 0; i < prizes; i++) attacker.hand.push(attacker.prizes.pop());
       if (prizes && typeof queuePrizeMovement === 'function') queuePrizeMovement(attackerSide,prizes,attacker.hand.slice(-prizes));
       if (prizes) logEvent(`${attacker.name} took ${prizes} Prize card${prizes === 1 ? '' : 's'}.`, true, null, null, {prizes, side:attackerSide});
@@ -15964,7 +15965,8 @@
     function resolveBenchKnockout(attackerSide, defenderSide, pokemonId, fromAttack = false, source = null, options = {}) {
       const attacker = player(attackerSide), defender = player(defenderSide), index = defender.bench.findIndex(item => item.id === pokemonId);
       if (index < 0) return;
-      if (typeof queuePokemonVisualEffect === 'function') queuePokemonVisualEffect('knockout', defenderSide, defender.bench[index]);
+      const prizes = Math.min(prizeCountFor(defender.bench[index]), attacker.prizes.length);
+      if (typeof queuePokemonVisualEffect === 'function') queuePokemonVisualEffect('knockout', defenderSide, defender.bench[index],0,['you','codex'].map(side=>player(side).prizes.length-(side===attackerSide ? prizes : 0)));
       const knockedOut = defender.bench.splice(index, 1)[0];
       recordAttackDamageKnockout(defenderSide,fromAttack,knockedOut);
       if (fromAttack && attackerSide==='codex' && defenderSide==='you' && typeof coachReturnKnockout==='function') {
@@ -15976,7 +15978,6 @@
       if (typeof queueCardMovement==='function') for(const card of [...(knockedOut.energy||[]),...(knockedOut.tools||[]),...(knockedOut.evolutionStack||[])])queueCardMovement(defenderSide,card,'discard',null,knockedOut,'Knockout → discard');
       (knockedOut.evolutionStack || []).forEach(stage => defender.discard.push({ ...stage, categoryHint: 'Pokemon', category: 'Pokemon', energy: [], evolutionStack: [] }));
       logEvent(`${defender.name}’s Benched ${knockedOut.name} was Knocked Out.`, true, null, null, {knockout:true});
-      const prizes = Math.min(prizeCountFor(knockedOut), attacker.prizes.length);
       for (let i = 0; i < prizes; i++) attacker.hand.push(attacker.prizes.pop());
       if (prizes && typeof queuePrizeMovement === 'function') queuePrizeMovement(attackerSide,prizes,attacker.hand.slice(-prizes));
       if (prizes) logEvent(`${attacker.name} took ${prizes} Prize card${prizes === 1 ? '' : 's'}.`, true, null, null, {prizes, side:attackerSide});
@@ -21796,7 +21797,21 @@
       status.title = detail;
     }
 
-    let arenaMatch = null, arenaMessages = [], arenaMessageIndex = 0, arenaKnockoutId = null, arenaFinished = false, arenaTimer;
+    let arenaMatch = null, arenaMessages = [], arenaMessageIndex = 0, arenaKnockoutId = null, arenaFinished = false, arenaTimer, arenaKoTimer;
+    function showArenaKnockout(effect) {
+      const banner=$('arenaKo');
+      const [toma,yami]=effect.prizeScore || ['you','codex'].map(side=>player(side).prizes.length);
+      const detail=$('arenaKoDetail');
+      detail.replaceChildren();
+      const name=document.createElement('strong');
+      name.textContent=effect.name;
+      const score=document.createElement('small');
+      score.textContent='Prizes left · Toma '+toma+' · Yami '+yami;
+      detail.append(name,score);
+      banner.hidden=false;
+      clearTimeout(arenaKoTimer);
+      arenaKoTimer=setTimeout(()=>{banner.hidden=true;},3300);
+    }
     function showArenaMessage() {
       const message = $('arenaMessage');
       const ribbon = $('arenaRibbon');
@@ -21816,7 +21831,7 @@
         const copies = Math.max(2,Math.ceil(ribbon.clientWidth/Math.max(1,width))+1);
         for (let i=1;i<copies;i++) message.append(group.cloneNode(true));
         message.animate([{transform:'translateX(0)'},{transform:'translateX(-'+width+'px)'}],
-          {duration:Math.max(1000,width*24),iterations:Infinity,easing:'linear'});
+          {duration:Math.max(1000,width*28),iterations:Infinity,easing:'linear'});
         return;
       }
       message.textContent=next;
@@ -21843,6 +21858,7 @@
       $('arenaRibbon').hidden=!game;
       if (game!==arenaMatch) {
         clearTimeout(arenaTimer); arenaTimer=null;
+        clearTimeout(arenaKoTimer); $('arenaKo').hidden=true;
         arenaMatch=game; arenaMessages=[]; arenaMessageIndex=0; arenaKnockoutId=null; arenaFinished=false;
         $('arenaMessage').textContent='';
       }
@@ -21858,7 +21874,21 @@
       const messages=[];
       if (path) messages.push(path+' · Round '+(game.campaign.round+1)+' of 5');
       messages.push(names.join(' vs '),'Prizes left · Toma '+you+'–'+yami+' Yami');
-      if (knockout) messages.push('Last KO · '+knockout.name);
+      if (knockout) {
+        messages.push('Last KO · '+knockout.name);
+        const credited = knockout.creditedTo;
+        const count = game.matchHistory.knockouts.filter(ko=>ko.creditedTo===credited).length;
+        if (credited && count>1) messages.push(PLAYER_NAMES[credited]+' scores KO #'+count+'!');
+      }
+      if (game.phase==='play') {
+        for (const side of ['you','codex']) {
+          const active=player(side).active;
+          if (!active) continue;
+          const hp=effectivePokemonHp(active), left=hp-(active.damage || 0);
+          if (left>0 && left<=Math.min(50,hp/3)) messages.push(active.name+' is in trouble · Only '+left+' HP left');
+        }
+        messages.push('◈ Trackside Gear · Stadium sponsor','✦ Halftime Café · Stadium sponsor');
+      }
       if (game.phase==='play') messages.push(you===1 ? 'One Prize left. Finish strong, Toma!' : 'Let’s go, Toma!');
       const newKnockout=knockout && knockout.id!==arenaKnockoutId;
       const current=arenaMessages[arenaMessageIndex];
