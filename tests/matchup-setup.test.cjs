@@ -141,9 +141,10 @@ test('campaign shows why starting is blocked and lets an unfinished run reach th
   const {r,f,el}=ready();
   await el('menuCampaign').click();
   assert.equal(el('campaignActionBtn').disabled,true);
-  assert.match(el('campaignActionStatus').textContent,/playable opponent/);
+  assert.match(el('campaignActionStatus').textContent,/Strategy badge/);
   r.context.campaignFixtureIds={you:f.decks.human.id,codex:f.decks.ai.id};
   vm.runInContext(`registeredDecks.find(deck=>deck.id===campaignFixtureIds.codex).category='Master';
+    deckHasAiStrategy=()=>true;
     saveCampaign(newCampaign(campaignFixtureIds.you,playableCampaignDecks(),'masters'));`,r.context);
   await el('menuCampaign').click();
   assert.equal(el('campaignNewRunBtn').hidden,false);
@@ -156,7 +157,7 @@ test('campaign shows why starting is blocked and lets an unfinished run reach th
 
 test('campaign locks the deck, advances after losses, and awards the winning deck a badge',async()=>{
   const {r,f,el}=ready();
-  vm.runInContext(`registeredDecks.find(deck=>deck.id===${JSON.stringify(f.decks.ai.id)}).category='Master'`,r.context);
+  vm.runInContext(`registeredDecks.find(deck=>deck.id===${JSON.stringify(f.decks.ai.id)}).category='Master'; deckHasAiStrategy=()=>true;`,r.context);
   r.api.finishMatch(null,'Close initial fixture match');
   await el('menuCampaign').click();
   vm.runInContext("selectedCampaignPath='masters';openCampaign()",r.context);
@@ -218,6 +219,7 @@ test('Statistics, Campaign and both matchup selectors follow the visible Deck Ma
       ['boss','Boss','Master'], ['untagged','Untagged','']
     ];
     registeredDecks = testDeckOrder.map(([id,name,category]) => ({...registeredDecks[0],id,name,category}));
+    deckHasAiStrategy=()=>true;
     localStorage.setItem(DECK_ORDER_KEY,JSON.stringify(['boss','alpha','untagged','zulu']));
   `,r.context);
   const expected=['alpha','zulu','boss','untagged'];
@@ -229,6 +231,8 @@ test('Statistics, Campaign and both matchup selectors follow the visible Deck Ma
   assert.deepEqual(optionIds('statisticsDeck'),expected);
   await el('menuCampaign').click();
   assert.deepEqual(optionIds('campaignDeckSelect'),expected);
+  vm.runInContext("registeredDecks.find(deck=>deck.id==='alpha').strategyBaseline='older list';openCampaign();",r.context);
+  assert.deepEqual(optionIds('campaignDeckSelect'),expected.filter(id=>id!=='alpha'));
   const rowNames=sort=>Array.from(vm.runInContext('matchupStatisticsMarkup("alpha",'+JSON.stringify({sort})+')',r.context)
     .matchAll(/<th scope="row">.*?<span>([^<]+)<\/span><\/div><\/th>/g),m=>m[1]);
   assert.deepEqual(rowNames(''),['[T] Alpha','[T] Zulu','[M] Boss','Untagged']);

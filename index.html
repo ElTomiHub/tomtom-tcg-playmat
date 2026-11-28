@@ -8205,13 +8205,18 @@
       const parsed = parseDeck(deck.decklist,{allocateIds:false});
       return parsed.valid && deckHasAiStrategy(parsed.cards) ? deckStrategyComposition(parsed.cards) : '';
     }
-    function deckStrategyBadge(deck, parsed) {
+    function deckStrategyStatus(deck, parsed) {
       const baseline = typeof deck.strategyBaseline === 'string' && deck.strategyBaseline;
       const composition = baseline && deckStrategyComposition(parsed.cards);
       if (baseline && baseline !== composition && !reviewedStrategyLists.has(composition)) {
-        return '<span class="deck-readiness deck-strategy modified" title="The card list changed from the list tracked for this strategy. It may be worth reviewing Yami’s plan.">Modified</span>';
+        return 'modified';
       }
-      return parsed.valid && deckHasAiStrategy(parsed.cards)
+      return parsed.valid && deckHasAiStrategy(parsed.cards) ? 'active' : '';
+    }
+    function deckStrategyBadge(deck, parsed) {
+      const status=deckStrategyStatus(deck,parsed);
+      if (status==='modified') return '<span class="deck-readiness deck-strategy modified" title="The card list changed from the list tracked for this strategy. It may be worth reviewing Yami’s plan.">Modified</span>';
+      return status==='active'
         ? '<span class="deck-readiness deck-strategy active" title="Yami has a deck-specific strategy for this list.">Strategy</span>'
         : '';
     }
@@ -8413,7 +8418,8 @@
       return best >= 3 || stats?.campaignChampion === true ? campaignChampionBadge(best) : '';
     }
     function playableCampaignDecks() {
-      return decksInManagerDisplayOrder().filter(deck => deckReadiness(deck).playable);
+      return decksInManagerDisplayOrder().filter(deck => deckReadiness(deck).playable &&
+        deckStrategyStatus(deck,parseDeck(deck.decklist,{allocateIds:false}))==='active');
     }
     function campaignPathRecord(stats, path) {
       const record = stats?.byPath?.[path];
@@ -8553,7 +8559,7 @@
       $('campaignCoin').src=face==='TAILS' ? COIN_TAILS_IMAGE : COIN_HEAD_DESIGNS[0].image;
       const ongoing=!choosingDeck && game?.phase!=='finished' && game?.campaign?.id===run.id && game.campaign.round===index;
       $('campaignCoinLabel').textContent=ongoing ? 'Resume round '+(index+1) : face ? 'Start round '+(index+1) : campaignChoosingNewRun ? 'Replace run and flip' : 'Flip for round '+(index+1);
-      $('campaignActionStatus').textContent=unavailable ? 'This path needs a different playable opponent in each required category group. Choose another deck or path.' :
+      $('campaignActionStatus').textContent=unavailable ? 'Choose a playable deck with a Strategy badge and a path with eligible opponents in the required categories.' :
         face ? (face==='HEADS'?'Heads · Toma':'Tails · Yami')+' plays first.' : campaignChoosingNewRun ? 'Flipping replaces the unfinished run.' : '';
       $('campaignNewRunBtn').hidden=!run || finished || campaignChoosingNewRun;
       if ($('campaignModal').classList.contains('hidden')) setView('campaign');
@@ -8579,23 +8585,23 @@
       }
       if (!run || run.cancelled || run.results.length === CAMPAIGN_LEVELS.length || campaignChoosingNewRun) {
         const deckId = $('campaignDeckSelect').value, pool = playableCampaignDecks();
-        if (!pool.some(deck=>deck.id===deckId)) { status('Choose a playable deck to start.'); return; }
+        if (!pool.some(deck=>deck.id===deckId)) { status('Choose a playable deck with a Strategy badge to start.'); return; }
         run = newCampaign(deckId,pool,selectedCampaignPath);
-        if (!run) { status('Choose a deck with playable opponents for this path.'); return; }
+        if (!run) { status('Choose a deck with eligible Strategy opponents for this path.'); return; }
       }
       const index = run.results.length, round = run.rounds[index];
       const playable = playableCampaignDecks();
       const eligible=run.path ? campaignRivals(playable,run.deckId,run.path,index) :
         playable.filter(deck=>deck.id!==run.deckId && (index!==4 || deck.category==='Master'));
       if (!eligible.some(deck=>deck.id===round.deckId)) {
-        if (!eligible.length) {status('Restore an eligible opponent deck or choose a new run.');return;}
+        if (!eligible.length) {status('No eligible opponent has a confirmed Strategy for this round. Choose another path or restore an eligible deck.');return;}
         const replacement=shuffled(eligible).pop();
         round.deckId=replacement.id;
         round.deckName=deckDisplayName(replacement);
         delete round.face;
       }
       if (![run.deckId,round.deckId].every(id=>playable.some(deck=>deck.id===id))) {
-        status('A campaign deck is unavailable. Restore the deck and verify its cards to continue, or choose a new run.');
+        status('Your campaign deck needs to be playable and have a Strategy badge. Restore its eligible card list or choose a new run.');
         return;
       }
       if (!round.face) {
