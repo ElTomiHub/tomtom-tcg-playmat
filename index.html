@@ -14597,6 +14597,7 @@
         const previousHealth = effect.kind === 'damage' && !reduced && typeof performance !== 'undefined'
           ? Number(visiblePokemonHealth(effect)?.textContent) : NaN;
         activePlaymatEffect = effect;
+        if (effect.kind==='knockout') cheerArenaCrowd();
         playPlaymatSound(effect.kind);
         renderYamiCharacter();
         if (effect.kind === 'promotion') {
@@ -21826,6 +21827,18 @@
         showArenaMessage();
       },4200);
     }
+    function cheerArenaCrowd(finalCheer = false) {
+      if (!playmatEffectsEnabled || prefersReducedPlaymatMotion()) return;
+      const crowd = $('battleCenter').querySelector('.arena-crowd');
+      crowd?.animate?.([{opacity:.5},{opacity:1},{opacity:.8},{opacity:.5}],{duration:finalCheer ? 2100 : 1450});
+      crowd?.querySelectorAll('span:nth-child(2n)').forEach((fan,index)=>{
+        fan.animate?.([
+          {translate:'0 0',filter:'brightness(1)'},
+          {translate:'0 -9px',filter:'brightness(1.9)'},
+          {translate:'0 0',filter:'brightness(1)'}
+        ],{duration:490,delay:index%5*65,iterations:finalCheer ? 3 : 2,easing:'ease-in-out'});
+      });
+    }
     function renderArenaRibbon() {
       $('arenaRibbon').hidden=!game;
       if (game!==arenaMatch) {
@@ -21854,17 +21867,7 @@
       arenaMessageIndex=newKnockout ? messages.indexOf('Last KO · '+knockout.name) : Math.max(0,messages.indexOf(current));
       const finalCheer = game.phase==='finished' && !game.matchCancelled && !arenaFinished && !matchFinishPresentationBusy();
       if (finalCheer) arenaFinished=true;
-      if ((newKnockout || finalCheer) && playmatEffectsEnabled && !prefersReducedPlaymatMotion()) {
-        const crowd = $('battleCenter').querySelector('.arena-crowd');
-        crowd?.animate?.([{opacity:.5},{opacity:1},{opacity:.8},{opacity:.5}],{duration:finalCheer ? 2100 : 1450});
-        crowd?.querySelectorAll('span:nth-child(2n)').forEach((fan,index)=>{
-          fan.animate?.([
-            {translate:'0 0',filter:'brightness(1)'},
-            {translate:'0 -9px',filter:'brightness(1.9)'},
-            {translate:'0 0',filter:'brightness(1)'}
-          ],{duration:490,delay:index%5*65,iterations:finalCheer ? 3 : 2,easing:'ease-in-out'});
-        });
-      }
+      if (finalCheer) cheerArenaCrowd(true);
       arenaKnockoutId=knockout?.id;
       const motionChanged = $('arenaRibbon').classList.contains('arena-scrolling') !==
         (playmatEffectsEnabled && !prefersReducedPlaymatMotion() && !!$('arenaMessage').animate);
