@@ -3418,10 +3418,11 @@ button.recap-marker:hover, button.recap-marker:focus-visible { border-color: #f5
 .arena-sponsor[data-brand="rail"] { color:#e8ddff; }
 [data-brand="rail"] .arena-sponsor-logo { background:#d7c4ff; color:#473274; }
 [data-brand="rail"] .arena-sponsor-logo::before { clip-path:polygon(0 12%,76% 12%,100% 50%,76% 88%,0 88%,24% 50%); }
-.summary-prize-reveal { margin-top:10px; display:grid; gap:8px; }
-.summary-prize-reveal h4 { margin:0; }
-.summary-prize-reveal small { margin-left:8px; }
-.summary-prize-cards { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin-top:4px; }
-.summary-prize-cards figure { margin:0; text-align:center; }
-.summary-prize-cards img { display:block; width:100%; max-width:70px; margin:auto; border-radius:4px; }
-.summary-prize-cards figcaption { font-size:10px; overflow-wrap:anywhere; }
+.prize-slot.revealed-prize { padding:0; overflow:hidden; cursor:pointer; color:#fff1cb; font-size:8px; background:#102840; }
+.prize-slot.revealed-prize::after { display:none; }
+.revealed-prize img { display:block; width:100%; height:100%; object-fit:cover; }
+@media(max-width:700px), (pointer:coarse) and (max-width:1024px) {
+  #matchLayout .side-prizes.prizes-revealed { width:auto; height:auto; }
+  #matchLayout .prizes-revealed .prize-grid { display:grid; grid-template-columns:repeat(3,18px); grid-template-rows:repeat(2,24px); gap:2px; }
+  #matchLayout .prizes-revealed .prize-slot { width:18px; height:24px; margin:0; translate:none; }
+}

@@ -180,13 +180,16 @@ test('campaign locks the deck, advances after losses, and awards the winning dec
     assert.equal(game.yamiDifficulty,levels[round]);
     assert.equal(game.campaign.round,round);
     assert.equal(game.firstPlayer,result.startsWith('Heads')?'you':'codex');
+    for (const side of ['you','codex']) game.players[side].prizes.push(game.players[side].deck.pop());
     r.api.finishMatch(winners[round],'Campaign test result');
     const progress=vm.runInContext('JSON.stringify(loadCampaign().results)',r.context);
     assert.equal(JSON.parse(progress).length,round+1);
     if (round === levels.length - 1) assert.doesNotMatch(el('campaignHeading').textContent,/Campaign victory/);
     assert.equal(el('matchSummaryCard').hidden,true);
     assert.equal(el('matchCampaignBtn').hidden,true);
+    assert.doesNotMatch(el('codexRow').innerHTML,/data-prize-index/);
     finishEffects();
+    for (const row of ['youRow','codexRow']) assert.match(el(row).innerHTML,/data-prize-index/);
     assert.equal(el('campaignModal').classList.contains('hidden'),true);
     assert.equal(el('matchSummaryCard').hidden,false);
     assert.equal(el('matchCampaignBtn').hidden,false);

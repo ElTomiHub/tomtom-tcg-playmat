@@ -10,7 +10,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="assets/hub-emblem-32.png">
   <link rel="apple-touch-icon" sizes="180x180" href="assets/hub-emblem-180.png">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="playmat.css?v=hub25">
+  <link rel="stylesheet" href="playmat.css?v=hub26">
 </head>
 <body>
   <div class="playmat-effects" id="playmatEffects" aria-hidden="true"></div>
@@ -7500,19 +7500,8 @@
       $('matchSummaryMeta').textContent = [summary.reason, summaryOpponentStyle(summary) && 'Yami: ' + summaryOpponentStyle(summary)].filter(Boolean).join(' · ');
       const metrics = [[summary.turns,'Turns'],[stats.pokemonPlayed,'Pokémon played'],[stats.energyAttached,'Energy attached'],[stats.attacks,'Attacks'],[stats.knockedOut,'Your Pokémon KO’d']];
       const preview = $('matchSummaryPreview');
-      const prizeReveal = '<section class="summary-prize-reveal"><h4>Remaining Prize cards</h4>'+
-        ['you','codex'].map(side=>{
-          const prizes=player(side).prizes;
-          const cards=prizes.map(card=>{
-            const image=imageFor(card);
-            return '<figure>'+(image ? '<img src="'+escapeHtml(image)+'" alt="" loading="lazy">' : '')+
-              '<figcaption>'+escapeHtml(card.name)+'</figcaption></figure>';
-          }).join('');
-          return '<div><strong>'+PLAYER_NAMES[side]+'</strong>'+(cards ?
-            '<div class="summary-prize-cards">'+cards+'</div>' : '<small>None remaining</small>')+'</div>';
-        }).join('')+'</section>';
       const previewMarkup = '<dl class="summary-metrics">' + metrics.map(([count,label]) =>
-        `<div><dt>${label}</dt><dd>${count}</dd></div>`).join('') + '</dl>' + masteryAwardsMarkup(summary.masteryAwards) + prizeReveal;
+        `<div><dt>${label}</dt><dd>${count}</dd></div>`).join('') + '</dl>' + masteryAwardsMarkup(summary.masteryAwards);
       if (matchSummaryPreviewMarkup !== previewMarkup) {
         preview.innerHTML = previewMarkup;
         matchSummaryPreviewMarkup = previewMarkup;
@@ -15841,7 +15830,7 @@
       if (game?.phase !== 'finished' || presentedFinishedMatches.has(game) || matchFinishPresentationBusy()) return;
       presentedFinishedMatches.add(game);
       render();
-      if (typeof mobileMatchLayout==='function' && mobileMatchLayout()) setMobileMatchPanel('log');
+      if (typeof mobileMatchLayout==='function' && mobileMatchLayout()) setMobileMatchPanel(null);
     }
     function finishMatch(winner, reason, { cancelled = false } = {}) {
       if (!game || game.phase === 'finished') return;
@@ -21170,6 +21159,15 @@
       }).join('');
       const pendingPrizes = pendingPrizeEffects(side);
       const prizeCount = p.prizes.length + pendingPrizes.filter(effect => effect !== activePlaymatEffect).reduce((sum, effect) => sum + effect.count, 0);
+      const revealPrizes=game.phase==='finished' && !game.matchCancelled && !matchFinishPresentationBusy();
+      const prizeSlots=Array.from({length:6},(_,index)=>{
+        const card=revealPrizes && p.prizes[index];
+        if (!card) return '<span class="prize-slot'+(index<prizeCount?'':' taken')+'" aria-hidden="true"></span>';
+        const image=imageFor(card);
+        return '<button type="button" class="prize-slot revealed-prize" data-prize-side="'+side+'" data-prize-index="'+index+
+          '" aria-label="Inspect '+escapeHtml(card.name)+'" title="'+escapeHtml(card.name)+'">'+
+          (image ? '<img src="'+escapeHtml(image)+'" alt="">' : escapeHtml(card.name))+'</button>';
+      }).join('');
       const handCount = handForPresentation(side).length;
       return `${opponent ? opponentHandMarkup(handCount) : ''}
         <div class="row-head">${opponent ? `<span class="mobile-yami-hand"><strong>${handCount}</strong> in hand</span>` : ''}<div class="row-stats"><span class="row-deck-name" title="${escapeHtml(deckLabel(game.deckIds?.[side],p.deckName))}">${escapeHtml(deckLabel(game.deckIds?.[side],p.deckName))}</span></div></div>
@@ -21181,7 +21179,7 @@
           <div class="main-zones">
             <div class="zone bench-zone" aria-label="${p.name} Bench" data-bench-drop-side="${side}"><div class="bench-grid">${bench}</div></div>
           </div>
-          <div class="side-prizes"><div class="zone-title">PRIZES</div><div class="prize-display" aria-label="${prizeCount} Prize cards remaining, ${6-prizeCount} taken"><div class="prize-grid">${Array.from({length:6},(_,i)=>`<span class="prize-slot${i<prizeCount?'':' taken'}" aria-hidden="true"></span>`).join('')}</div><div class="prize-total"><strong>${prizeCount}</strong><small>LEFT</small></div></div></div>
+          <div class="side-prizes${revealPrizes && prizeCount ? ' prizes-revealed' : ''}"><div class="zone-title">PRIZES</div><div class="prize-display" aria-label="${prizeCount} Prize cards remaining, ${6-prizeCount} taken"><div class="prize-grid">${prizeSlots}</div><div class="prize-total"><strong>${prizeCount}</strong><small>LEFT</small></div></div></div>
         </div>`;
     }
     function energyPlaceholderImage(card) {
@@ -23168,6 +23166,11 @@
       if (tool) inspectAttachedTool(tool.dataset.side,tool.dataset.toolHost,tool.dataset.attachedTool);
     });
     for (const id of ['youRow','codexRow','battleCenter']) $(id).addEventListener('click', showCardEffectDetails, true);
+    $('matchField').addEventListener('click',event=>{
+      const prize=event.target.closest('[data-prize-index]');
+      if (!prize || game?.phase!=='finished' || game.matchCancelled || matchFinishPresentationBusy()) return;
+      openMatchCardZoom(player(prize.dataset.prizeSide)?.prizes[Number(prize.dataset.prizeIndex)]);
+    });
     $('youRow').addEventListener('click', event => {
       const tool=event.target.closest('[data-attached-tool]');if(tool){inspectAttachedTool(tool.dataset.side,tool.dataset.toolHost,tool.dataset.attachedTool);return;}
       const card = event.target.closest('[data-card]');
