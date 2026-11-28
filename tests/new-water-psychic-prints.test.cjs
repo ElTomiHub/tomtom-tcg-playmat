@@ -69,3 +69,25 @@ test('Mew ex 152 copies only affordable attacks from its Bench', () => {
   mew.energy = [{name:'Water Energy',meta:{category:'Energy',energyType:'Water'}}];
   assert.equal(runner.api.attackOptions('you').some(({attack})=>attack.name==='Water Gun'),true);
 });
+
+test('the Japanese Supporter prints resolve their exact effects', async () => {
+  for (const [name,set,number] of [['Arezu','S10A','86'],['Friends in Hisui','S12A','249'],['Zisu','S10D','79'],['Perrin','SV5A','92']]) {
+    const {runner,game,make,run}=playSetup();
+    const supporter=make(name,set,number);
+    const owner=game.players.you;
+    const basic=make('Snorunt','M2A','200'), evolution=make('Kadabra','M1S','37');
+    const rulebox=make('Mega Starmie ex','M3','111');
+    assert.ok(supporter.meta.image.includes('_R_JP.png'));
+    runner.context.supporter=supporter;
+    assert.equal(run('effectSupportFor(supporter)'),'automatic');
+    owner.hand=name==='Perrin' ? [supporter,basic] : [supporter];
+    owner.deck=name==='Perrin' ? [evolution,rulebox] : [basic,evolution,rulebox];
+    game.players.codex.hand=[{id:'other'}];
+    runner.api.setChoices(runner.random,query=>query.candidates?.filter(item=>item!==basic || query.title.includes('return')).slice(0,query.maxCount ?? 1));
+    await runner.api.playCard('you',supporter.id);
+    assert.equal(owner.discard.at(-1),supporter,name);
+    assert.equal(owner.hand.length,{'Arezu':1,'Friends in Hisui':3,'Zisu':2,'Perrin':1}[name],name);
+    if (name==='Arezu' || name==='Perrin') assert.equal(owner.hand[0],evolution);
+    if (name==='Perrin') assert.ok(owner.deck.includes(basic));
+  }
+});
